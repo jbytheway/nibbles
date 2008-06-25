@@ -1,0 +1,5 @@
+.*.swp
+.makefrags
+.obj
+.libs
+*.la
