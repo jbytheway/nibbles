@@ -1,2 +1,3 @@
 BIN := nibbles++-server
+LIBS := -lboost_system -lpthread
 
