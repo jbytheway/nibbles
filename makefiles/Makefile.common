@@ -62,6 +62,7 @@
 
 CXX ?= g++
 CC ?= gcc
+LIBTOOL ?= libtool
 
 PREFIX ?= /usr/local
 DESTDIR ?=
@@ -109,8 +110,9 @@ MAKEFRAGS := \
 # and such things, they should be added to BUILD_CXXFLAGS in a config.mk or to
 # THIS_CXXFLAGS in a Makefile.local (depending on whether they are supposed to
 # apply to a build or a binary respectively).
-GLOBAL_CXXFLAGS ?= -Werror -Wall -Wextra -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -O0 -g3
+GLOBAL_CXXFLAGS ?= -std=c++0x -Werror -Wall -Wextra -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -O0 -g3
 GLOBAL_CFLAGS ?= -Werror -O0 -g3
+GLOBAL_CPPFLAGS ?= -std=c++0x
 
 # We replace '-' with '/' in the library name when using it as a directory
 # because e.g. libsakusen-comms is in libsakusen/comms
@@ -118,10 +120,7 @@ GLOBAL_CFLAGS ?= -Werror -O0 -g3
 LIB_DEP := $(foreach lib,$(LIB_DEP_NAMES), \
 		$(top_builddir)$(subst -,/,$(lib))/$(lib).la \
 	)
-INCLUDE := -I$(this_srcdir) -I. $(foreach lib,\
-		$(patsubst $(top_builddir)%,$(top_srcdir)%,$(LIB_DEP)),\
-		-I$(dir $(lib))\
-	) $(INCLUDE)
+INCLUDE := -I$(this_srcdir) -I. -I$(top_srcdir) $(INCLUDE)
 
 # Concatenate all the CXXFLAGSs and CFLAGSs together
 
@@ -129,6 +128,7 @@ ALL_CXXFLAGS := \
 	$(CXXFLAGS) $(GLOBAL_CXXFLAGS) $(BUILD_CXXFLAGS) $(INCLUDE) $(THIS_CXXFLAGS)
 ALL_CFLAGS := \
 	$(CFLAGS) $(GLOBAL_CFLAGS) $(BUILD_CFLAGS) $(INCLUDE) $(THIS_CFLAGS)
+ALL_CPPFLAGS := $(GLOBAL_CPPFLAGS) $(INCLUDE)
 
 GAMESDIR := $(DESTDIR)$(PREFIX)/games
 BINDIR := $(DESTDIR)$(PREFIX)/bin
@@ -272,7 +272,7 @@ ifneq ($(IS_LIB),)
 # Build the binary
 
 $(BIN): $(CXX_OBJS) $(C_OBJS) $(LIB_DEP)
-	libtool --mode=link --tag=CXX $(CXX) -g3 $(BUILD_LDFLAGS) $(THIS_LDFLAGS) \
+	$(LIBTOOL) --mode=link --tag=CXX $(CXX) -g3 $(BUILD_LDFLAGS) $(THIS_LDFLAGS) \
 		-rpath $(PREFIX)/lib$(INSTALL_SUBDIR) \
 		-o $@ $(LIBS) $(LIBTOOL_OBJS) $(LIB_DEP)
 
@@ -285,18 +285,18 @@ $(LIBTOOL_OBJS): %.lo: %.o
 
 $(CXX_OBJS): .obj/%.o:
 	@mkdir -p $(dir $@)
-	libtool --tag=CXX --mode=compile $(CXX) $(ALL_CXXFLAGS) -c \
+	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(ALL_CXXFLAGS) -c \
 		-o $@ $(this_srcdir)$(subst _dot_dot,..,$*).cpp
 
 $(C_OBJS): .obj/%.o:
 	@mkdir -p $(dir $@)
-	libtool --tag=CC --mode=compile $(CC) $(ALL_CFLAGS) -c \
+	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(ALL_CFLAGS) -c \
 		-o $@ $(this_srcdir)$(subst _dot_dot,..,$*).c
 
 # install the lib
 install-nonrecursive: $(BIN)
 	install -d $(LIBDIR)$(INSTALL_SUBDIR)
-	libtool --mode=install install -m 644 $< $(LIBDIR)$(INSTALL_SUBDIR)/$(notdir $<)
+	$(LIBTOOL) --mode=install install -m 644 $< $(LIBDIR)$(INSTALL_SUBDIR)/$(notdir $<)
 
 else
 # When it is an executable
@@ -304,7 +304,7 @@ else
 # Build the binary
 
 $(BIN): $(CXX_OBJS) $(C_OBJS) $(LIB_DEP)
-	libtool --mode=link --tag=CXX $(CXX) -g3 $(BUILD_LDFLAGS) $(THIS_LDFLAGS) \
+	$(LIBTOOL) --mode=link --tag=CXX $(CXX) -g3 $(BUILD_LDFLAGS) $(THIS_LDFLAGS) \
 		-o $@ $(LIBS) $^
 
 # The actual compile commands (source dependencies will come from the makefrag
@@ -325,7 +325,7 @@ $(C_OBJS): .obj/%.o:
 ifeq (,$(filter -no-install,$(THIS_LDFLAGS)))
 install-nonrecursive: $(BIN)
 	install -d $(GAMESDIR)$(INSTALL_SUBDIR)
-	libtool --mode=install install -m 755 $< $(GAMESDIR)$(INSTALL_SUBDIR)/$(notdir $<)
+	$(LIBTOOL) --mode=install install -m 755 $< $(GAMESDIR)$(INSTALL_SUBDIR)/$(notdir $<)
 endif
 
 endif
@@ -355,7 +355,7 @@ endif
 
 $(MAKEFRAGS): .makefrags/%.makefrag:
 	@mkdir -p $(dir $@)
-	cpp $(INCLUDE) -MP -MM -MF $@.tmp $(this_srcdir)$(subst _dot_dot,..,$*)
+	cpp $(ALL_CPPFLAGS) -MP -MM -MF $@.tmp $(this_srcdir)$(subst _dot_dot,..,$*)
 	@echo "$@ .obj/$(filter-out ./,$(dir $*))`cat $@.tmp`" > $@
 	@rm $@.tmp
 

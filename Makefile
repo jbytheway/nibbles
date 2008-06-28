@@ -8,3 +8,6 @@ include config.mk
 include Makefile.local
 include makefiles/Makefile.common
 
+config.mk:
+	touch $@
+

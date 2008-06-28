@@ -1,34 +1,49 @@
 #include "server.hpp"
 
+#include <boost/bind.hpp>
+
 using namespace std;
 using namespace boost::asio;
-using boost::asio::ip::tcp;
 
 namespace nibbles { namespace server {
 
-Server::Server(io_service& io_, ostream& out_, const Options& o) :
-  io(io_),
-  out(out_),
-  options(o),
-  tcpAcceptor(io)
+Server::Server(io_service& io, ostream& out, const Options& o) :
+  io_(io),
+  out_(out),
+  options_(o),
+  tcp_(*this)
 {
-  if (options.useTcp) {
-    ip::address addr(ip::address::from_string(options.tcpAddress));
-    tcpAcceptor.open(tcp::v4());
-    tcpAcceptor.bind(tcp::endpoint(addr, options.tcpPort));
-  }
 }
 
 void Server::serve()
 {
-  io.run(); // Blocks until all stuff is done
-  writeLine(Verbosity::info, "server done\n");
+  if (options_.useTcp) {
+    ip::address addr(ip::address::from_string(options_.tcpAddress));
+    tcp_.serve(ip::tcp::endpoint(addr, options_.tcpPort));
+  }
+
+  io_.run(); // Blocks until all stuff is done
+  message(Verbosity::info, "server done\n");
 }
 
-void Server::writeLine(Verbosity v, const string& message)
+void Server::addConnection(const Connection::Ptr& connection)
 {
-  if (options.verbosity <= v)
-    out << message;
+  connection->packetSignal.connect(
+      boost::bind(&Server::packet, this, _1, _2)
+    );
+  connection->start();
+  connectionPool_.insert(connection);
+}
+
+void Server::message(Verbosity v, const string& message)
+{
+  if (options_.verbosity <= v)
+    out_ << message;
+}
+
+void Server::packet(const Packet&, const ReturnPath&)
+{
+  abort();
 }
 
 }}
