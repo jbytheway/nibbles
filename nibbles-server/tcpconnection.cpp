@@ -11,8 +11,8 @@ namespace nibbles { namespace server {
 TcpConnection::TcpConnection(Server& server) :
   server_(server),
   socket_(server.io()),
-  dataLen(0),
-  returnPath(*this)
+  dataLen_(0),
+  returnPath_(*this)
 {}
 
 void TcpConnection::start()
@@ -23,7 +23,7 @@ void TcpConnection::start()
 void TcpConnection::continueRead()
 {
   socket_.async_read_some(
-      buffer(data.data()+dataLen, data.size()-dataLen),
+      buffer(data_.data()+dataLen_, data_.size()-dataLen_),
       boost::bind(
         &TcpConnection::handleRead, this,
         placeholders::error, placeholders::bytes_transferred
@@ -40,12 +40,12 @@ void TcpConnection::handleRead(
     server_.message(Verbosity::error, "read: "+error.message()+"\n");
     // TODO delete myself somehow
   } else {
-    dataLen += bytes;
+    dataLen_ += bytes;
     size_t packetLen;
-    while (dataLen >= 1+(packetLen = data[0])) {
-      uint8_t const* const packetStart = data.data()+1;
-      packetSignal(Packet(packetStart, packetLen), returnPath);
-      memmove(data.data(), packetStart+packetLen, dataLen-packetLen);
+    while (dataLen_ >= 1+(packetLen = data_[0])) {
+      uint8_t const* const packetStart = data_.data()+1;
+      packetSignal(Packet(packetStart, packetLen), returnPath_);
+      memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);
     }
     continueRead();
   }

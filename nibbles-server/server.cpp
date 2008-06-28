@@ -43,6 +43,7 @@ void Server::message(Verbosity v, const string& message)
 
 void Server::packet(const Packet&, const ReturnPath&)
 {
+  // TODO: deal
   abort();
 }
 

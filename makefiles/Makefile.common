@@ -118,7 +118,7 @@ GLOBAL_CPPFLAGS ?= -std=c++0x
 # because e.g. libsakusen-comms is in libsakusen/comms
 
 LIB_DEP := $(foreach lib,$(LIB_DEP_NAMES), \
-		$(top_builddir)$(subst -,/,$(lib))/$(lib).la \
+		$(top_builddir)$(subst -,/,$(lib))/lib$(lib).la \
 	)
 INCLUDE := -I$(this_srcdir) -I. -I$(top_srcdir) $(INCLUDE)
 

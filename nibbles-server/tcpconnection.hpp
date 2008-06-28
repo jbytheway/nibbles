@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 
+#include <nibbles/network.hpp>
+
 #include "connection.hpp"
 
 namespace nibbles { namespace server {
@@ -28,9 +30,11 @@ class TcpConnection : public Connection {
 
     Server& server_;
     boost::asio::ip::tcp::socket socket_;
-    boost::array<uint8_t, 256> data;
-    std::size_t dataLen;
-    TcpReturnPath returnPath;
+    static const size_t maxDataLen =
+      Network::maxPacketLen+sizeof(Network::PacketLength);
+    boost::array<uint8_t, maxDataLen> data_;
+    std::size_t dataLen_;
+    TcpReturnPath returnPath_;
 
     void continueRead();
     void handleRead(

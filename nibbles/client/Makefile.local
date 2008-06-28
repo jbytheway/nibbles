@@ -1,0 +1,2 @@
+BIN := libnibbles-client.la
+LIBS := -lboost_system -lpthread

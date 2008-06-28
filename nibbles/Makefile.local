@@ -1,0 +1,3 @@
+SUBDIRS := client
+BIN := libnibbles.la
+

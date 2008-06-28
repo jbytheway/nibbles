@@ -4,7 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 
-#include <nibbles++/packet.hpp>
+#include <nibbles/packet.hpp>
 
 #include "returnpath.hpp"
 

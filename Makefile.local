@@ -1,8 +1,8 @@
-SUBDIRS := nibbles++ nibbles++-server nibbles++-client
+SUBDIRS := nibbles nibbles-server nibbles-gtk
 
-all-recurse-nibbles++-server all-recurse-nibbles++-client: \
-	all-recurse-nibbles++
+all-recurse-nibbles-server all-recurse-nibbles-gtk: \
+	all-recurse-nibbles
 
-test-recurse-nibbles++-server test-recurse-nibbles++-client: \
-	test-recurse-nibbles++
+test-recurse-nibbles-server test-recurse-nibbles-gtk: \
+	test-recurse-nibbles
 

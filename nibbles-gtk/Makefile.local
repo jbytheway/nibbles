@@ -1,0 +1,6 @@
+BIN := nibbles-gtk
+THIS_CXXFLAGS := `pkg-config --cflags libglademm-2.4`
+THIS_LDFLAGS := -no-install
+LIBS := `pkg-config --libs libglademm-2.4`
+LIB_DEP_NAMES := nibbles-client
+
