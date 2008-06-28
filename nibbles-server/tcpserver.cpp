@@ -77,7 +77,7 @@ void TcpServer::handleAccept(
         Verbosity::error, "TCP server: accept: "+error.message()+"\n"
       );
   } else {
-    server_.message(Verbosity::info, "TCP server: accepted connection");
+    server_.message(Verbosity::info, "TCP server: accepted connection\n");
     server_.addConnection(newConnection);
     startAccept();
   }
