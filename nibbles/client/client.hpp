@@ -6,6 +6,7 @@
 #include <boost/asio.hpp>
 
 #include <nibbles/client/protocol.hpp>
+#include <nibbles/utility/messagehandler.hpp>
 
 namespace nibbles { namespace client {
 
@@ -15,6 +16,7 @@ class Client : private boost::noncopyable {
 
     static Ptr create(
         boost::asio::io_service&,
+        utility::MessageHandler& out,
         Protocol const,
         std::string const& address,
         uint16_t const port

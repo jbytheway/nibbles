@@ -9,6 +9,7 @@ class TcpClient : public Client {
   public:
     TcpClient(
         boost::asio::io_service&,
+        utility::MessageHandler& out,
         std::string const& address,
         uint16_t const port
       );
@@ -16,6 +17,7 @@ class TcpClient : public Client {
     virtual void connect();
   private:
     boost::asio::io_service& io_;
+    utility::MessageHandler& out_;
     boost::asio::ip::tcp::endpoint endpoint_;
     boost::asio::ip::tcp::socket socket_;
 };

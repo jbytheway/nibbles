@@ -8,6 +8,7 @@ namespace nibbles { namespace client {
 
 Client::Ptr Client::create(
     boost::asio::io_service& io,
+    utility::MessageHandler& out,
     Protocol const protocol,
     std::string const& address,
     uint16_t const port
@@ -15,7 +16,7 @@ Client::Ptr Client::create(
 {
   switch (protocol) {
     case Protocol::tcp:
-      return Client::Ptr(new TcpClient(io, address, port));
+      return Client::Ptr(new TcpClient(io, out, address, port));
     default:
       throw logic_error("protocol not supported");
   }

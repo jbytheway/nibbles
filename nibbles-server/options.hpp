@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "verbosity.hpp"
+#include <nibbles/utility/verbosity.hpp>
 
 namespace nibbles { namespace server {
 
@@ -11,7 +11,7 @@ struct Options
 {
   Options(int argc, char const* const* const argv);
 
-  Verbosity verbosity;
+  utility::Verbosity verbosity;
   bool useTcp;
   std::string tcpAddress;
   uint16_t tcpPort;

@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <nibbles/utility/verbosity.hpp>
 #include <nibbles/client/protocol.hpp>
 
 namespace nibbles { namespace gtk {
@@ -10,6 +11,7 @@ namespace nibbles { namespace gtk {
 struct Options {
   Options(int const argc, char** const argv);
 
+  utility::Verbosity verbosity;
   client::Protocol protocol;
   std::string address;
   uint16_t port;

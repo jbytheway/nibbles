@@ -19,6 +19,7 @@ class TcpServer {
     Server& server_;
     boost::asio::ip::tcp::acceptor acceptor_;
 
+    void startBind(const boost::asio::ip::tcp::endpoint&);
     void startAccept();
     void handleAccept(
         const Connection::Ptr& newConnection,

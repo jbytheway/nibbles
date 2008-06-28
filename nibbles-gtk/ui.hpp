@@ -3,13 +3,32 @@
 
 #include <boost/utility.hpp>
 
+#include <gtkmm.h>
+#include <libglademm.h>
+
+#include <nibbles/client/client.hpp>
+
 #include "options.hpp"
 
 namespace nibbles { namespace gtk {
 
-class UI : boost::noncopyable {
+class UI : public utility::MessageHandler, private boost::noncopyable {
   public:
-    UI(const Options&);
+    UI(
+        boost::asio::io_service& io,
+        const Options&,
+        const Glib::RefPtr<Gnome::Glade::Xml>& refXml
+      );
+    Gtk::Window& window() { return *window_; }
+    void message(utility::Verbosity, const std::string& message);
+  private:
+    boost::asio::io_service& io_;
+    Options options_;
+    Gtk::Window* window_;
+    Glib::RefPtr<Gtk::TextBuffer> messages_;
+    client::Client::Ptr client_;
+
+    void connect();
 };
 
 }}

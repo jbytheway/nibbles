@@ -17,7 +17,7 @@ class Server : boost::noncopyable
     void serve();
     boost::asio::io_service& io() { return io_; }
     void addConnection(const Connection::Ptr&);
-    void message(Verbosity, const std::string&);
+    void message(utility::Verbosity, const std::string&);
   private:
     boost::asio::io_service& io_;
     std::ostream& out_;
@@ -29,6 +29,8 @@ class Server : boost::noncopyable
     ConnectionPool connectionPool_;
 
     void packet(const Packet&, const ReturnPath&);
+    void shutdown();
+    void deleteConnection(Connection* connection);
 };
 
 }}

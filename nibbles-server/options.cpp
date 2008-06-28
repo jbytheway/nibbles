@@ -2,6 +2,8 @@
 
 #include <nibbles/network.hpp>
 
+using namespace nibbles::utility;
+
 namespace nibbles { namespace server {
 
 Options::Options(int /*argc*/, char const* const* const /*argv*/) :

@@ -5,6 +5,7 @@
 #include <boost/bind.hpp>
 
 using namespace boost::asio;
+using namespace nibbles::utility;
 
 namespace nibbles { namespace server {
 
@@ -38,7 +39,7 @@ void TcpConnection::handleRead(
 {
   if (error) {
     server_.message(Verbosity::error, "read: "+error.message()+"\n");
-    // TODO delete myself somehow
+    terminateSignal(this);
   } else {
     dataLen_ += bytes;
     size_t packetLen;
