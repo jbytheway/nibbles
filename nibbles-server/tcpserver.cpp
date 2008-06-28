@@ -16,23 +16,34 @@ namespace nibbles { namespace server {
 
 TcpServer::TcpServer(Server& server) :
   server_(server),
-  acceptor_(server.io())
+  acceptor_(server.io()),
+  bindTimer_(server.io())
 {}
 
 void TcpServer::serve(const ip::tcp::endpoint& ep)
 {
   acceptor_.open(ip::tcp::v4());
-  startBind(ep);
+  startBind(ep, error_code());
 }
 
 void TcpServer::stop()
 {
   server_.message(Verbosity::info, "TCP server: stopping\n");
   acceptor_.close();
+  bindTimer_.cancel();
 }
 
-void TcpServer::startBind(const ip::tcp::endpoint& ep)
+void TcpServer::startBind(
+    const ip::tcp::endpoint& ep,
+    const error_code& ec
+  )
 {
+  if (ec) {
+    server_.message(
+        Verbosity::error, "TCP server: when starting bind: "+ec.message()+"\n"
+      );
+    return;
+  }
   server_.message(
       Verbosity::info,
       "TCP server: binding to "+ep.address().to_string()+":"+
@@ -44,8 +55,10 @@ void TcpServer::startBind(const ip::tcp::endpoint& ep)
     server_.message(
         Verbosity::error, "TCP server: address in use, will retry later\n"
       );
-    deadline_timer t(server_.io(), boost::posix_time::seconds(5));
-    t.async_wait(boost::bind(&TcpServer::startBind, this, ep));
+    bindTimer_.expires_from_now(boost::posix_time::seconds(5));
+    bindTimer_.async_wait(boost::bind(
+          &TcpServer::startBind, this, ep, boost::asio::placeholders::error
+        ));
   } else if (error) {
     server_.message(
         Verbosity::error, "TCP server: bind failed: "+error.message()+"\n"

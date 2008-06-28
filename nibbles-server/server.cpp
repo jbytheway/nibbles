@@ -19,7 +19,7 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
   options_(o),
   tcp_(*this)
 {
-  signalCatcher.connect(boost::bind(&Server::shutdown, this));
+  signalCatcher.connect(boost::bind(&Server::signalled, this));
 }
 
 void Server::serve()
@@ -60,6 +60,11 @@ void Server::packet(const Packet&, const ReturnPath&)
 {
   // TODO: deal
   abort();
+}
+
+void Server::signalled()
+{
+  io_.post(boost::bind(&Server::shutdown, this));
 }
 
 void Server::shutdown()

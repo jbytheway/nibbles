@@ -18,8 +18,12 @@ class TcpServer {
   private:
     Server& server_;
     boost::asio::ip::tcp::acceptor acceptor_;
+    boost::asio::deadline_timer bindTimer_;
 
-    void startBind(const boost::asio::ip::tcp::endpoint&);
+    void startBind(
+        const boost::asio::ip::tcp::endpoint&,
+        const boost::system::error_code& ec
+      );
     void startAccept();
     void handleAccept(
         const Connection::Ptr& newConnection,
