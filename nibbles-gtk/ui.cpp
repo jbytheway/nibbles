@@ -1,5 +1,7 @@
 #include "ui.hpp"
 
+#include <nibbles/direction.hpp>
+
 using namespace std;
 using namespace boost::system;
 using namespace nibbles::utility;
@@ -28,10 +30,12 @@ UI::UI(
   GET_WIDGET(TextView, MessageText);
   GET_WIDGET(Entry, ServerAddressEntry);
   GET_WIDGET(CheckButton, ReadyCheck);
+  GET_WIDGET(ComboBox, PlayerCombo);
   GET_WIDGET(Entry, PlayerNameEntry);
   GET_WIDGET(ColorButton, PlayerColorButton);
   GET_WIDGET(Button, ConnectButton);
   GET_WIDGET(Button, CreateButton);
+  GET_WIDGET(Button, DeleteButton);
   GET_WIDGET(Button, AddButton);
   GET_WIDGET(Button, RemoveButton);
   GET_WIDGET(Button, UpButton);
@@ -43,7 +47,19 @@ UI::UI(
   window_ = wMainWindow;
   messages_ = wMessageText->get_buffer();
   // Connect signals from widgets to the UI
-  wConnectButton->signal_clicked().connect(sigc::mem_fun(this, &UI::connect));
+#define CONNECT_BUTTON(buttonName, memFunName)    \
+  w##buttonName##Button->signal_clicked().connect( \
+      sigc::mem_fun(this, &UI::memFunName)        \
+    );
+  CONNECT_BUTTON(Connect, connect);
+  CONNECT_BUTTON(Create, createPlayer);
+  CONNECT_BUTTON(Delete, deletePlayer);
+  CONNECT_BUTTON(Add, addPlayerToGame);
+  CONNECT_BUTTON(Remove, removePlayerFromGame);
+  CONNECT_BUTTON(Up, setBinding<Direction::up>);
+  CONNECT_BUTTON(Down, setBinding<Direction::down>);
+  CONNECT_BUTTON(Left, setBinding<Direction::left>);
+  CONNECT_BUTTON(Right, setBinding<Direction::right>);
 }
 
 void UI::message(utility::Verbosity v, const std::string& message)
@@ -65,6 +81,32 @@ void UI::connect()
     message(Verbosity::error, string("connection failed: ")+e.what()+"\n");
     client_.reset();
   }
+}
+
+void UI::createPlayer()
+{
+  throw logic_error("not implemented");
+}
+
+void UI::deletePlayer()
+{
+  throw logic_error("not implemented");
+}
+
+void UI::addPlayerToGame()
+{
+  throw logic_error("not implemented");
+}
+
+void UI::removePlayerFromGame()
+{
+  throw logic_error("not implemented");
+}
+
+template<int Direction>
+void UI::setBinding()
+{
+  throw logic_error("not implemented");
 }
 
 }}

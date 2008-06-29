@@ -29,6 +29,14 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     client::Client::Ptr client_;
 
     void connect();
+    void createPlayer();
+    void deletePlayer();
+    void addPlayerToGame();
+    void removePlayerFromGame();
+    // Though it's templated, this function can be in the .cpp file because
+    // it's private
+    template<int Direction>
+    void setBinding();
 };
 
 }}
