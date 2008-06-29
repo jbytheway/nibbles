@@ -23,6 +23,7 @@ void TcpConnection::start()
 
 void TcpConnection::close()
 {
+  // TODO use shutdown?
   socket_.close();
 }
 
