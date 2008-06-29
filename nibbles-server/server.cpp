@@ -4,6 +4,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/foreach.hpp>
 
 #include <nibbles/utility/nulldeleter.hpp>
 
@@ -71,6 +72,9 @@ void Server::shutdown()
 {
   message(Verbosity::info, "caught interrupt, shutting down...\n");
   tcp_.stop();
+  BOOST_FOREACH(const Connection::Ptr& c, connectionPool_) {
+    c->close();
+  }
   connectionPool_.clear();
 }
 

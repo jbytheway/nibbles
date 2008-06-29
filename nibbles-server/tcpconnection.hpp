@@ -1,6 +1,7 @@
 #ifndef NIBBLES_SERVER__TCPCONNECTION_HPP
 #define NIBBLES_SERVER__TCPCONNECTION_HPP
 
+#include <boost/weak_ptr.hpp>
 #include <boost/asio.hpp>
 
 #include <nibbles/network.hpp>
@@ -15,11 +16,20 @@ class TcpConnection : public Connection {
   public:
     typedef boost::shared_ptr<TcpConnection> Ptr;
 
-    TcpConnection(Server& server);
+    static Ptr create(Server& server)
+    {
+      Ptr p(new TcpConnection(server));
+      p->ptrToThis_ = p;
+      return p;
+    }
+
     virtual ~TcpConnection() {}
     boost::asio::ip::tcp::socket& socket() { return socket_; }
     virtual void start();
+    virtual void close();
   private:
+    TcpConnection(Server& server);
+    
     class TcpReturnPath : public ReturnPath {
       public:
         TcpReturnPath(TcpConnection& connection) : connection_(connection)
@@ -29,6 +39,7 @@ class TcpConnection : public Connection {
     };
 
     Server& server_;
+    boost::weak_ptr<TcpConnection> ptrToThis_;
     boost::asio::ip::tcp::socket socket_;
     static const size_t maxDataLen =
       Network::maxPacketLen+sizeof(Network::PacketLength);
@@ -39,7 +50,8 @@ class TcpConnection : public Connection {
     void continueRead();
     void handleRead(
         const boost::system::error_code&,
-        std::size_t bytes
+        std::size_t bytes,
+        const Ptr&
       );
 };
 

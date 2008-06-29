@@ -71,7 +71,7 @@ void TcpServer::startBind(
 
 void TcpServer::startAccept()
 {
-  TcpConnection::Ptr newConnection(new TcpConnection(server_));
+  TcpConnection::Ptr newConnection = TcpConnection::create(server_);
 
   acceptor_.async_accept(
       newConnection->socket(),

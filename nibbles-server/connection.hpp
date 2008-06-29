@@ -22,6 +22,7 @@ class Connection : boost::noncopyable {
 
     virtual ~Connection() = 0;
     virtual void start() = 0;
+    virtual void close() = 0;
 
     boost::signal<void (Packet const&, ReturnPath const&)> packetSignal;
     boost::signal<void (Connection*)> terminateSignal;

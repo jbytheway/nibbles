@@ -21,20 +21,29 @@ void TcpConnection::start()
   continueRead();
 }
 
+void TcpConnection::close()
+{
+  socket_.close();
+}
+
 void TcpConnection::continueRead()
 {
   socket_.async_read_some(
       buffer(data_.data()+dataLen_, data_.size()-dataLen_),
       boost::bind(
         &TcpConnection::handleRead, this,
-        placeholders::error, placeholders::bytes_transferred
+        placeholders::error, placeholders::bytes_transferred,
+        // send shared pointer to self through async call to ensure that not
+        // destructed until call is completed
+        ptrToThis_.lock()
       )
     );
 }
 
 void TcpConnection::handleRead(
     const boost::system::error_code& error,
-    std::size_t bytes
+    std::size_t bytes,
+    const Ptr&
   )
 {
   if (error) {
