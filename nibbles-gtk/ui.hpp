@@ -6,6 +6,7 @@
 #include <gtkmm.h>
 #include <libglademm.h>
 
+#include <nibbles/player.hpp>
 #include <nibbles/client/client.hpp>
 
 #include "options.hpp"
@@ -24,8 +25,14 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
   private:
     boost::asio::io_service& io_;
     Options options_;
+
+    // controls
     Gtk::Window* window_;
     Glib::RefPtr<Gtk::TextBuffer> messages_;
+
+    // game data
+    std::vector<Player> localPlayers_;
+
     client::Client::Ptr client_;
 
     void connect();
