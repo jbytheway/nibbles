@@ -6,13 +6,18 @@
 
 namespace nibbles {
 
-class Color :
-  public utility::DataClass<
+struct Color :
+  utility::DataClass<
+      Color,
       uint8_t, red,
       uint8_t, green,
       uint8_t, blue
     >
 {
+  template<typename... Args>
+  Color(Args&&... args) : base(args...) {}
+
+  static Color yellow;
 };
 
 }

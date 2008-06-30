@@ -48,10 +48,10 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     // game data
     std::vector<Player> localPlayers_;
 
-    // UI status
-    int currentPlayer_; // Index of currently selected player in combo
-
     client::Client::Ptr client_;
+
+    // Convinience functions
+    Player* getCurrentPlayer();
 
     // File access stuff
     void loadLocalPlayers();
@@ -59,6 +59,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
 
     // UI update
     void refreshPlayers();
+    void refreshPlayer();
 
     // UI bindings
     void connect();

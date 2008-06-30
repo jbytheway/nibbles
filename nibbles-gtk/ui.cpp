@@ -23,8 +23,7 @@ UI::UI(
   io_(io),
   options_(options),
   window_(NULL),
-  playerCombo_(NULL),
-  currentPlayer_(-1)
+  playerCombo_(NULL)
 {
 #define GET_WIDGET(type, name)                   \
   Gtk::type* w##name = NULL;                     \
@@ -92,6 +91,16 @@ void UI::message(utility::Verbosity v, const std::string& message)
   }
 }
 
+Player* UI::getCurrentPlayer()
+{
+  Gtk::TreeModel::iterator iter = playerCombo_->get_active();
+  if (!iter)
+    return NULL;
+  size_t index = iter - playerComboListStore_->children().begin();
+  assert(index < localPlayers_.size());
+  return &localPlayers_[index];
+}
+
 void UI::loadLocalPlayers()
 {
   using namespace boost::filesystem;
@@ -124,8 +133,8 @@ void UI::refreshPlayers()
 {
   // Save the current player so we can put things back properly afterwards
   string currentName;
-  if (currentPlayer_ >= 0)
-    currentName = localPlayers_[currentPlayer_].get<name>();
+  if (Player* currentPlayer = getCurrentPlayer())
+    currentName = currentPlayer->get<name>();
 
   // Clear out the combo box
   playerComboListStore_.clear();
@@ -136,11 +145,15 @@ void UI::refreshPlayers()
     row[playerComboColumns_.name_] = name;
     if (name == currentName) {
       playerCombo_->set_active(iter);
-      currentPlayer_ = iter - playerComboListStore_->children().begin();
     }
   }
 
-  //refreshPlayer();
+  refreshPlayer();
+}
+
+void UI::refreshPlayer()
+{
+  // TODO:
 }
 
 void UI::connect()
@@ -159,7 +172,20 @@ void UI::connect()
 
 void UI::createPlayer()
 {
-  throw logic_error("not implemented");
+  string newName = "New player";
+  BOOST_FOREACH(const Player& player, localPlayers_) {
+    if (player.get<name>() == newName) {
+      message(Verbosity::error, "name '"+newName+"' in use");
+      return;
+    }
+  }
+
+  localPlayers_.push_back(Player(newName, Color::yellow));
+  Gtk::TreeModel::iterator iter = playerComboListStore_->append();
+  (*iter)[playerComboColumns_.name_] = newName;
+  playerCombo_->set_active(iter);
+
+  refreshPlayer();
 }
 
 void UI::deletePlayer()

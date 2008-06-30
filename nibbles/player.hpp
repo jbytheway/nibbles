@@ -5,12 +5,15 @@
 
 namespace nibbles {
 
-class Player :
-  public utility::DataClass<
+struct Player :
+  utility::DataClass<
+      Player,
       std::string, name,
       Color, color
     >
 {
+  template<typename... Args>
+  Player(Args&&... args) : base(args...) {}
 };
 
 }

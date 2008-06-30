@@ -7,6 +7,7 @@
 #include <boost/fusion/container/list.hpp>
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/call_traits.hpp>
 
@@ -25,14 +26,39 @@ namespace nibbles { namespace utility {
 template<typename... Fields>
 struct FieldMapHelper;
 
-template<typename... Fields>
+template<typename Derived, typename... Fields>
 class DataClass {
   private:
-    static_assert(!(sizeof...(Fields)%2), "odd number of template args given");
+    static_assert(
+        !(sizeof...(Fields)%2),
+        "odd number of field template args given"
+      );
     typedef typename FieldMapHelper<Fields...>::type FieldMapSequence;
     typedef typename boost::fusion::result_of::as_map<FieldMapSequence>::type FieldMap;
     FieldMap fields_;
   public:
+    DataClass()
+    {
+    }
+    
+    DataClass(Derived& copy) :
+      fields_(copy.fields_)
+    {
+    }
+
+    DataClass(const Derived& copy) :
+      fields_(copy.fields_)
+    {
+    }
+
+    template<typename... Args>
+    DataClass(Args&&... args) :
+      fields_(boost::fusion::make_vector(args...))
+    {
+    }
+
+    typedef DataClass base;
+
     template<typename Field>
     typename boost::call_traits<
         typename boost::fusion::result_of::at_key<FieldMap, Field>::type
@@ -87,7 +113,7 @@ struct FieldMapHelper<FieldType, FieldName, More...>
       "argument to DataClass was not a field name when it should have been"
     );
   typedef typename FieldMapHelper<More...>::type MapSoFar;
-  typedef typename boost::fusion::result_of::push_back<
+  typedef typename boost::fusion::result_of::push_front<
       MapSoFar,
       boost::fusion::pair<FieldName, FieldType>
     >::type type;
