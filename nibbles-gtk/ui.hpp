@@ -30,9 +30,26 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     // controls
     Gtk::Window* window_;
     Glib::RefPtr<Gtk::TextBuffer> messages_;
+    
+    class PlayerComboColumns : public Gtk::TreeModel::ColumnRecord
+    {
+      public:
+        PlayerComboColumns()
+        {
+          add(name_);
+        }
+
+        Gtk::TreeModelColumn<Glib::ustring> name_;
+    };
+    Gtk::ComboBox* playerCombo_;
+    const PlayerComboColumns playerComboColumns_;
+    Glib::RefPtr<Gtk::ListStore> playerComboListStore_;
 
     // game data
     std::vector<Player> localPlayers_;
+
+    // UI status
+    int currentPlayer_; // Index of currently selected player in combo
 
     client::Client::Ptr client_;
 

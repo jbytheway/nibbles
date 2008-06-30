@@ -6,7 +6,9 @@
 #include <boost/fusion/container/map.hpp>
 #include <boost/fusion/container/list.hpp>
 #include <boost/fusion/include/as_map.hpp>
+#include <boost/fusion/include/at_key.hpp>
 #include <boost/serialization/access.hpp>
+#include <boost/call_traits.hpp>
 
 // Include the serialization implementations for STL stuff needed here so that
 // it's not necessary to remember to use it every time elsewhere
@@ -30,7 +32,21 @@ class DataClass {
     typedef typename FieldMapHelper<Fields...>::type FieldMapSequence;
     typedef typename boost::fusion::result_of::as_map<FieldMapSequence>::type FieldMap;
     FieldMap fields_;
+  public:
+    template<typename Field>
+    typename boost::call_traits<
+        typename boost::fusion::result_of::at_key<FieldMap, Field>::type
+      >::reference get() {
+      return boost::fusion::at_key<Field>(fields_);
+    }
 
+    template<typename Field>
+    typename boost::call_traits<
+        typename boost::fusion::result_of::at_key<FieldMap, Field>::type
+      >::const_reference get() const {
+      return boost::fusion::at_key<Field>(fields_);
+    }
+  private:
     template<class Archive>
     struct Archiver {
       Archiver(Archive& archive) : archive_(archive) {}

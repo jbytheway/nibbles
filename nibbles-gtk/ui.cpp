@@ -6,6 +6,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/foreach.hpp>
 
 using namespace std;
 using namespace boost::system;
@@ -20,7 +21,10 @@ UI::UI(
     const Glib::RefPtr<Gnome::Glade::Xml>& refXml
   ) :
   io_(io),
-  options_(options)
+  options_(options),
+  window_(NULL),
+  playerCombo_(NULL),
+  currentPlayer_(-1)
 {
 #define GET_WIDGET(type, name)                   \
   Gtk::type* w##name = NULL;                     \
@@ -51,6 +55,13 @@ UI::UI(
   // Store pointers to those widgets we need to access later
   window_ = wMainWindow;
   messages_ = wMessageText->get_buffer();
+  playerCombo_ = wPlayerCombo;
+
+  // Attach the columns to their controls
+  playerComboListStore_ = Gtk::ListStore::create(playerComboColumns_);
+  playerCombo_->set_model(playerComboListStore_);
+  playerCombo_->pack_start(playerComboColumns_.name_);
+  
   // Connect signals from widgets to the UI
 #define CONNECT_BUTTON(buttonName, memFunName)    \
   w##buttonName##Button->signal_clicked().connect( \
@@ -111,8 +122,25 @@ void UI::saveLocalPlayers()
 
 void UI::refreshPlayers()
 {
-  // TODO:
-  throw logic_error("not implemented");
+  // Save the current player so we can put things back properly afterwards
+  string currentName;
+  if (currentPlayer_ >= 0)
+    currentName = localPlayers_[currentPlayer_].get<name>();
+
+  // Clear out the combo box
+  playerComboListStore_.clear();
+  BOOST_FOREACH(const Player& player, localPlayers_) {
+    Gtk::TreeModel::iterator iter = playerComboListStore_->append();
+    Gtk::TreeModel::Row row = *iter;
+    string name = player.get<fields::name>();
+    row[playerComboColumns_.name_] = name;
+    if (name == currentName) {
+      playerCombo_->set_active(iter);
+      currentPlayer_ = iter - playerComboListStore_->children().begin();
+    }
+  }
+
+  //refreshPlayer();
 }
 
 void UI::connect()
