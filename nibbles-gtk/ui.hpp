@@ -45,6 +45,9 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     const PlayerComboColumns playerComboColumns_;
     Glib::RefPtr<Gtk::ListStore> playerComboListStore_;
 
+    Gtk::Entry* playerName_;
+    Gtk::ColorButton* playerColor_;
+
     // game data
     std::vector<Player> localPlayers_;
 

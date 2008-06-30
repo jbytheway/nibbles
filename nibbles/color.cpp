@@ -2,7 +2,8 @@
 
 namespace nibbles {
 
-Color Color::yellow(0, 255, 255);
+Color Color::black (  0,   0,   0);
+Color Color::yellow(255, 255,   0);
 
 }
 

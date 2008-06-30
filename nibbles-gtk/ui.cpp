@@ -1,5 +1,7 @@
 #include "ui.hpp"
 
+#include "colorconverter.hpp"
+
 #include <nibbles/direction.hpp>
 
 #include <boost/filesystem.hpp>
@@ -50,11 +52,14 @@ UI::UI(
   GET_WIDGET(Button, DownButton);
   GET_WIDGET(Button, LeftButton);
   GET_WIDGET(Button, RightButton);
+#undef GET_WIDGET
 
   // Store pointers to those widgets we need to access later
   window_ = wMainWindow;
   messages_ = wMessageText->get_buffer();
   playerCombo_ = wPlayerCombo;
+  playerName_ = wPlayerNameEntry;
+  playerColor_ = wPlayerColorButton;
 
   // Attach the columns to their controls
   playerComboListStore_ = Gtk::ListStore::create(playerComboColumns_);
@@ -63,9 +68,9 @@ UI::UI(
   playerCombo_->pack_start(playerComboColumns_.name_);
   
   // Connect signals from widgets to the UI
-#define CONNECT_BUTTON(buttonName, memFunName)    \
+#define CONNECT_BUTTON(buttonName, memFunName)     \
   w##buttonName##Button->signal_clicked().connect( \
-      sigc::mem_fun(this, &UI::memFunName)        \
+      sigc::mem_fun(this, &UI::memFunName)         \
     );
   CONNECT_BUTTON(Connect, connect);
   CONNECT_BUTTON(Create, createPlayer);
@@ -76,6 +81,10 @@ UI::UI(
   CONNECT_BUTTON(Down, setBinding<Direction::down>);
   CONNECT_BUTTON(Left, setBinding<Direction::left>);
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
+#undef CONNECT_BUTTON
+  playerCombo_->signal_changed().connect(
+      sigc::mem_fun(this, &UI::refreshPlayer)
+    );
 
   loadLocalPlayers();
 }
@@ -132,6 +141,9 @@ void UI::saveLocalPlayers()
     boost::archive::xml_oarchive oa(ofs);
     oa << BOOST_SERIALIZATION_NVP(localPlayers_);
   }
+  if (exists(playerFilePath)) {
+    remove(playerFilePath);
+  }
   rename(tempPlayerFilePath, playerFilePath);
 }
 
@@ -159,7 +171,14 @@ void UI::refreshPlayers()
 
 void UI::refreshPlayer()
 {
-  // TODO:
+  const Player* player = getCurrentPlayer();
+  if (player) {
+    playerName_->set_text(player->get<name>());
+    playerColor_->set_color(ColorConverter::toGdkColor(player->get<color>()));
+  } else {
+    playerName_->set_text("");
+    playerColor_->set_color(ColorConverter::toGdkColor(Color::black));
+  }
 }
 
 void UI::connect()

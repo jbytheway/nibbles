@@ -13,7 +13,7 @@ struct Player :
     >
 {
   template<typename... Args>
-  Player(Args&&... args) : base(args...) {}
+  explicit Player(Args&&... args) : base(args...) {}
 };
 
 }

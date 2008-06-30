@@ -15,8 +15,9 @@ struct Color :
     >
 {
   template<typename... Args>
-  Color(Args&&... args) : base(args...) {}
+  explicit Color(Args&&... args) : base(args...) {}
 
+  static Color black;
   static Color yellow;
 };
 
