@@ -12,7 +12,7 @@
 // it's not necessary to remember to use it every time elsewhere
 #include <boost/serialization/vector.hpp>
 
-#include <nibbles/utility/isfieldname.hpp>
+#include <nibbles/utility/isfield.hpp>
 #include <nibbles/utility/getfieldname.hpp>
 
 namespace nibbles { namespace utility {
@@ -67,7 +67,7 @@ template<typename FieldType, typename FieldName, typename... More>
 struct FieldMapHelper<FieldType, FieldName, More...>
 {
   static_assert(
-      IsFieldName<FieldName>::type::value,
+      IsField<FieldName>::type::value,
       "argument to DataClass was not a field name when it should have been"
     );
   typedef typename FieldMapHelper<More...>::type MapSoFar;

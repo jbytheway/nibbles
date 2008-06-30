@@ -3,6 +3,8 @@
 
 #include <boost/preprocessor/seq/for_each.hpp>
 
+#include <nibbles/utility/isfield.hpp>
+
 namespace nibbles {
 
 #define NIBBLES_FIELDS() (blue)(color)(green)(name)(red)
@@ -21,7 +23,7 @@ namespace utility {
 
 #define NIBBLES_FIELDS_SPECIALIZE(r, d, field) \
 template<>                                     \
-struct IsFieldName<field> {                    \
+struct IsField<field> {                        \
   typedef std::true_type type;                 \
 };
 BOOST_PP_SEQ_FOR_EACH(NIBBLES_FIELDS_SPECIALIZE, _, NIBBLES_FIELDS())
