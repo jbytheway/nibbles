@@ -58,6 +58,7 @@ UI::UI(
 
   // Attach the columns to their controls
   playerComboListStore_ = Gtk::ListStore::create(playerComboColumns_);
+  assert(playerComboListStore_);
   playerCombo_->set_model(playerComboListStore_);
   playerCombo_->pack_start(playerComboColumns_.name_);
   
@@ -137,7 +138,7 @@ void UI::refreshPlayers()
     currentName = currentPlayer->get<name>();
 
   // Clear out the combo box
-  playerComboListStore_.clear();
+  playerComboListStore_->clear();
   BOOST_FOREACH(const Player& player, localPlayers_) {
     Gtk::TreeModel::iterator iter = playerComboListStore_->append();
     Gtk::TreeModel::Row row = *iter;
@@ -181,6 +182,7 @@ void UI::createPlayer()
   }
 
   localPlayers_.push_back(Player(newName, Color::yellow));
+  assert(playerComboListStore_);
   Gtk::TreeModel::iterator iter = playerComboListStore_->append();
   (*iter)[playerComboColumns_.name_] = newName;
   playerCombo_->set_active(iter);
