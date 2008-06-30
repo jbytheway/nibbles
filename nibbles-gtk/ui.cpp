@@ -120,14 +120,19 @@ void UI::saveLocalPlayers()
 {
   using namespace boost::filesystem;
   path playerFilePath(options_.playerFile);
+  path tempPlayerFilePath(options_.playerFile+".new");
   path playerFileDir = playerFilePath.branch_path();
   if (!exists(playerFileDir)) {
     message(Verbosity::info, "creating directory "+playerFileDir.string());
     create_directories(playerFileDir);
   }
-  boost::filesystem::ofstream ofs(playerFilePath);
-  boost::archive::xml_oarchive oa(ofs);
-  oa << BOOST_SERIALIZATION_NVP(localPlayers_);
+
+  {
+    boost::filesystem::ofstream ofs(tempPlayerFilePath);
+    boost::archive::xml_oarchive oa(ofs);
+    oa << BOOST_SERIALIZATION_NVP(localPlayers_);
+  }
+  rename(tempPlayerFilePath, playerFilePath);
 }
 
 void UI::refreshPlayers()
