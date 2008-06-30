@@ -20,6 +20,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
         const Options&,
         const Glib::RefPtr<Gnome::Glade::Xml>& refXml
       );
+    ~UI();
     Gtk::Window& window() { return *window_; }
     void message(utility::Verbosity, const std::string& message);
   private:
@@ -35,6 +36,14 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
 
     client::Client::Ptr client_;
 
+    // File access stuff
+    void loadLocalPlayers();
+    void saveLocalPlayers();
+
+    // UI update
+    void refreshPlayers();
+
+    // UI bindings
     void connect();
     void createPlayer();
     void deletePlayer();

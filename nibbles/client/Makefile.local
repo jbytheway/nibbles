@@ -1,2 +1,3 @@
 BIN := libnibbles-client.la
 LIBS := -lboost_system -lpthread
+LIB_DEP_NAMES := nibbles

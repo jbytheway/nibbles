@@ -6,7 +6,7 @@
 namespace nibbles {
 
 class Player :
-  utility::DataClass<
+  public utility::DataClass<
       std::string, name,
       Color, color
     >

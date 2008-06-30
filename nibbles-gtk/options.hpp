@@ -12,6 +12,7 @@ struct Options {
   Options(int const argc, char** const argv);
 
   utility::Verbosity verbosity;
+  std::string playerFile;
   client::Protocol protocol;
   std::string address;
   uint16_t port;

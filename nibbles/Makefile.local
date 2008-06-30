@@ -1,3 +1,4 @@
 SUBDIRS := client
 BIN := libnibbles.la
+LIBS := -lboost_serialization
 

@@ -2,6 +2,11 @@
 
 #include <nibbles/direction.hpp>
 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 using namespace std;
 using namespace boost::system;
 using namespace nibbles::utility;
@@ -60,6 +65,13 @@ UI::UI(
   CONNECT_BUTTON(Down, setBinding<Direction::down>);
   CONNECT_BUTTON(Left, setBinding<Direction::left>);
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
+
+  loadLocalPlayers();
+}
+
+UI::~UI()
+{
+  saveLocalPlayers();
 }
 
 void UI::message(utility::Verbosity v, const std::string& message)
@@ -67,6 +79,40 @@ void UI::message(utility::Verbosity v, const std::string& message)
   if (options_.verbosity <= v) {
     messages_->insert(messages_->end(), message);
   }
+}
+
+void UI::loadLocalPlayers()
+{
+  using namespace boost::filesystem;
+  path playerFilePath(options_.playerFile);
+  if (!exists(playerFilePath)) {
+    message(Verbosity::info, "no player file at "+options_.playerFile);
+    return;
+  }
+  boost::filesystem::ifstream ifs(playerFilePath);
+  boost::archive::xml_iarchive ia(ifs);
+  ia >> BOOST_SERIALIZATION_NVP(localPlayers_);
+  refreshPlayers();
+}
+
+void UI::saveLocalPlayers()
+{
+  using namespace boost::filesystem;
+  path playerFilePath(options_.playerFile);
+  path playerFileDir = playerFilePath.branch_path();
+  if (!exists(playerFileDir)) {
+    message(Verbosity::info, "creating directory "+playerFileDir.string());
+    create_directories(playerFileDir);
+  }
+  boost::filesystem::ofstream ofs(playerFilePath);
+  boost::archive::xml_oarchive oa(ofs);
+  oa << BOOST_SERIALIZATION_NVP(localPlayers_);
+}
+
+void UI::refreshPlayers()
+{
+  // TODO:
+  throw logic_error("not implemented");
 }
 
 void UI::connect()

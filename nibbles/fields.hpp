@@ -27,6 +27,14 @@ struct IsFieldName<field> {                    \
 BOOST_PP_SEQ_FOR_EACH(NIBBLES_FIELDS_SPECIALIZE, _, NIBBLES_FIELDS())
 #undef NIBBLES_FIELDS_SPECIALIZE
 
+#define NIBBLES_FIELDS_SPECIALIZE(r, d, field) \
+template<>                                     \
+inline const char* getFieldName<field>() {            \
+  return #field;                               \
+};
+BOOST_PP_SEQ_FOR_EACH(NIBBLES_FIELDS_SPECIALIZE, _, NIBBLES_FIELDS())
+#undef NIBBLES_FIELDS_SPECIALIZE
+
 }
 
 }
