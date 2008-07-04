@@ -73,6 +73,7 @@ struct Inherit;
 
 template<typename Derived, typename... Fields>
 class DataClass : public detail::BaseClassHelper<Fields...>::type {
+  friend class boost::serialization::access;
   private:
     typedef typename detail::FieldMapHelper<Fields...>::type FieldMapSequence;
     static const size_t numFields_ =
@@ -173,10 +174,7 @@ class DataClass : public detail::BaseClassHelper<Fields...>::type {
           );
       }
     };
-  public:
-    // Don't really want this method to be public, but a friend declaration for
-    // boost::serialization::access doesn't get inherited by derived classes,
-    // so we'll live with it for now
+
     template<class Archive>
     void serialize(Archive& ar, unsigned int const /*version*/)
     {
