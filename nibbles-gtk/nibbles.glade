@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.0 on Fri Jul  4 21:39:25 2008 -->
+<!--Generated with glade3 3.4.0 on Sat Jul  5 00:03:13 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="MainWindow">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -152,6 +152,7 @@
                     </child>
                     <child>
                       <widget class="GtkButton" id="RightButton">
+                        <property name="width_request">90</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -370,10 +371,12 @@
         </child>
         <child>
           <widget class="GtkTextView" id="MessageText">
+            <property name="width_request">200</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="editable">False</property>
+            <property name="wrap_mode">GTK_WRAP_WORD</property>
             <property name="cursor_visible">False</property>
             <property name="text" translatable="yes">Errors, etc. should appear here.
 </property>

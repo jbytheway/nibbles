@@ -70,10 +70,12 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
 
     // UI bindings
     void connect();
+    bool nameInUse(const std::string& name);
     void createPlayer();
     void deletePlayer();
     void addPlayerToGame();
     void removePlayerFromGame();
+    void playerNameChanged();
     void cancelNewKey();
     // Though templated, these functions can be in the .cpp file because
     // they're private

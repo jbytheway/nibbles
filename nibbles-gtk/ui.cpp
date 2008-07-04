@@ -4,6 +4,7 @@
 
 #include <nibbles/direction.hpp>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/archive/xml_iarchive.hpp>
@@ -28,10 +29,10 @@ UI::UI(
   window_(NULL),
   playerCombo_(NULL)
 {
-#define GET_WIDGET(xml, type, name)                   \
+#define GET_WIDGET(xml, type, name)              \
   Gtk::type* w##name = NULL;                     \
   do {                                           \
-    xml##Xml->get_widget(#name, w##name);          \
+    xml##Xml->get_widget(#name, w##name);        \
     if (!w##name) {                              \
       throw std::runtime_error("missing "#name); \
     }                                            \
@@ -96,6 +97,9 @@ UI::UI(
   playerCombo_->signal_changed().connect(
       sigc::mem_fun(this, &UI::refreshPlayer)
     );
+  playerName_->signal_changed().connect(
+      sigc::mem_fun(this, &UI::playerNameChanged)
+    );
 
   loadLocalPlayers();
 }
@@ -117,7 +121,8 @@ ControlledPlayer* UI::getCurrentPlayer()
   Gtk::TreeModel::iterator iter = playerCombo_->get_active();
   if (!iter)
     return NULL;
-  size_t index = iter - playerComboListStore_->children().begin();
+  // TODO: Do we need a faster-than-linear implementation?
+  size_t index = std::distance(playerComboListStore_->children().begin(), iter);
   assert(index < localPlayers_.size());
   return &localPlayers_[index];
 }
@@ -214,20 +219,32 @@ void UI::connect()
   }
 }
 
-void UI::createPlayer()
+bool UI::nameInUse(const string& name)
 {
-  string newName = "New player";
+  // TODO: Do we need a faster-than-linear implementation?
   BOOST_FOREACH(const ControlledPlayer& player, localPlayers_) {
-    if (player.get<name>() == newName) {
-      message(Verbosity::error, "name '"+newName+"' in use");
-      return;
+    if (player.get<fields::name>() == name) {
+      return true;
     }
   }
 
-  std::array<uint32_t, Direction::max> newControls;
-  BOOST_FOREACH(uint32_t& control, newControls) {
-    control = GDK_VoidSymbol;
+  return false;
+}
+
+void UI::createPlayer()
+{
+  string newName = "New player";
+  
+  if (nameInUse(newName)) {
+    message(Verbosity::error, "name '"+newName+"' in use");
+    return;
   }
+
+  std::array<uint32_t, Direction::max> newControls;
+  newControls[Direction::up] = GDK_Up;
+  newControls[Direction::down] = GDK_Down;
+  newControls[Direction::left] = GDK_Left;
+  newControls[Direction::right] = GDK_Right;
 
   ControlledPlayer newPlayer(
       Player(newName, Color::yellow),
@@ -255,6 +272,19 @@ void UI::addPlayerToGame()
 void UI::removePlayerFromGame()
 {
   throw logic_error("not implemented");
+}
+
+void UI::playerNameChanged()
+{
+  string newName = playerName_->get_text();
+  if (nameInUse(newName)) {
+    return;
+  }
+
+  if (Player* currentPlayer = getCurrentPlayer()) {
+    currentPlayer->get<name>() = newName;
+    (*playerCombo_->get_active())[playerComboColumns_.name_] = newName;
+  }
 }
 
 void UI::cancelNewKey()
