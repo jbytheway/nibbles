@@ -18,7 +18,13 @@ struct Color :
   explicit Color(Args&&... args) : base(args...) {}
 
   static Color black;
+  static Color blue;
+  static Color green;
+  static Color cyan;
+  static Color red;
+  static Color magenta;
   static Color yellow;
+  static Color white;
 };
 
 }

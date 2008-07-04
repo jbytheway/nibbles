@@ -101,7 +101,7 @@ void UI::message(utility::Verbosity v, const std::string& message)
   }
 }
 
-Player* UI::getCurrentPlayer()
+ControlledPlayer* UI::getCurrentPlayer()
 {
   Gtk::TreeModel::iterator iter = playerCombo_->get_active();
   if (!iter)
@@ -151,12 +151,12 @@ void UI::refreshPlayers()
 {
   // Save the current player so we can put things back properly afterwards
   string currentName;
-  if (Player* currentPlayer = getCurrentPlayer())
+  if (ControlledPlayer* currentPlayer = getCurrentPlayer())
     currentName = currentPlayer->get<name>();
 
   // Clear out the combo box
   playerComboListStore_->clear();
-  BOOST_FOREACH(const Player& player, localPlayers_) {
+  BOOST_FOREACH(const ControlledPlayer& player, localPlayers_) {
     Gtk::TreeModel::iterator iter = playerComboListStore_->append();
     Gtk::TreeModel::Row row = *iter;
     string name = player.get<fields::name>();
@@ -198,14 +198,23 @@ void UI::connect()
 void UI::createPlayer()
 {
   string newName = "New player";
-  BOOST_FOREACH(const Player& player, localPlayers_) {
+  BOOST_FOREACH(const ControlledPlayer& player, localPlayers_) {
     if (player.get<name>() == newName) {
       message(Verbosity::error, "name '"+newName+"' in use");
       return;
     }
   }
 
-  localPlayers_.push_back(Player(newName, Color::yellow));
+  std::array<uint32_t, Direction::max> newControls;
+  BOOST_FOREACH(uint32_t& control, newControls) {
+    control = GDK_VoidSymbol;
+  }
+
+  ControlledPlayer newPlayer(
+      Player(newName, Color::yellow),
+      newControls
+    );
+  localPlayers_.push_back(newPlayer);
   assert(playerComboListStore_);
   Gtk::TreeModel::iterator iter = playerComboListStore_->append();
   (*iter)[playerComboColumns_.name_] = newName;

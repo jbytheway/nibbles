@@ -7,7 +7,8 @@
 class name {                                         \
   public:                                            \
     enum internal_enum {                             \
-      BOOST_PP_SEQ_ENUM(values)                      \
+      BOOST_PP_SEQ_ENUM(values),                     \
+      max                                            \
     };                                               \
                                                      \
     name() {};                                       \

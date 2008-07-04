@@ -6,7 +6,7 @@
 #include <gtkmm.h>
 #include <libglademm.h>
 
-#include <nibbles/player.hpp>
+#include "controlledplayer.hpp"
 #include <nibbles/client/client.hpp>
 
 #include "options.hpp"
@@ -49,12 +49,12 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     Gtk::ColorButton* playerColor_;
 
     // game data
-    std::vector<Player> localPlayers_;
+    std::vector<ControlledPlayer> localPlayers_;
 
     client::Client::Ptr client_;
 
     // Convinience functions
-    Player* getCurrentPlayer();
+    ControlledPlayer* getCurrentPlayer();
 
     // File access stuff
     void loadLocalPlayers();
