@@ -18,7 +18,8 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     UI(
         boost::asio::io_service& io,
         const Options&,
-        const Glib::RefPtr<Gnome::Glade::Xml>& refXml
+        const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
+        const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
       );
     ~UI();
     Gtk::Window& window() { return *window_; }
@@ -47,6 +48,9 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
 
     Gtk::Entry* playerName_;
     Gtk::ColorButton* playerColor_;
+    std::array<Gtk::Button*, Direction::max> playerControlButtons_;
+
+    Gtk::Dialog* newKeyDialog_;
 
     // game data
     std::vector<ControlledPlayer> localPlayers_;
@@ -70,10 +74,13 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     void deletePlayer();
     void addPlayerToGame();
     void removePlayerFromGame();
-    // Though it's templated, this function can be in the .cpp file because
-    // it's private
+    void cancelNewKey();
+    // Though templated, these functions can be in the .cpp file because
+    // they're private
     template<int Direction>
     void setBinding();
+    template<int Direction>
+    bool newKey(GdkEventKey* event);
 };
 
 }}

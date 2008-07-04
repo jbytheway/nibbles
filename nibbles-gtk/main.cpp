@@ -46,10 +46,12 @@ int main(int argc, char** argv)
   io_service io;
   Gtk::Main kit(argc, argv);
   const Options options(argc, argv);
-  Glib::RefPtr<Gnome::Glade::Xml> refXml =
+  Glib::RefPtr<Gnome::Glade::Xml> mainXml =
     Gnome::Glade::Xml::create("nibbles.glade");
+  Glib::RefPtr<Gnome::Glade::Xml> newKeyXml =
+    Gnome::Glade::Xml::create("nibbles.newkey.glade");
 
-  UI ui(io, options, refXml);
+  UI ui(io, options, mainXml, newKeyXml);
   IoThread ioThreadObj(io);
   boost::thread ioThread(boost::ref(ioThreadObj));
   Gtk::Main::run(ui.window());

@@ -20,38 +20,42 @@ namespace nibbles { namespace gtk {
 UI::UI(
     boost::asio::io_service& io,
     const Options& options,
-    const Glib::RefPtr<Gnome::Glade::Xml>& refXml
+    const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
+    const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
   ) :
   io_(io),
   options_(options),
   window_(NULL),
   playerCombo_(NULL)
 {
-#define GET_WIDGET(type, name)                   \
+#define GET_WIDGET(xml, type, name)                   \
   Gtk::type* w##name = NULL;                     \
   do {                                           \
-    refXml->get_widget(#name, w##name);          \
+    xml##Xml->get_widget(#name, w##name);          \
     if (!w##name) {                              \
       throw std::runtime_error("missing "#name); \
     }                                            \
   } while (false)
 
-  GET_WIDGET(Window, MainWindow);
-  GET_WIDGET(TextView, MessageText);
-  GET_WIDGET(Entry, ServerAddressEntry);
-  GET_WIDGET(CheckButton, ReadyCheck);
-  GET_WIDGET(ComboBox, PlayerCombo);
-  GET_WIDGET(Entry, PlayerNameEntry);
-  GET_WIDGET(ColorButton, PlayerColorButton);
-  GET_WIDGET(Button, ConnectButton);
-  GET_WIDGET(Button, CreateButton);
-  GET_WIDGET(Button, DeleteButton);
-  GET_WIDGET(Button, AddButton);
-  GET_WIDGET(Button, RemoveButton);
-  GET_WIDGET(Button, UpButton);
-  GET_WIDGET(Button, DownButton);
-  GET_WIDGET(Button, LeftButton);
-  GET_WIDGET(Button, RightButton);
+  GET_WIDGET(main, Window, MainWindow);
+  GET_WIDGET(main, TextView, MessageText);
+  GET_WIDGET(main, Entry, ServerAddressEntry);
+  GET_WIDGET(main, CheckButton, ReadyCheck);
+  GET_WIDGET(main, ComboBox, PlayerCombo);
+  GET_WIDGET(main, Entry, PlayerNameEntry);
+  GET_WIDGET(main, ColorButton, PlayerColorButton);
+  GET_WIDGET(main, Button, ConnectButton);
+  GET_WIDGET(main, Button, CreateButton);
+  GET_WIDGET(main, Button, DeleteButton);
+  GET_WIDGET(main, Button, AddButton);
+  GET_WIDGET(main, Button, RemoveButton);
+  GET_WIDGET(main, Button, UpButton);
+  GET_WIDGET(main, Button, DownButton);
+  GET_WIDGET(main, Button, LeftButton);
+  GET_WIDGET(main, Button, RightButton);
+
+  GET_WIDGET(newKey, Dialog, NewKeyDialog);
+  GET_WIDGET(newKey, Button, NewKeyCancelButton);
 #undef GET_WIDGET
 
   // Store pointers to those widgets we need to access later
@@ -60,6 +64,12 @@ UI::UI(
   playerCombo_ = wPlayerCombo;
   playerName_ = wPlayerNameEntry;
   playerColor_ = wPlayerColorButton;
+  playerControlButtons_[Direction::up] = wUpButton;
+  playerControlButtons_[Direction::down] = wDownButton;
+  playerControlButtons_[Direction::left] = wLeftButton;
+  playerControlButtons_[Direction::right] = wRightButton;
+
+  newKeyDialog_ = wNewKeyDialog;
 
   // Attach the columns to their controls
   playerComboListStore_ = Gtk::ListStore::create(playerComboColumns_);
@@ -81,6 +91,7 @@ UI::UI(
   CONNECT_BUTTON(Down, setBinding<Direction::down>);
   CONNECT_BUTTON(Left, setBinding<Direction::left>);
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
+  CONNECT_BUTTON(NewKeyCancel, cancelNewKey);
 #undef CONNECT_BUTTON
   playerCombo_->signal_changed().connect(
       sigc::mem_fun(this, &UI::refreshPlayer)
@@ -171,13 +182,21 @@ void UI::refreshPlayers()
 
 void UI::refreshPlayer()
 {
-  const Player* player = getCurrentPlayer();
+  const ControlledPlayer* player = getCurrentPlayer();
   if (player) {
     playerName_->set_text(player->get<name>());
     playerColor_->set_color(ColorConverter::toGdkColor(player->get<color>()));
+    for (int d = 0; d < Direction::max; ++d) {
+      playerControlButtons_[d]->set_label(
+          Direction(d).string()+": "+gdk_keyval_name(player->get<controls>()[d])
+        );
+    }
   } else {
     playerName_->set_text("");
     playerColor_->set_color(ColorConverter::toGdkColor(Color::black));
+    for (int d = 0; d < Direction::max; ++d) {
+      playerControlButtons_[d]->set_label(Direction(d).string());
+    }
   }
 }
 
@@ -238,10 +257,37 @@ void UI::removePlayerFromGame()
   throw logic_error("not implemented");
 }
 
+void UI::cancelNewKey()
+{
+  newKeyDialog_->hide();
+}
+
 template<int Direction>
 void UI::setBinding()
 {
-  throw logic_error("not implemented");
+  if (!getCurrentPlayer())
+    return;
+  sigc::connection connection = newKeyDialog_->signal_key_press_event().connect(
+      sigc::mem_fun(this, &UI::newKey<Direction>)
+    );
+  newKeyDialog_->run();
+  // Bizarrely, if close button clicked, doesn't hide but does return from
+  // run(), so we hide manually
+  newKeyDialog_->hide();
+  message(Verbosity::info, "new key dialog closed\n");
+  connection.disconnect();
+  refreshPlayer();
+}
+
+template<int Direction>
+bool UI::newKey(GdkEventKey* event)
+{
+  uint32_t keyval = event->keyval;
+  ControlledPlayer* player = getCurrentPlayer();
+  if (player)
+    player->get<controls>()[Direction] = keyval;
+  newKeyDialog_->hide();
+  return false;
 }
 
 }}

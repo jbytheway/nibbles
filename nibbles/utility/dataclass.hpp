@@ -95,6 +95,10 @@ class DataClass : public detail::BaseClassHelper<Fields...>::type {
   private:
     template<typename Field>
     struct TypeOfField {
+      static_assert(
+          mpl::has_key<FieldClassMap, Field>::type::value,
+          "no such field in DataClass"
+        );
       typedef typename mpl::at<FieldClassMap, Field>::type FieldClass;
       typedef typename fusion::result_of::at_key<
           typename FieldClass::FieldMap,
