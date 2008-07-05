@@ -77,6 +77,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     void addPlayerToGame();
     void removePlayerFromGame();
     void playerNameChanged();
+    void colorChanged();
     void cancelNewKey();
     // Though templated, these functions can be in the .cpp file because
     // they're private

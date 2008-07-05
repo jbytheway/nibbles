@@ -9,6 +9,7 @@ namespace nibbles { namespace gtk {
 
 struct ColorConverter {
   static Gdk::Color toGdkColor(const Color&);
+  static Color toColor(const Gdk::Color&);
 };
 
 }}

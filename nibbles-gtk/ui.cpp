@@ -95,6 +95,9 @@ UI::UI(
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
   CONNECT_BUTTON(NewKeyCancel, cancelNewKey);
 #undef CONNECT_BUTTON
+  wPlayerColorButton->signal_color_set().connect(
+      sigc::mem_fun(this, &UI::colorChanged)
+    );
   playerCombo_->signal_changed().connect(
       sigc::mem_fun(this, &UI::refreshPlayer)
     );
@@ -288,6 +291,14 @@ void UI::playerNameChanged()
   if (Player* currentPlayer = getCurrentPlayer()) {
     currentPlayer->get<name>() = newName;
     (*playerCombo_->get_active())[playerComboColumns_.name_] = newName;
+  }
+}
+
+void UI::colorChanged()
+{
+  if (Player* currentPlayer = getCurrentPlayer()) {
+    currentPlayer->get<color>() =
+      ColorConverter::toColor(playerColor_->get_color());
   }
 }
 

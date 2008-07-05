@@ -9,5 +9,10 @@ Gdk::Color ColorConverter::toGdkColor(const Color& color)
   return c;
 }
 
+Color ColorConverter::toColor(const Gdk::Color& color)
+{
+  return Color(color.get_red()>>8, color.get_green()>>8, color.get_blue()>>8);
+}
+
 }}
 
