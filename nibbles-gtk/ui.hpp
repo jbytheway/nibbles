@@ -51,6 +51,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     std::array<Gtk::Button*, Direction::max> playerControlButtons_;
 
     Gtk::Dialog* newKeyDialog_;
+    Gtk::Button* newKeyCancelButton_;
 
     // game data
     std::vector<ControlledPlayer> localPlayers_;

@@ -71,6 +71,7 @@ UI::UI(
   playerControlButtons_[Direction::right] = wRightButton;
 
   newKeyDialog_ = wNewKeyDialog;
+  newKeyCancelButton_ = wNewKeyCancelButton;
 
   // Attach the columns to their controls
   playerComboListStore_ = Gtk::ListStore::create(playerComboColumns_);
@@ -297,7 +298,12 @@ void UI::setBinding()
 {
   if (!getCurrentPlayer())
     return;
-  sigc::connection connection = newKeyDialog_->signal_key_press_event().connect(
+  sigc::connection connection0 =
+    newKeyDialog_->signal_key_press_event().connect(
+      sigc::mem_fun(this, &UI::newKey<Direction>)
+    );
+  sigc::connection connection1 =
+    newKeyCancelButton_->signal_key_press_event().connect(
       sigc::mem_fun(this, &UI::newKey<Direction>)
     );
   newKeyDialog_->run();
@@ -305,7 +311,8 @@ void UI::setBinding()
   // run(), so we hide manually
   newKeyDialog_->hide();
   message(Verbosity::info, "new key dialog closed\n");
-  connection.disconnect();
+  connection0.disconnect();
+  connection1.disconnect();
   refreshPlayer();
 }
 
