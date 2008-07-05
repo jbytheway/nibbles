@@ -30,7 +30,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
 
     // controls
     Gtk::Window* window_;
-    Glib::RefPtr<Gtk::TextBuffer> messages_;
+    Gtk::TextView* messageView_;
     
     class PlayerComboColumns : public Gtk::TreeModel::ColumnRecord
     {

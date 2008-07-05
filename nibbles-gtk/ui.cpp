@@ -61,7 +61,7 @@ UI::UI(
 
   // Store pointers to those widgets we need to access later
   window_ = wMainWindow;
-  messages_ = wMessageText->get_buffer();
+  messageView_ = wMessageText;
   playerCombo_ = wPlayerCombo;
   playerName_ = wPlayerNameEntry;
   playerColor_ = wPlayerColorButton;
@@ -112,8 +112,11 @@ UI::~UI()
 
 void UI::message(utility::Verbosity v, const std::string& message)
 {
+  Glib::RefPtr<Gtk::TextBuffer> buffer = messageView_->get_buffer();
   if (options_.verbosity <= v) {
-    messages_->insert(messages_->end(), message);
+    buffer->insert(buffer->end(), message);
+    Gtk::TextIter end = buffer->end();
+    messageView_->scroll_to(end);
   }
 }
 
