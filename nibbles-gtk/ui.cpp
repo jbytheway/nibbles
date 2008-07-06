@@ -273,7 +273,16 @@ void UI::deletePlayer()
 
 void UI::addPlayerToGame()
 {
-  throw logic_error("not implemented");
+  Player* currentPlayer = getCurrentPlayer();
+  if (!currentPlayer) {
+    message(Verbosity::error, "no player selected");
+    return;
+  }
+  if (!client_) {
+    message(Verbosity::error, "not connected");
+    return;
+  }
+  client_->addPlayer(*currentPlayer);
 }
 
 void UI::removePlayerFromGame()

@@ -4,7 +4,10 @@
 #include <boost/utility.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 
+#include <nibbles/player.hpp>
+#include <nibbles/message.hpp>
 #include <nibbles/client/protocol.hpp>
 #include <nibbles/utility/messagehandler.hpp>
 
@@ -25,8 +28,18 @@ class Client : private boost::noncopyable {
     virtual ~Client() = 0;
 
     virtual void connect() = 0;
+    template<int Type>
+    void postMessage(const Message<Type>& message)
+    {
+      io_.post(boost::bind(&Client::send, this, message));
+    }
+    void addPlayer(const Player&);
   protected:
-    Client() {}
+    Client(boost::asio::io_service& io) : io_(io) {}
+
+    boost::asio::io_service& io_;
+
+    virtual void send(const MessageBase&) = 0;
 };
 
 inline Client::~Client() {}

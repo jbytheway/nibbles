@@ -2,6 +2,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <nibbles/network.hpp>
+
 using namespace std;
 using namespace boost::asio;
 using nibbles::utility::Verbosity;
@@ -14,7 +16,7 @@ TcpClient::TcpClient(
     std::string const& address,
     uint16_t const port
   ) :
-  io_(io),
+  Client(io),
   out_(out),
   socket_(io)
 {
@@ -31,7 +33,61 @@ void TcpClient::connect()
   socket_.open(ip::tcp::v4());
   socket_.connect(endpoint_);
 
-  // TODO: begin write
+  // TODO: begin read
+}
+
+void TcpClient::send(const MessageBase& message)
+{
+  const string& data = message.data();
+  if (data.size() > Network::maxPacketLen) {
+    out_.message(
+        Verbosity::error,
+        "TCP socket: packet too long ("+
+        boost::lexical_cast<string>(data.size())+" bytes)"
+      );
+    return;
+  }
+  outgoing_ += uint8_t(data.size());
+  outgoing_ += data;
+  if (writing_.empty())
+    startWrite();
+}
+
+void TcpClient::startWrite()
+{
+  writing_ += outgoing_;
+  outgoing_.clear();
+  if (writing_.empty())
+    return;
+  out_.message(
+      Verbosity::info,
+      "TcpClient: writing "+boost::lexical_cast<string>(writing_.size())+
+      " bytes\n"
+    );
+  async_write(socket_, buffer(writing_), boost::bind(
+        &TcpClient::handleWrite, this,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred
+      ));
+}
+
+void TcpClient::handleWrite(
+    const boost::system::error_code& ec,
+    const size_t bytes_transferred
+  )
+{
+  out_.message(
+      Verbosity::info,
+      "TcpClient: wrote "+boost::lexical_cast<string>(bytes_transferred)+
+      " bytes\n"
+    );
+  writing_.clear();
+  if (ec) {
+    out_.message(Verbosity::error, "TCP socket: "+ec.message()+"\n");
+    socket_.close();
+  } else if (!outgoing_.empty()) {
+    startWrite();
+  }
 }
 
 }}

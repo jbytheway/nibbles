@@ -3,7 +3,9 @@
 #include "server.hpp"
 
 #include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
 
+using namespace std;
 using namespace boost::asio;
 using namespace nibbles::utility;
 
@@ -18,6 +20,7 @@ TcpConnection::TcpConnection(Server& server) :
 
 void TcpConnection::start()
 {
+  server_.message(Verbosity::info, "TcpConnection::start()\n");
   continueRead();
 }
 
@@ -33,7 +36,8 @@ void TcpConnection::continueRead()
       buffer(data_.data()+dataLen_, data_.size()-dataLen_),
       boost::bind(
         &TcpConnection::handleRead, this,
-        placeholders::error, placeholders::bytes_transferred,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred,
         // send shared pointer to self through async call to ensure that not
         // destructed until call is completed
         ptrToThis_.lock()
@@ -47,6 +51,9 @@ void TcpConnection::handleRead(
     const Ptr&
   )
 {
+  server_.message(
+      Verbosity::info, "read "+boost::lexical_cast<string>(bytes)+" bytes\n"
+    );
   if (error) {
     server_.message(Verbosity::error, "read: "+error.message()+"\n");
     terminateSignal(this);
@@ -54,6 +61,7 @@ void TcpConnection::handleRead(
     dataLen_ += bytes;
     size_t packetLen;
     while (dataLen_ >= 1+(packetLen = data_[0])) {
+      server_.message(Verbosity::info, "got packet\n");
       uint8_t const* const packetStart = data_.data()+1;
       packetSignal(Packet(packetStart, packetLen), returnPath_);
       memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);

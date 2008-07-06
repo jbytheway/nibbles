@@ -1,5 +1,6 @@
 #include <nibbles/client/client.hpp>
 
+#include <nibbles/message.hpp>
 #include <nibbles/client/tcpclient.hpp>
 
 using namespace std;
@@ -20,6 +21,11 @@ Client::Ptr Client::create(
     default:
       throw logic_error("protocol not supported");
   }
+}
+
+void Client::addPlayer(const Player& player)
+{
+  postMessage(Message<MessageType::addPlayer>(player));
 }
 
 }}
