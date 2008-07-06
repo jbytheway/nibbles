@@ -11,7 +11,6 @@
 using namespace std;
 using namespace boost::asio;
 using namespace nibbles::gtk;
-
 struct IoThread {
   IoThread(io_service& io) :
     io_(io),
@@ -52,11 +51,28 @@ int main(int argc, char** argv)
     Gnome::Glade::Xml::create("nibbles.newkey.glade");
 
   UI ui(io, options, mainXml, newKeyXml);
-  IoThread ioThreadObj(io);
-  boost::thread ioThread(boost::ref(ioThreadObj));
-  Gtk::Main::run(ui.window());
-  ioThreadObj.interrupt();
-  ioThread.join();
+
+  if (options.threaded) {
+    IoThread ioThreadObj(io);
+    boost::thread ioThread(boost::ref(ioThreadObj));
+    Gtk::Main::run(ui.window());
+    ioThreadObj.interrupt();
+    ioThread.join();
+  } else {
+    // FIXME: This polling version is very inefficient (most CPU time spent
+    // spinlocking)
+    ui.window().show();
+    //struct timespec sleepTime = { 0, 0 };
+    while (ui.window().is_visible()) {
+      Gtk::Main::iteration(false);
+      io.poll();
+      io.reset();
+      // Even nanosleeping for 0 time sleeps too long because it actually
+      // sleeps for ~10ms
+      //nanosleep(&sleepTime, NULL);
+    }
+    io.run();
+  }
   return 0;
 }
 

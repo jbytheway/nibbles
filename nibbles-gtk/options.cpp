@@ -11,6 +11,7 @@ namespace nibbles { namespace gtk {
 
 Options::Options(int const /*argc*/, char** const /*argv*/) :
   verbosity(Verbosity::info),
+  threaded(false),
   playerFile(string(getenv("HOME"))+"/.nibbles/players"),
   protocol(Protocol::tcp),
   address("127.0.0.1"),
