@@ -2,10 +2,14 @@
 #define NIBBLES__UTILITY__ENUM_HPP
 
 #include <stdexcept>
+#include <istream>
+#include <ostream>
 
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/stringize.hpp>
+
+// FIXME: the operator>> implementation is hideously slow
 
 #define NIBBLES_UTILITY_ENUM_CASE(r, d, value) \
   case value:                                  \
@@ -37,7 +41,22 @@ class name {                                         \
     }                                                \
   private:                                           \
     internal_enum value;                             \
-};
+};                                                   \
+                                                     \
+inline std::istream& operator>>(std::istream& is, name& v) { \
+  std::string s;                                     \
+  is >> s;                                           \
+  for (int i=0; i<name::max; ++i) {                  \
+    if (name(i).string() == s) {                     \
+      v = name(i);                                   \
+    }                                                \
+  }                                                  \
+  return is;                                         \
+}                                                    \
+                                                     \
+inline std::ostream& operator<<(std::ostream& os, const name v) { \
+  return os << v.string();                           \
+}
 
 #endif // NIBBLES__UTILITY__ENUM_HPP
 

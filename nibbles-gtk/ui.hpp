@@ -2,6 +2,7 @@
 #define NIBBLES_GTK__UI_HPP
 
 #include <boost/utility.hpp>
+#include <boost/thread.hpp>
 
 #include <gtkmm.h>
 #include <libglademm.h>
@@ -27,6 +28,12 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
   private:
     boost::asio::io_service& io_;
     Options options_;
+
+    // things for sending message through to GUI
+    std::list<std::string> messages_; // messages pending
+    boost::mutex messagesMutex_; // Lock for the above list
+    Glib::Dispatcher messageAlert_; // Signal across to GUI thread
+    void writeMessage(); // Flushes the message list to the GUI
 
     // controls
     Gtk::Window* window_;

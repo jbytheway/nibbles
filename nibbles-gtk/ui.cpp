@@ -29,6 +29,9 @@ UI::UI(
   window_(NULL),
   playerCombo_(NULL)
 {
+  // Connect the message alert signal to our function
+  messageAlert_.connect(sigc::mem_fun(this, &UI::writeMessage));
+
 #define GET_WIDGET(xml, type, name)              \
   Gtk::type* w##name = NULL;                     \
   do {                                           \
@@ -115,12 +118,23 @@ UI::~UI()
 
 void UI::message(utility::Verbosity v, const std::string& message)
 {
-  Glib::RefPtr<Gtk::TextBuffer> buffer = messageView_->get_buffer();
   if (options_.verbosity <= v) {
-    buffer->insert(buffer->end(), message);
-    Gtk::TextIter end = buffer->end();
-    messageView_->scroll_to(end);
+    boost::lock_guard<boost::mutex> lock(messagesMutex_);
+    messages_.push_back(message);
+    messageAlert_();
   }
+}
+
+void UI::writeMessage()
+{
+  Glib::RefPtr<Gtk::TextBuffer> buffer = messageView_->get_buffer();
+  boost::lock_guard<boost::mutex> lock(messagesMutex_);
+  while (!messages_.empty()) {
+    buffer->insert(buffer->end(), messages_.front());
+    messages_.pop_front();
+  }
+  Gtk::TextIter end = buffer->end();
+  messageView_->scroll_to(end);
 }
 
 ControlledPlayer* UI::getCurrentPlayer()
