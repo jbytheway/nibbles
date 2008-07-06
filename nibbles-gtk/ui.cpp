@@ -289,11 +289,11 @@ void UI::addPlayerToGame()
 {
   Player* currentPlayer = getCurrentPlayer();
   if (!currentPlayer) {
-    message(Verbosity::error, "no player selected");
+    message(Verbosity::error, "no player selected\n");
     return;
   }
   if (!client_) {
-    message(Verbosity::error, "not connected");
+    message(Verbosity::error, "not connected\n");
     return;
   }
   client_->addPlayer(*currentPlayer);
