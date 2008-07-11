@@ -7,7 +7,8 @@
 
 namespace nibbles {
 
-#define NIBBLES_FIELDS() (blue)(color)(controls)(green)(name)(player)(red)
+#define NIBBLES_FIELDS() \
+  (blue)(color)(controls)(green)(id)(name)(player)(red)
 
 namespace fields {
 

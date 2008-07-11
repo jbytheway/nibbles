@@ -2,6 +2,7 @@
 #define NIBBLES__MESSAGEPAYLOAD_HPP
 
 #include <nibbles/player.hpp>
+#include <nibbles/idedplayer.hpp>
 
 namespace nibbles {
 
@@ -16,6 +17,11 @@ struct MessagePayload {
 template<>
 struct MessagePayload<MessageType::addPlayer> {
   typedef Player type;
+};
+
+template<>
+struct MessagePayload<MessageType::playerAdded> {
+  typedef IdedPlayer type;
 };
 
 }

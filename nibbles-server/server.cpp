@@ -78,6 +78,7 @@ void Server::shutdown()
 void Server::deleteConnection(Connection* connection)
 {
   Connection::Ptr fakePtr(connection, NullDeleter());
+  // TODO: inform of player removal
   players_.get<ConnectionTag>().erase(fakePtr);
   connectionPool_.erase(fakePtr);
   message(
@@ -94,10 +95,29 @@ void Server::internalNetMessage(
   )
 {
   Connection::Ptr fakePtr(connection, NullDeleter());
-  players_.insert(
+  PlayerContainer::iterator newIt;
+  bool inserted;
+  std::tie(newIt, inserted) = players_.insert(
       RemotePlayer(message.payload(), nextPlayerId_++, fakePtr)
     );
-  throw logic_error("not implemented");
+  assert(inserted);
+  const MessageBase& outMessage =
+    Message<MessageType::playerAdded>(newIt->player());
+  boost::multi_index::index<ConnectionPool, SequenceTag>::type& connections =
+    connectionPool_.get<SequenceTag>();
+  for_each(
+      connections.begin(), connections.end(),
+      boost::bind(&Connection::send, _1, boost::ref(outMessage))
+    );
+}
+
+template<>
+void Server::internalNetMessage(
+    const Message<MessageType::playerAdded>&,
+    Connection*
+  )
+{
+  message(Verbosity::warning, "ignoring playerAdded message");
 }
 
 void Server::netMessage(
@@ -105,14 +125,16 @@ void Server::netMessage(
     Connection* connection
   )
 {
-  static_assert(MessageType::max == 1, "switch statement needs update");
   switch (message.type()) {
-    case MessageType::addPlayer:
-      internalNetMessage<MessageType::addPlayer>(
-          dynamic_cast<const Message<MessageType::addPlayer>&>(message),
-          connection
-        );
+#define CASE(r, d, value)                                            \
+    case MessageType::value:                                         \
+      internalNetMessage<MessageType::value>(                        \
+          dynamic_cast<const Message<MessageType::value>&>(message), \
+          connection                                                 \
+        );                                                           \
       return;
+    BOOST_PP_SEQ_FOR_EACH(CASE, _, NIBBLES_MESSAGETYPE_VALUES())
+#undef CASE
     default:
       throw logic_error("unknown MessageType");
   }

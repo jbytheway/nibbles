@@ -2,9 +2,9 @@
 #define NIBBLES_SERVER__TCPCONNECTION_HPP
 
 #include <boost/weak_ptr.hpp>
-#include <boost/asio.hpp>
 
 #include <nibbles/network.hpp>
+#include <nibbles/tcpsocket.hpp>
 
 #include "connection.hpp"
 
@@ -12,7 +12,7 @@ namespace nibbles { namespace server {
 
 class Server;
 
-class TcpConnection : public Connection {
+class TcpConnection : public Connection, public TcpSocket {
   public:
     typedef boost::shared_ptr<TcpConnection> Ptr;
 
@@ -32,7 +32,6 @@ class TcpConnection : public Connection {
     
     Server& server_;
     boost::weak_ptr<TcpConnection> ptrToThis_;
-    boost::asio::ip::tcp::socket socket_;
     static const size_t maxDataLen =
       Network::maxPacketLen+sizeof(Network::PacketLength);
     boost::array<uint8_t, maxDataLen> data_;

@@ -12,8 +12,8 @@ using namespace nibbles::utility;
 namespace nibbles { namespace server {
 
 TcpConnection::TcpConnection(Server& server) :
+  TcpSocket(server.io(), server),
   server_(server),
-  socket_(server.io()),
   dataLen_(0)
 {}
 
@@ -64,6 +64,7 @@ void TcpConnection::handleRead(
       uint8_t const* const packetStart = data_.data()+1;
       messageSignal(*MessageBase::create(packetStart, packetLen), this);
       memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);
+      dataLen_ -= (packetLen + 1);
     }
     continueRead();
   }

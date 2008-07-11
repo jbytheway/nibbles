@@ -5,7 +5,7 @@
 
 namespace nibbles {
 
-#define NIBBLES_MESSAGETYPE_VALUES() (addPlayer)
+#define NIBBLES_MESSAGETYPE_VALUES() (addPlayer)(playerAdded)
 
 NIBBLES_UTILITY_ENUM_HEADER(MessageType, NIBBLES_MESSAGETYPE_VALUES())
 

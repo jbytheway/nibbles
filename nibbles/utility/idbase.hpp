@@ -2,6 +2,7 @@
 #define NIBBLES__UTILITY__IDBASE_HPP
 
 #include <boost/lexical_cast.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace nibbles { namespace utility {
 
@@ -17,6 +18,8 @@ namespace nibbles { namespace utility {
  * Thanks to the way boost::hash works we can also have hashes work
  * automatically for all derived classes.
  *
+ * boost::serialization should also work by magic.
+ *
  * It is guaranteed that if an instance is default-constructed and then
  * incremented, all values obtained will be distinct until an invalid value is
  * reached (as determined by the \c valid method); after that duplicates may be
@@ -28,15 +31,11 @@ class IdBase {
       std::numeric_limits<TInteger>::is_integer,
       "internal id type must be an integer type"
     );
+  friend class boost::serialization::access;
   public:
     /** \brief Type which this is a wrapper for. */
     typedef TInteger internal_type;
-  protected:
-    /** \brief Default constructor always produces the same, valid id */
-    IdBase() : val(0) {}
-  private:
-    TInteger val;
-  public:
+
     /** \brief Implicit cast to internal type.
      *
      * This allows this to be treated as an integer for such things as
@@ -80,6 +79,17 @@ class IdBase {
     }
     friend bool operator==(TDerived l, TDerived r) { return l.val == r.val; }
     friend bool operator!=(TDerived l, TDerived r) { return l.val != r.val; }
+  protected:
+    /** \brief Default constructor always produces the same, valid id */
+    IdBase() : val(0) {}
+  private:
+    TInteger val;
+
+    template<typename Archive>
+    void serialize(Archive & ar, const unsigned int /*version*/)
+    {
+      ar & BOOST_SERIALIZATION_NVP(val);
+    }
 };
 
 /* The name hash_value for this function is required for it to work with

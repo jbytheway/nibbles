@@ -5,8 +5,11 @@
 #include <boost/utility.hpp>
 #include <boost/asio.hpp>
 #include <boost/multi_index_container.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
+
+#include <nibbles/utility/messagehandler.hpp>
 
 #include "options.hpp"
 #include "tcpserver.hpp"
@@ -14,7 +17,7 @@
 
 namespace nibbles { namespace server {
 
-class Server : boost::noncopyable
+class Server : public utility::MessageHandler, private boost::noncopyable
 {
   public:
     Server(boost::asio::io_service& io, std::ostream& out, const Options& o);
@@ -28,12 +31,21 @@ class Server : boost::noncopyable
     const Options options_;
     TcpServer tcp_;
 
-    typedef std::unordered_set<Connection::Ptr, Connection::PtrHash>
-      ConnectionPool;
+    struct SequenceTag;
+    typedef boost::multi_index_container<
+        Connection::Ptr,
+        boost::multi_index::indexed_by<
+          boost::multi_index::hashed_unique<
+            boost::multi_index::identity<Connection::Ptr>, Connection::PtrHash
+          >,
+          boost::multi_index::sequenced<
+            boost::multi_index::tag<SequenceTag>
+          >
+        >
+      > ConnectionPool;
     ConnectionPool connectionPool_;
 
     struct ConnectionTag;
-
     typedef boost::multi_index_container<
         RemotePlayer,
         boost::multi_index::indexed_by<

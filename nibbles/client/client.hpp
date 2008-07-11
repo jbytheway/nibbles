@@ -8,12 +8,13 @@
 
 #include <nibbles/player.hpp>
 #include <nibbles/message.hpp>
-#include <nibbles/client/protocol.hpp>
+#include <nibbles/socket.hpp>
 #include <nibbles/utility/messagehandler.hpp>
+#include <nibbles/client/protocol.hpp>
 
 namespace nibbles { namespace client {
 
-class Client : private boost::noncopyable {
+class Client : public virtual Socket {
   public:
     typedef boost::shared_ptr<Client> Ptr;
 
@@ -38,8 +39,6 @@ class Client : private boost::noncopyable {
     Client(boost::asio::io_service& io) : io_(io) {}
 
     boost::asio::io_service& io_;
-
-    virtual void send(const MessageBase&) = 0;
 };
 
 inline Client::~Client() {}
