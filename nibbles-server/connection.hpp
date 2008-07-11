@@ -6,8 +6,6 @@
 
 #include <nibbles/message.hpp>
 
-#include "returnpath.hpp"
-
 namespace nibbles { namespace server {
 
 class Connection : boost::noncopyable {
@@ -24,7 +22,7 @@ class Connection : boost::noncopyable {
     virtual void start() = 0;
     virtual void close() = 0;
 
-    boost::signal<void (MessageBase const&, ReturnPath const&)> messageSignal;
+    boost::signal<void (MessageBase const&, Connection*)> messageSignal;
     boost::signal<void (Connection*)> terminateSignal;
 };
 

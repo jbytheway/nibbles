@@ -4,9 +4,13 @@
 #include <unordered_set>
 #include <boost/utility.hpp>
 #include <boost/asio.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 
 #include "options.hpp"
 #include "tcpserver.hpp"
+#include "remoteplayer.hpp"
 
 namespace nibbles { namespace server {
 
@@ -28,13 +32,32 @@ class Server : boost::noncopyable
       ConnectionPool;
     ConnectionPool connectionPool_;
 
-    void netMessage(const MessageBase&, const ReturnPath&);
+    struct ConnectionTag;
+
+    typedef boost::multi_index_container<
+        RemotePlayer,
+        boost::multi_index::indexed_by<
+          boost::multi_index::hashed_unique<
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(RemotePlayer, PlayerId, id)
+          >,
+          boost::multi_index::hashed_non_unique<
+            boost::multi_index::tag<ConnectionTag>,
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(
+                RemotePlayer, Connection::Ptr, connection
+              )
+          >
+        >
+      > PlayerContainer;
+    PlayerContainer players_;
+    PlayerId nextPlayerId_;
+
+    void netMessage(const MessageBase&, Connection*);
     void signalled();
     void shutdown();
     void deleteConnection(Connection* connection);
 
     template<int Type>
-    void internalNetMessage(const Message<Type>&, const ReturnPath&);
+    void internalNetMessage(const Message<Type>&, Connection*);
 };
 
 }}

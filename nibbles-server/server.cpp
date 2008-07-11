@@ -78,6 +78,7 @@ void Server::shutdown()
 void Server::deleteConnection(Connection* connection)
 {
   Connection::Ptr fakePtr(connection, NullDeleter());
+  players_.get<ConnectionTag>().erase(fakePtr);
   connectionPool_.erase(fakePtr);
   message(
       Verbosity::info,
@@ -88,16 +89,20 @@ void Server::deleteConnection(Connection* connection)
 
 template<>
 void Server::internalNetMessage(
-    const Message<MessageType::addPlayer>&,
-    const ReturnPath&
+    const Message<MessageType::addPlayer>& message,
+    Connection* connection
   )
 {
+  Connection::Ptr fakePtr(connection, NullDeleter());
+  players_.insert(
+      RemotePlayer(message.payload(), nextPlayerId_++, fakePtr)
+    );
   throw logic_error("not implemented");
 }
 
 void Server::netMessage(
     const MessageBase& message,
-    const ReturnPath& returnPath
+    Connection* connection
   )
 {
   static_assert(MessageType::max == 1, "switch statement needs update");
@@ -105,7 +110,7 @@ void Server::netMessage(
     case MessageType::addPlayer:
       internalNetMessage<MessageType::addPlayer>(
           dynamic_cast<const Message<MessageType::addPlayer>&>(message),
-          returnPath
+          connection
         );
       return;
     default:

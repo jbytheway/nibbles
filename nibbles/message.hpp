@@ -23,6 +23,7 @@ class Message : public MessageBase {
     Message(const PayloadType& payload);
 
     virtual MessageType type() const { return MessageType(Type); }
+    const PayloadType& payload() const { return payload_; }
     virtual const std::string& data() const { return data_; }
   private:
     PayloadType payload_;

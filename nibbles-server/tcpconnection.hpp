@@ -30,14 +30,6 @@ class TcpConnection : public Connection {
   private:
     TcpConnection(Server& server);
     
-    class TcpReturnPath : public ReturnPath {
-      public:
-        TcpReturnPath(TcpConnection& connection) : connection_(connection)
-        {}
-      private:
-        TcpConnection& connection_;
-    };
-
     Server& server_;
     boost::weak_ptr<TcpConnection> ptrToThis_;
     boost::asio::ip::tcp::socket socket_;
@@ -45,7 +37,6 @@ class TcpConnection : public Connection {
       Network::maxPacketLen+sizeof(Network::PacketLength);
     boost::array<uint8_t, maxDataLen> data_;
     std::size_t dataLen_;
-    TcpReturnPath returnPath_;
 
     void continueRead();
     void handleRead(
