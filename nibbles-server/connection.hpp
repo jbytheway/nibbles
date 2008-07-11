@@ -4,7 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 
-#include <nibbles/packet.hpp>
+#include <nibbles/message.hpp>
 
 #include "returnpath.hpp"
 
@@ -24,7 +24,7 @@ class Connection : boost::noncopyable {
     virtual void start() = 0;
     virtual void close() = 0;
 
-    boost::signal<void (Packet const&, ReturnPath const&)> packetSignal;
+    boost::signal<void (MessageBase const&, ReturnPath const&)> messageSignal;
     boost::signal<void (Connection*)> terminateSignal;
 };
 

@@ -28,7 +28,7 @@ class Server : boost::noncopyable
       ConnectionPool;
     ConnectionPool connectionPool_;
 
-    void packet(const Packet&, const ReturnPath&);
+    void netMessage(const MessageBase&, const ReturnPath&);
     void signalled();
     void shutdown();
     void deleteConnection(Connection* connection);

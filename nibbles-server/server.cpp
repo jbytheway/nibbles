@@ -36,8 +36,8 @@ void Server::serve()
 
 void Server::addConnection(const Connection::Ptr& connection)
 {
-  connection->packetSignal.connect(
-      boost::bind(&Server::packet, this, _1, _2)
+  connection->messageSignal.connect(
+      boost::bind(&Server::netMessage, this, _1, _2)
     );
   connection->terminateSignal.connect(
       boost::bind(&Server::deleteConnection, this, _1)
@@ -57,7 +57,7 @@ void Server::message(Verbosity v, const string& message)
     out_ << message << flush;
 }
 
-void Server::packet(const Packet&, const ReturnPath&)
+void Server::netMessage(const MessageBase&, const ReturnPath&)
 {
   // TODO: deal
   abort();

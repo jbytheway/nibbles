@@ -63,7 +63,7 @@ void TcpConnection::handleRead(
     while (dataLen_ >= 1+(packetLen = data_[0])) {
       server_.message(Verbosity::info, "got packet\n");
       uint8_t const* const packetStart = data_.data()+1;
-      packetSignal(Packet(packetStart, packetLen), returnPath_);
+      messageSignal(*MessageBase::create(packetStart, packetLen), returnPath_);
       memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);
     }
     continueRead();
