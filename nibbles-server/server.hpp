@@ -32,6 +32,9 @@ class Server : boost::noncopyable
     void signalled();
     void shutdown();
     void deleteConnection(Connection* connection);
+
+    template<int Type>
+    void internalNetMessage(const Message<Type>&, const ReturnPath&);
 };
 
 }}

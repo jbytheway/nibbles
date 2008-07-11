@@ -57,11 +57,8 @@ void Server::message(Verbosity v, const string& message)
     out_ << message << flush;
 }
 
-void Server::netMessage(const MessageBase&, const ReturnPath&)
-{
-  // TODO: deal
-  abort();
-}
+// Server::netMessage last so as not to precede specializations of
+// internalNetMessage
 
 void Server::signalled()
 {
@@ -87,6 +84,33 @@ void Server::deleteConnection(Connection* connection)
       "removed connection; "+
       boost::lexical_cast<string>(connectionPool_.size())+" remain\n"
     );
+}
+
+template<>
+void Server::internalNetMessage(
+    const Message<MessageType::addPlayer>&,
+    const ReturnPath&
+  )
+{
+  throw logic_error("not implemented");
+}
+
+void Server::netMessage(
+    const MessageBase& message,
+    const ReturnPath& returnPath
+  )
+{
+  static_assert(MessageType::max == 1, "switch statement needs update");
+  switch (message.type()) {
+    case MessageType::addPlayer:
+      internalNetMessage<MessageType::addPlayer>(
+          dynamic_cast<const Message<MessageType::addPlayer>&>(message),
+          returnPath
+        );
+      return;
+    default:
+      throw logic_error("unknown MessageType");
+  }
 }
 
 }}
