@@ -5,6 +5,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/signal.hpp>
 
 #include <nibbles/player.hpp>
 #include <nibbles/message.hpp>
@@ -14,7 +15,7 @@
 
 namespace nibbles { namespace client {
 
-class Client : public virtual Socket {
+class Client : boost::noncopyable {
   public:
     typedef boost::shared_ptr<Client> Ptr;
 
@@ -28,17 +29,26 @@ class Client : public virtual Socket {
 
     virtual ~Client() = 0;
 
-    virtual void connect() = 0;
+    void connect() { socket_->connect(); }
+    void close() { socket_->close(); }
+
     template<int Type>
     void postMessage(const Message<Type>& message)
     {
-      io_.post(boost::bind(&Client::send, this, message));
+      io_.post(boost::bind(&Socket::send, socket_, message));
     }
     void addPlayer(const Player&);
+
+    boost::signal<void (MessageBase const&, Client*)> messageSignal;
+    boost::signal<void (Client*)> terminateSignal;
   protected:
-    Client(boost::asio::io_service& io) : io_(io) {}
+    Client(
+        boost::asio::io_service& io,
+        const Socket::Ptr& socket
+      );
 
     boost::asio::io_service& io_;
+    Socket::Ptr socket_;
 };
 
 inline Client::~Client() {}

@@ -6,7 +6,7 @@
 
 namespace nibbles { namespace client {
 
-class TcpClient : public Client, public TcpSocket {
+class TcpClient : public Client{
   public:
     TcpClient(
         boost::asio::io_service&,
@@ -15,7 +15,6 @@ class TcpClient : public Client, public TcpSocket {
         uint16_t const port
       );
     virtual ~TcpClient() {}
-    virtual void connect();
   private:
 };
 

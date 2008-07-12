@@ -16,17 +16,8 @@ TcpClient::TcpClient(
     std::string const& address,
     uint16_t const port
   ) :
-  Client(io),
-  TcpSocket(io, out, address, port)
+  Client(io, TcpSocket::create(io, out, address, port))
 {
-}
-
-void TcpClient::connect()
-{
-  socket_.open(ip::tcp::v4());
-  socket_.connect(endpoint_);
-
-  // TODO: begin read
 }
 
 }}

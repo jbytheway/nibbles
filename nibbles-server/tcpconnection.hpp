@@ -12,37 +12,17 @@ namespace nibbles { namespace server {
 
 class Server;
 
-class TcpConnection : public Connection, public TcpSocket {
+class TcpConnection : public Connection {
   public:
     typedef boost::shared_ptr<TcpConnection> Ptr;
 
-    static Ptr create(Server& server)
-    {
-      Ptr p(new TcpConnection(server));
-      p->ptrToThis_ = p;
-      return p;
-    }
-
-    virtual ~TcpConnection() {}
-    boost::asio::ip::tcp::socket& socket() { return socket_; }
-    virtual void start();
-    virtual void close();
-  private:
     TcpConnection(Server& server);
-    
-    Server& server_;
-    boost::weak_ptr<TcpConnection> ptrToThis_;
-    static const size_t maxDataLen =
-      Network::maxPacketLen+sizeof(Network::PacketLength);
-    boost::array<uint8_t, maxDataLen> data_;
-    std::size_t dataLen_;
+    virtual ~TcpConnection() {}
 
-    void continueRead();
-    void handleRead(
-        const boost::system::error_code&,
-        std::size_t bytes,
-        const Ptr&
-      );
+    boost::asio::ip::tcp::socket& socket() {
+      return boost::dynamic_pointer_cast<TcpSocket>(socket_)->socket();
+    }
+  private:
 };
 
 }}

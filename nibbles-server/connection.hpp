@@ -9,7 +9,7 @@
 
 namespace nibbles { namespace server {
 
-class Connection : public virtual Socket {
+class Connection : private boost::noncopyable {
   public:
     typedef boost::shared_ptr<Connection> Ptr;
 
@@ -20,11 +20,16 @@ class Connection : public virtual Socket {
     };
 
     virtual ~Connection() = 0;
-    virtual void start() = 0;
-    virtual void close() = 0;
+    void start() { socket_->read(); }
+    void send(const MessageBase& m) { socket_->send(m); }
+    void close() { socket_->close(); }
 
     boost::signal<void (MessageBase const&, Connection*)> messageSignal;
     boost::signal<void (Connection*)> terminateSignal;
+  protected:
+    Connection(const Socket::Ptr&);
+
+    Socket::Ptr socket_;
 };
 
 inline Connection::~Connection() {}

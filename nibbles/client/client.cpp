@@ -17,10 +17,25 @@ Client::Ptr Client::create(
 {
   switch (protocol) {
     case Protocol::tcp:
-      return Client::Ptr(new TcpClient(io, out, address, port));
+      return Ptr(new TcpClient(io, out, address, port));
     default:
       throw logic_error("protocol not supported");
   }
+}
+
+Client::Client(
+    boost::asio::io_service& io,
+    const Socket::Ptr& socket
+  ) :
+  io_(io), socket_(socket)
+{
+  socket_->messageSignal.connect(
+      boost::bind(boost::ref(messageSignal), _1, this)
+    );
+  socket_->terminateSignal.connect(
+      boost::bind(boost::ref(terminateSignal), this)
+    );
+  // TODO: should disconnect these on destruction
 }
 
 void Client::addPlayer(const Player& player)

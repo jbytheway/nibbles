@@ -56,6 +56,7 @@ int main(int argc, char** argv)
     IoThread ioThreadObj(io);
     boost::thread ioThread(boost::ref(ioThreadObj));
     Gtk::Main::run(ui.window());
+    ui.disconnect();
     ioThreadObj.interrupt();
     ioThread.join();
   } else {
@@ -71,6 +72,7 @@ int main(int argc, char** argv)
       // sleeps for ~10ms
       //nanosleep(&sleepTime, NULL);
     }
+    ui.disconnect();
     io.run();
   }
   return 0;

@@ -25,6 +25,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     ~UI();
     Gtk::Window& window() { return *window_; }
     void message(utility::Verbosity, const std::string& message);
+    void disconnect();
   private:
     boost::asio::io_service& io_;
     Options options_;

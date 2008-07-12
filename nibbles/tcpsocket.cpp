@@ -16,7 +16,8 @@ TcpSocket::TcpSocket(
     utility::MessageHandler& out
   ) :
   out_(out),
-  socket_(io)
+  socket_(io),
+  dataLen_(0)
 {
 }
 
@@ -27,7 +28,8 @@ TcpSocket::TcpSocket(
     uint16_t const port
   ) :
   out_(out),
-  socket_(io)
+  socket_(io),
+  dataLen_(0)
 {
   ip::address addr = ip::address::from_string(address);
   endpoint_ = ip::tcp::endpoint(addr, port);
@@ -35,6 +37,14 @@ TcpSocket::TcpSocket(
       Verbosity::info, "tcp: connecting to "+addr.to_string()+":"+
       boost::lexical_cast<string>(port)+"\n"
     );
+}
+
+void TcpSocket::connect()
+{
+  socket_.open(ip::tcp::v4());
+  socket_.connect(endpoint_);
+
+  continueRead();
 }
 
 void TcpSocket::send(const MessageBase& message)
@@ -52,6 +62,47 @@ void TcpSocket::send(const MessageBase& message)
   outgoing_ += data;
   if (writing_.empty())
     startWrite();
+}
+
+void TcpSocket::continueRead()
+{
+  socket_.async_read_some(
+      buffer(data_.data()+dataLen_, data_.size()-dataLen_),
+      boost::bind(
+        &TcpSocket::handleRead, this,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred,
+        // send shared pointer to self through async call to ensure that not
+        // destructed until call is completed
+        ptrToThis_.lock()
+      )
+    );
+}
+
+void TcpSocket::handleRead(
+    const boost::system::error_code& error,
+    std::size_t bytes,
+    const Ptr&
+  )
+{
+  out_.message(
+      Verbosity::info, "read "+boost::lexical_cast<string>(bytes)+" bytes\n"
+    );
+  if (error) {
+    out_.message(Verbosity::error, "read: "+error.message()+"\n");
+    terminateSignal();
+  } else {
+    dataLen_ += bytes;
+    size_t packetLen;
+    while (dataLen_ >= 1+(packetLen = data_[0])) {
+      out_.message(Verbosity::info, "got packet\n");
+      uint8_t const* const packetStart = data_.data()+1;
+      messageSignal(*MessageBase::create(packetStart, packetLen));
+      memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);
+      dataLen_ -= (packetLen + 1);
+    }
+    continueRead();
+  }
 }
 
 void TcpSocket::startWrite()

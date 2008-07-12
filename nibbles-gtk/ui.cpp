@@ -125,6 +125,14 @@ void UI::message(utility::Verbosity v, const std::string& message)
   }
 }
 
+void UI::disconnect()
+{
+  if (client_) {
+    client_->close();
+    client_.reset();
+  }
+}
+
 void UI::writeMessage()
 {
   Glib::RefPtr<Gtk::TextBuffer> buffer = messageView_->get_buffer();
