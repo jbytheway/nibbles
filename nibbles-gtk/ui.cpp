@@ -29,8 +29,9 @@ UI::UI(
   window_(NULL),
   playerCombo_(NULL)
 {
-  // Connect the message alert signal to our function
-  messageAlert_.connect(sigc::mem_fun(this, &UI::writeMessage));
+  // Connect the message alert signals to our functions
+  messageSignal_.connect(sigc::mem_fun(this, &UI::writeMessage));
+  netMessageSignal_.connect(sigc::mem_fun(this, &UI::handleNetMessage));
 
 #define GET_WIDGET(xml, type, name)              \
   Gtk::type* w##name = NULL;                     \
@@ -45,6 +46,7 @@ UI::UI(
   GET_WIDGET(main, TextView, MessageText);
   GET_WIDGET(main, Entry, ServerAddressEntry);
   GET_WIDGET(main, CheckButton, ReadyCheck);
+  GET_WIDGET(main, TreeView, RemotePlayerList);
   GET_WIDGET(main, ComboBox, PlayerCombo);
   GET_WIDGET(main, Entry, PlayerNameEntry);
   GET_WIDGET(main, ColorButton, PlayerColorButton);
@@ -65,6 +67,7 @@ UI::UI(
   // Store pointers to those widgets we need to access later
   window_ = wMainWindow;
   messageView_ = wMessageText;
+  remotePlayerList_ = wRemotePlayerList;
   playerCombo_ = wPlayerCombo;
   playerName_ = wPlayerNameEntry;
   playerColor_ = wPlayerColorButton;
@@ -77,6 +80,13 @@ UI::UI(
   newKeyCancelButton_ = wNewKeyCancelButton;
 
   // Attach the columns to their controls
+  remotePlayerListStore_ = Gtk::ListStore::create(remotePlayerListColumns_);
+  assert(remotePlayerListStore_);
+  remotePlayerList_->set_model(remotePlayerListStore_);
+  remotePlayerList_->append_column("ID", remotePlayerListColumns_.id_);
+  remotePlayerList_->append_column("Color", remotePlayerListColumns_.color_);
+  remotePlayerList_->append_column("Name", remotePlayerListColumns_.name_);
+
   playerComboListStore_ = Gtk::ListStore::create(playerComboColumns_);
   assert(playerComboListStore_);
   playerCombo_->set_model(playerComboListStore_);
@@ -102,7 +112,7 @@ UI::UI(
       sigc::mem_fun(this, &UI::colorChanged)
     );
   playerCombo_->signal_changed().connect(
-      sigc::mem_fun(this, &UI::refreshPlayer)
+      sigc::mem_fun(this, &UI::refreshLocalPlayer)
     );
   playerName_->signal_changed().connect(
       sigc::mem_fun(this, &UI::playerNameChanged)
@@ -119,30 +129,52 @@ UI::~UI()
 void UI::message(utility::Verbosity v, const std::string& message)
 {
   if (options_.verbosity <= v) {
-    boost::lock_guard<boost::mutex> lock(messagesMutex_);
-    messages_.push_back(message);
-    messageAlert_();
+    messageSignal_(message);
   }
 }
 
-void UI::disconnect()
-{
-  if (client_) {
-    client_->close();
-    client_.reset();
-  }
-}
-
-void UI::writeMessage()
+void UI::writeMessage(const string& message)
 {
   Glib::RefPtr<Gtk::TextBuffer> buffer = messageView_->get_buffer();
-  boost::lock_guard<boost::mutex> lock(messagesMutex_);
-  while (!messages_.empty()) {
-    buffer->insert(buffer->end(), messages_.front());
-    messages_.pop_front();
-  }
+  buffer->insert(buffer->end(), message);
   Gtk::TextIter end = buffer->end();
   messageView_->scroll_to(end);
+}
+
+template<>
+void UI::internalNetMessage<MessageType::addPlayer>(
+    const Message<MessageType::addPlayer>&
+  )
+{
+  message(Verbosity::warning, "ignoring addPlayer message");
+}
+
+template<>
+void UI::internalNetMessage<MessageType::playerAdded>(
+    const Message<MessageType::playerAdded>& message
+  )
+{
+  bool inserted = remotePlayers_.insert(message.payload()).second;
+  if (!inserted) {
+    this->message(Verbosity::error, "duplicate player added");
+  }
+  refreshRemotePlayers();
+}
+
+void UI::handleNetMessage(const MessageBase::Ptr& message)
+{
+  switch (message->type()) {
+#define CASE(r, d, value)                                            \
+    case MessageType::value:                                         \
+      internalNetMessage<MessageType::value>(                        \
+          dynamic_cast<const Message<MessageType::value>&>(*message) \
+        );                                                           \
+      return;
+    BOOST_PP_SEQ_FOR_EACH(CASE, _, NIBBLES_MESSAGETYPE_VALUES())
+#undef CASE
+    default:
+      throw logic_error("unknown MessageType");
+  }
 }
 
 ControlledPlayer* UI::getCurrentPlayer()
@@ -167,7 +199,7 @@ void UI::loadLocalPlayers()
   boost::filesystem::ifstream ifs(playerFilePath);
   boost::archive::xml_iarchive ia(ifs);
   ia >> BOOST_SERIALIZATION_NVP(localPlayers_);
-  refreshPlayers();
+  refreshLocalPlayers();
 }
 
 void UI::saveLocalPlayers()
@@ -192,7 +224,30 @@ void UI::saveLocalPlayers()
   rename(tempPlayerFilePath, playerFilePath);
 }
 
-void UI::refreshPlayers()
+void UI::refreshRemotePlayers()
+{
+  // Save the current player so we can put things back properly afterwards
+  PlayerId currentId = PlayerId::invalid();
+  if (Gtk::TreeModel::iterator iter =
+      remotePlayerList_->get_selection()->get_selected())
+    currentId = PlayerId::fromInteger((*iter)[remotePlayerListColumns_.id_]);
+
+  // Clear out the list box
+  remotePlayerListStore_->clear();
+  BOOST_FOREACH(const IdedPlayer& player, remotePlayers_) {
+    Gtk::TreeModel::iterator iter = remotePlayerListStore_->append();
+    Gtk::TreeModel::Row row = *iter;
+    row[remotePlayerListColumns_.id_] = player.get<id>();
+    row[remotePlayerListColumns_.color_] =
+      ColorConverter::toGdkColor(player.get<color>());
+    row[remotePlayerListColumns_.name_] = player.get<name>();
+    if (player.get<id>() == currentId) {
+      remotePlayerList_->get_selection()->select(iter);
+    }
+  }
+}
+
+void UI::refreshLocalPlayers()
 {
   // Save the current player so we can put things back properly afterwards
   string currentName;
@@ -211,10 +266,10 @@ void UI::refreshPlayers()
     }
   }
 
-  refreshPlayer();
+  refreshLocalPlayer();
 }
 
-void UI::refreshPlayer()
+void UI::refreshLocalPlayer()
 {
   const ControlledPlayer* player = getCurrentPlayer();
   if (player) {
@@ -241,9 +296,22 @@ void UI::connect()
         io_, *this, options_.protocol, options_.address, options_.port
       );
   try {
+    client_->messageSignal().connect(boost::ref(netMessageSignal_));
+    client_->terminateSignal().connect(
+        boost::bind(&UI::disconnect, this)
+      );
     client_->connect();
   } catch (system_error& e) {
     message(Verbosity::error, string("connection failed: ")+e.what()+"\n");
+    client_.reset();
+  }
+}
+
+void UI::disconnect()
+{
+  message(Verbosity::error, "disconnecting\n");
+  if (client_) {
+    client_->close();
     client_.reset();
   }
 }
@@ -285,7 +353,7 @@ void UI::createPlayer()
   (*iter)[playerComboColumns_.name_] = newName;
   playerCombo_->set_active(iter);
 
-  refreshPlayer();
+  refreshLocalPlayer();
 }
 
 void UI::deletePlayer()
@@ -358,7 +426,7 @@ void UI::setBinding()
   message(Verbosity::info, "new key dialog closed\n");
   connection0.disconnect();
   connection1.disconnect();
-  refreshPlayer();
+  refreshLocalPlayer();
 }
 
 template<int Direction>

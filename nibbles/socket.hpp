@@ -16,7 +16,7 @@ class Socket : boost::noncopyable {
     virtual void send(const MessageBase&) = 0;
     virtual void close() = 0;
 
-    boost::signal<void (MessageBase const&)> messageSignal;
+    boost::signal<void (MessageBase::Ptr const&)> messageSignal;
     boost::signal<void ()> terminateSignal;
 };
 

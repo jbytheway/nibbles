@@ -121,15 +121,15 @@ void Server::internalNetMessage(
 }
 
 void Server::netMessage(
-    const MessageBase& message,
+    const MessageBase::Ptr& message,
     Connection* connection
   )
 {
-  switch (message.type()) {
+  switch (message->type()) {
 #define CASE(r, d, value)                                            \
     case MessageType::value:                                         \
       internalNetMessage<MessageType::value>(                        \
-          dynamic_cast<const Message<MessageType::value>&>(message), \
+          dynamic_cast<const Message<MessageType::value>&>(*message),\
           connection                                                 \
         );                                                           \
       return;

@@ -15,8 +15,7 @@ struct ControlledPlayer :
       std::array<uint32_t, Direction::max>, controls
     >
 {
-  template<typename... Args>
-  explicit ControlledPlayer(Args&&... args) : base(args...) {}
+  NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(ControlledPlayer)
 };
 
 }}

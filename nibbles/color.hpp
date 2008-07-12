@@ -14,8 +14,7 @@ struct Color :
       uint8_t, blue
     >
 {
-  template<typename... Args>
-  explicit Color(Args&&... args) : base(args...) {}
+  NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Color)
 
   static Color black;
   static Color blue;

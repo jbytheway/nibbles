@@ -97,7 +97,7 @@ void TcpSocket::handleRead(
     while (dataLen_ >= 1+(packetLen = data_[0])) {
       out_.message(Verbosity::info, "got packet\n");
       uint8_t const* const packetStart = data_.data()+1;
-      messageSignal(*MessageBase::create(packetStart, packetLen));
+      messageSignal(MessageBase::create(packetStart, packetLen));
       memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);
       dataLen_ -= (packetLen + 1);
     }

@@ -64,7 +64,7 @@ inline typename SliceResult<begin, end, Args...>::type slice(Args&&... args)
 {
   // TODO: possibly inefficient; check comiler cleverness if worried
   typedef SliceResult<begin, end, Args...> Result;
-  typename Result::FullVector v(args...);
+  typename Result::FullVector v(std::forward<Args>(args)...);
   typename Result::Begin start(v);
   typename Result::End finish(v);
   typename Result::Range r(start, finish);

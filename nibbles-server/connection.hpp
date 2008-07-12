@@ -24,7 +24,7 @@ class Connection : private boost::noncopyable {
     void send(const MessageBase& m) { socket_->send(m); }
     void close() { socket_->close(); }
 
-    boost::signal<void (MessageBase const&, Connection*)> messageSignal;
+    boost::signal<void (MessageBase::Ptr const&, Connection*)> messageSignal;
     boost::signal<void (Connection*)> terminateSignal;
   protected:
     Connection(const Socket::Ptr&);

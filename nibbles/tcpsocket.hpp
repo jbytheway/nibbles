@@ -18,7 +18,7 @@ class TcpSocket : public Socket {
     template<typename... Args>
     static Ptr create(Args&&... args)
     {
-      Ptr p(new TcpSocket(args...));
+      Ptr p(new TcpSocket(std::forward<Args>(args)...));
       p->ptrToThis_ = p;
       return p;
     }

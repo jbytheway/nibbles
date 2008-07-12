@@ -63,7 +63,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     PlayerContainer players_;
     PlayerId nextPlayerId_;
 
-    void netMessage(const MessageBase&, Connection*);
+    void netMessage(const MessageBase::Ptr&, Connection*);
     void signalled();
     void shutdown();
     void deleteConnection(Connection* connection);

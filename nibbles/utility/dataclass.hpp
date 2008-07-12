@@ -31,6 +31,10 @@
 #include <nibbles/utility/slice.hpp>
 #include <nibbles/utility/arrayserialization.hpp>
 
+#define NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(type)           \
+  template<typename... Args>                                  \
+  explicit type(Args&&... args) : base(std::forward<Args>(args)...) {}
+
 namespace nibbles { namespace utility {
 
 namespace mpl = boost::mpl;
@@ -112,14 +116,20 @@ class DataClass : public detail::BaseClassHelper<Fields...>::type {
     {
     }
     
+    DataClass(Derived&& copy) :
+      BaseOfDataClass(std::move<BaseOfDataClass>(copy)),
+      fields_(std::move(copy.fields_))
+    {
+    }
+
     DataClass(Derived& copy) :
-      BaseOfDataClass(dynamic_cast<BaseOfDataClass const&>(copy)),
+      BaseOfDataClass(static_cast<BaseOfDataClass const&>(copy)),
       fields_(copy.fields_)
     {
     }
 
     DataClass(const Derived& copy) :
-      BaseOfDataClass(dynamic_cast<BaseOfDataClass const&>(copy)),
+      BaseOfDataClass(static_cast<BaseOfDataClass const&>(copy)),
       fields_(copy.fields_)
     {
     }
@@ -127,9 +137,11 @@ class DataClass : public detail::BaseClassHelper<Fields...>::type {
     template<typename... Args>
     DataClass(Args&&... args) :
       detail::BaseClassHelper<Fields...>::type(
-          singletonOrSequence(slice<0, numBases_>(args...))
+          singletonOrSequence(slice<0, numBases_>(std::forward<Args>(args)...))
         ),
-      fields_(slice<numBases_, numBases_+numFields_>(args...))
+      fields_(
+          slice<numBases_, numBases_+numFields_>(std::forward<Args>(args)...)
+        )
     {
       static_assert(
           numBases_+numFields_ == sizeof...(Args),

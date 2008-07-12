@@ -27,7 +27,7 @@ struct IsSingleton :
 // the whole argument
 
 template<typename T>
-inline typename boost::disable_if<detail::IsSingleton<T>, T&&>::type
+inline typename boost::disable_if<detail::IsSingleton<T>, T>::type
 singletonOrSequence(T&& t) {
   return t;
 }
@@ -35,7 +35,7 @@ singletonOrSequence(T&& t) {
 template<typename T>
 inline typename boost::enable_if<
     detail::IsSingleton<T>,
-    typename fusion::result_of::front<T>::type&
+    typename fusion::result_of::front<T>::type
   >::type
 singletonOrSequence(T&& t) {
   return fusion::front(t);

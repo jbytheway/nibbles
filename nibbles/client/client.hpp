@@ -39,8 +39,12 @@ class Client : boost::noncopyable {
     }
     void addPlayer(const Player&);
 
-    boost::signal<void (MessageBase const&, Client*)> messageSignal;
-    boost::signal<void (Client*)> terminateSignal;
+    boost::signal<void (MessageBase::Ptr const&)>& messageSignal() {
+      return socket_->messageSignal;
+    }
+    boost::signal<void ()>& terminateSignal() {
+      return socket_->terminateSignal;
+    }
   protected:
     Client(
         boost::asio::io_service& io,

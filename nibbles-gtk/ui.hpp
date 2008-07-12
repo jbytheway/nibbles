@@ -3,6 +3,9 @@
 
 #include <boost/utility.hpp>
 #include <boost/thread.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 
 #include <gtkmm.h>
 #include <libglademm.h>
@@ -11,6 +14,7 @@
 #include <nibbles/client/client.hpp>
 
 #include "options.hpp"
+#include "crossthreadsignal.hpp"
 
 namespace nibbles { namespace gtk {
 
@@ -24,21 +28,40 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
       );
     ~UI();
     Gtk::Window& window() { return *window_; }
-    void message(utility::Verbosity, const std::string& message);
+    virtual void message(utility::Verbosity, const std::string& message);
     void disconnect();
   private:
     boost::asio::io_service& io_;
     Options options_;
 
-    // things for sending message through to GUI
-    std::list<std::string> messages_; // messages pending
-    boost::mutex messagesMutex_; // Lock for the above list
-    Glib::Dispatcher messageAlert_; // Signal across to GUI thread
-    void writeMessage(); // Flushes the message list to the GUI
+    CrossThreadSignal<std::string> messageSignal_;
+    void writeMessage(const std::string&); // Call only on GUI thread
+
+    CrossThreadSignal<MessageBase::Ptr> netMessageSignal_;
+    void handleNetMessage(const MessageBase::Ptr&); // Call only on GUI thread
+    template<int Type>
+    void internalNetMessage(const Message<Type>&);
 
     // controls
     Gtk::Window* window_;
     Gtk::TextView* messageView_;
+
+    class RemotePlayerListColumns : public Gtk::TreeModel::ColumnRecord
+    {
+      public:
+        RemotePlayerListColumns()
+        {
+          add(id_);
+          add(name_);
+        }
+
+        Gtk::TreeModelColumn<PlayerId::internal_type> id_;
+        Gtk::TreeModelColumn<Gdk::Color> color_;
+        Gtk::TreeModelColumn<Glib::ustring> name_;
+    };
+    Gtk::TreeView* remotePlayerList_;
+    const RemotePlayerListColumns remotePlayerListColumns_;
+    Glib::RefPtr<Gtk::ListStore> remotePlayerListStore_;
     
     class PlayerComboColumns : public Gtk::TreeModel::ColumnRecord
     {
@@ -62,6 +85,15 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     Gtk::Button* newKeyCancelButton_;
 
     // game data
+    typedef boost::multi_index_container<
+        IdedPlayer,
+        boost::multi_index::indexed_by<
+          boost::multi_index::ordered_unique<
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(IdedPlayer::base, const PlayerId&, get<id>)
+          >
+        >
+      > RemotePlayerContainer;
+    RemotePlayerContainer remotePlayers_;
     std::vector<ControlledPlayer> localPlayers_;
 
     client::Client::Ptr client_;
@@ -74,8 +106,9 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     void saveLocalPlayers();
 
     // UI update
-    void refreshPlayers();
-    void refreshPlayer();
+    void refreshRemotePlayers();
+    void refreshLocalPlayers();
+    void refreshLocalPlayer();
 
     // UI bindings
     void connect();

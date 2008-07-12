@@ -29,13 +29,6 @@ Client::Client(
   ) :
   io_(io), socket_(socket)
 {
-  socket_->messageSignal.connect(
-      boost::bind(boost::ref(messageSignal), _1, this)
-    );
-  socket_->terminateSignal.connect(
-      boost::bind(boost::ref(terminateSignal), this)
-    );
-  // TODO: should disconnect these on destruction
 }
 
 void Client::addPlayer(const Player& player)

@@ -12,8 +12,7 @@ struct IdedPlayer :
     utility::InheritFrom<Player>,
     PlayerId, id
   > {
-  template<typename... Args>
-  explicit IdedPlayer(Args&&... args) : base(args...) {}
+  NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(IdedPlayer)
 };
 
 }

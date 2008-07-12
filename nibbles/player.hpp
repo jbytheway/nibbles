@@ -12,8 +12,7 @@ struct Player :
       Color, color
     >
 {
-  template<typename... Args>
-  explicit Player(Args&&... args) : base(args...) {}
+  NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Player)
 };
 
 }
