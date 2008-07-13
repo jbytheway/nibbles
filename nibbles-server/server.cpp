@@ -34,6 +34,12 @@ void Server::serve()
 
 void Server::addConnection(const Connection::Ptr& connection)
 {
+  if (game_.started()) {
+    message(Verbosity::error, "connection failed; game started\n");
+    connection->close();
+    return;
+  }
+
   connection->messageSignal.connect(
       boost::bind(&Server::netMessage, this, _1, _2)
     );

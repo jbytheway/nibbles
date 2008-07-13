@@ -9,6 +9,7 @@
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 
+#include <nibbles/game.hpp>
 #include <nibbles/utility/messagehandler.hpp>
 
 #include "options.hpp"
@@ -63,6 +64,8 @@ class Server : public utility::MessageHandler, private boost::noncopyable
       > PlayerContainer;
     PlayerContainer players_;
     PlayerId nextPlayerId_;
+
+    Game game_;
 
     void netMessage(const MessageBase::Ptr&, Connection*);
     void signalled();
