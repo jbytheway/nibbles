@@ -67,6 +67,7 @@ UI::UI(
   // Store pointers to those widgets we need to access later
   window_ = wMainWindow;
   messageView_ = wMessageText;
+  readyCheck_ = wReadyCheck;
   remotePlayerList_ = wRemotePlayerList;
   playerCombo_ = wPlayerCombo;
   playerName_ = wPlayerNameEntry;
@@ -83,8 +84,11 @@ UI::UI(
   remotePlayerListStore_ = Gtk::ListStore::create(remotePlayerListColumns_);
   assert(remotePlayerListStore_);
   remotePlayerList_->set_model(remotePlayerListStore_);
+  remotePlayerList_->append_column("Ready", remotePlayerListColumns_.ready_);
   remotePlayerList_->append_column("ID", remotePlayerListColumns_.id_);
-  remotePlayerList_->append_column("Color", remotePlayerListColumns_.color_);
+  remotePlayerList_->append_column("Client", remotePlayerListColumns_.clientId_);
+  // TODO: make color display work
+  //remotePlayerList_->append_column("Colour", remotePlayerListColumns_.color_);
   remotePlayerList_->append_column("Name", remotePlayerListColumns_.name_);
 
   playerComboListStore_ = Gtk::ListStore::create(playerComboColumns_);
@@ -108,6 +112,9 @@ UI::UI(
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
   CONNECT_BUTTON(NewKeyCancel, cancelNewKey);
 #undef CONNECT_BUTTON
+  wReadyCheck->signal_toggled().connect(
+      sigc::mem_fun(this, &UI::readinessChange)
+    );
   wPlayerColorButton->signal_color_set().connect(
       sigc::mem_fun(this, &UI::colorChanged)
     );
@@ -141,22 +148,47 @@ void UI::writeMessage(const string& message)
   messageView_->scroll_to(end);
 }
 
-template<>
-void UI::internalNetMessage<MessageType::addPlayer>(
-    const Message<MessageType::addPlayer>&
-  )
-{
-  message(Verbosity::warning, "ignoring addPlayer message");
+#define IGNORE_MESSAGE(type)                                 \
+template<>                                                   \
+void UI::internalNetMessage<MessageType::type>(              \
+    const Message<MessageType::type>&                        \
+  )                                                          \
+{                                                            \
+  message(Verbosity::warning, "ignoring "#type" message\n"); \
 }
+
+IGNORE_MESSAGE(addPlayer)
+IGNORE_MESSAGE(setReadiness)
+
+#undef IGNORE_MESSAGE
 
 template<>
 void UI::internalNetMessage<MessageType::playerAdded>(
-    const Message<MessageType::playerAdded>& message
+    const Message<MessageType::playerAdded>& netMessage
   )
 {
-  bool inserted = remotePlayers_.insert(message.payload()).second;
+  RemotePlayer newPlayer(netMessage.payload(), false);
+  bool inserted = remotePlayers_.insert(newPlayer).second;
   if (!inserted) {
-    this->message(Verbosity::error, "duplicate player added");
+    message(Verbosity::error, "duplicate player added\n");
+  }
+  refreshRemotePlayers();
+}
+
+template<>
+void UI::internalNetMessage<MessageType::updateReadiness>(
+    const Message<MessageType::updateReadiness>& netMessage
+  )
+{
+  ClientId id = netMessage.payload().first;
+  bool ready = netMessage.payload().second;
+  typedef RemotePlayerContainer::index<SequenceTag>::type Index;
+  Index& index = remotePlayers_.get<SequenceTag>();
+
+  for (Index::iterator i = index.begin(); i != index.end(); ++i) {
+    if (i->get<clientId>() == id) {
+      index.replace(i, RemotePlayer(*i, ready));
+    }
   }
   refreshRemotePlayers();
 }
@@ -193,7 +225,7 @@ void UI::loadLocalPlayers()
   using namespace boost::filesystem;
   path playerFilePath(options_.playerFile);
   if (!exists(playerFilePath)) {
-    message(Verbosity::info, "no player file at "+options_.playerFile);
+    message(Verbosity::info, "no player file at "+options_.playerFile+"\n");
     return;
   }
   boost::filesystem::ifstream ifs(playerFilePath);
@@ -209,7 +241,7 @@ void UI::saveLocalPlayers()
   path tempPlayerFilePath(options_.playerFile+".new");
   path playerFileDir = playerFilePath.branch_path();
   if (!exists(playerFileDir)) {
-    message(Verbosity::info, "creating directory "+playerFileDir.string());
+    message(Verbosity::info, "creating directory "+playerFileDir.string()+"\n");
     create_directories(playerFileDir);
   }
 
@@ -234,10 +266,12 @@ void UI::refreshRemotePlayers()
 
   // Clear out the list box
   remotePlayerListStore_->clear();
-  BOOST_FOREACH(const IdedPlayer& player, remotePlayers_) {
+  BOOST_FOREACH(const RemotePlayer& player, remotePlayers_) {
     Gtk::TreeModel::iterator iter = remotePlayerListStore_->append();
     Gtk::TreeModel::Row row = *iter;
+    row[remotePlayerListColumns_.ready_] = player.get<ready>();
     row[remotePlayerListColumns_.id_] = player.get<id>();
+    row[remotePlayerListColumns_.clientId_] = player.get<clientId>();
     row[remotePlayerListColumns_.color_] =
       ColorConverter::toGdkColor(player.get<color>());
     row[remotePlayerListColumns_.name_] = player.get<name>();
@@ -311,8 +345,10 @@ void UI::disconnect()
 {
   message(Verbosity::error, "disconnecting\n");
   if (client_) {
+    remotePlayers_.clear();
     client_->close();
     client_.reset();
+    refreshRemotePlayers();
   }
 }
 
@@ -333,7 +369,7 @@ void UI::createPlayer()
   string newName = "New player";
   
   if (nameInUse(newName)) {
-    message(Verbosity::error, "name '"+newName+"' in use");
+    message(Verbosity::error, "name '"+newName+"' in use\n");
     return;
   }
 
@@ -406,6 +442,12 @@ void UI::cancelNewKey()
   newKeyDialog_->hide();
 }
 
+void UI::readinessChange()
+{
+  bool readiness = readyCheck_->get_active();
+  client_->setReadiness(readiness);
+}
+
 template<int Direction>
 void UI::setBinding()
 {
@@ -423,7 +465,7 @@ void UI::setBinding()
   // Bizarrely, if close button clicked, doesn't hide but does return from
   // run(), so we hide manually
   newKeyDialog_->hide();
-  message(Verbosity::info, "new key dialog closed\n");
+  message(Verbosity::debug, "new key dialog closed\n");
   connection0.disconnect();
   connection1.disconnect();
   refreshLocalPlayer();

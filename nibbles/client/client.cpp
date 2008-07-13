@@ -1,6 +1,5 @@
 #include <nibbles/client/client.hpp>
 
-#include <nibbles/message.hpp>
 #include <nibbles/client/tcpclient.hpp>
 
 using namespace std;
@@ -29,11 +28,6 @@ Client::Client(
   ) :
   io_(io), socket_(socket)
 {
-}
-
-void Client::addPlayer(const Player& player)
-{
-  postMessage(Message<MessageType::addPlayer>(player));
 }
 
 }}

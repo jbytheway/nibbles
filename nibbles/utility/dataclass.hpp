@@ -24,6 +24,7 @@
 // Include the serialization implementations for STL stuff needed here so that
 // it's not necessary to remember to use it every time elsewhere
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
 
 #include <nibbles/utility/isfield.hpp>
 #include <nibbles/utility/getfieldname.hpp>
@@ -115,22 +116,22 @@ class DataClass : public detail::BaseClassHelper<Fields...>::type {
     DataClass()
     {
     }
-    
-    DataClass(Derived&& copy) :
-      BaseOfDataClass(std::move<BaseOfDataClass>(copy)),
-      fields_(std::move(copy.fields_))
-    {
-    }
 
-    DataClass(Derived& copy) :
+    template<typename Arg>
+    DataClass(
+        Arg&& copy,
+        typename boost::enable_if<
+          typename std::is_base_of<
+            DataClass,
+            typename std::remove_const<
+              typename std::remove_reference<Arg>::type
+            >::type
+          >::type,
+          int
+        >::type = 0
+      ) :
       BaseOfDataClass(static_cast<BaseOfDataClass const&>(copy)),
-      fields_(copy.fields_)
-    {
-    }
-
-    DataClass(const Derived& copy) :
-      BaseOfDataClass(static_cast<BaseOfDataClass const&>(copy)),
-      fields_(copy.fields_)
+      fields_(static_cast<DataClass const&>(copy).fields_)
     {
     }
 

@@ -36,7 +36,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
         Connection::Ptr,
         boost::multi_index::indexed_by<
           boost::multi_index::hashed_unique<
-            boost::multi_index::identity<Connection::Ptr>, Connection::PtrHash
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(Connection, ClientId, id)
           >,
           boost::multi_index::sequenced<
             boost::multi_index::tag<SequenceTag>
@@ -44,8 +44,9 @@ class Server : public utility::MessageHandler, private boost::noncopyable
         >
       > ConnectionPool;
     ConnectionPool connectionPool_;
+    ClientId nextClientId_;
 
-    struct ConnectionTag;
+    struct ClientTag;
     typedef boost::multi_index_container<
         RemotePlayer,
         boost::multi_index::indexed_by<
@@ -53,9 +54,9 @@ class Server : public utility::MessageHandler, private boost::noncopyable
             BOOST_MULTI_INDEX_CONST_MEM_FUN(RemotePlayer, PlayerId, id)
           >,
           boost::multi_index::hashed_non_unique<
-            boost::multi_index::tag<ConnectionTag>,
+            boost::multi_index::tag<ClientTag>,
             BOOST_MULTI_INDEX_CONST_MEM_FUN(
-                RemotePlayer, Connection::Ptr, connection
+                RemotePlayer, ClientId, clientId
               )
           >
         >
@@ -67,6 +68,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     void signalled();
     void shutdown();
     void deleteConnection(Connection* connection);
+    void sendToAll(const MessageBase&);
 
     template<int Type>
     void internalNetMessage(const Message<Type>&, Connection*);

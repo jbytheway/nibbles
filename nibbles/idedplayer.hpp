@@ -2,6 +2,7 @@
 #define NIBBLES__IDEDPLAYER_HPP
 
 #include <nibbles/playerid.hpp>
+#include <nibbles/clientid.hpp>
 
 namespace nibbles {
 
@@ -10,7 +11,8 @@ struct IdedPlayer :
   utility::DataClass<
     IdedPlayer,
     utility::InheritFrom<Player>,
-    PlayerId, id
+    PlayerId, id,
+    ClientId, clientId
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(IdedPlayer)
 };

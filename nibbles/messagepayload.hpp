@@ -3,6 +3,7 @@
 
 #include <nibbles/player.hpp>
 #include <nibbles/idedplayer.hpp>
+#include <nibbles/clientid.hpp>
 
 namespace nibbles {
 
@@ -22,6 +23,16 @@ struct MessagePayload<MessageType::addPlayer> {
 template<>
 struct MessagePayload<MessageType::playerAdded> {
   typedef IdedPlayer type;
+};
+
+template<>
+struct MessagePayload<MessageType::setReadiness> {
+  typedef bool type;
+};
+
+template<>
+struct MessagePayload<MessageType::updateReadiness> {
+  typedef std::pair<ClientId, bool> type;
 };
 
 }

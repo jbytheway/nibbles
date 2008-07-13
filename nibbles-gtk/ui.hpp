@@ -4,6 +4,7 @@
 #include <boost/utility.hpp>
 #include <boost/thread.hpp>
 #include <boost/multi_index_container.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 
@@ -15,6 +16,7 @@
 
 #include "options.hpp"
 #include "crossthreadsignal.hpp"
+#include "remoteplayer.hpp"
 
 namespace nibbles { namespace gtk {
 
@@ -45,17 +47,23 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     // controls
     Gtk::Window* window_;
     Gtk::TextView* messageView_;
+    Gtk::CheckButton* readyCheck_;
 
     class RemotePlayerListColumns : public Gtk::TreeModel::ColumnRecord
     {
       public:
         RemotePlayerListColumns()
         {
+          add(ready_);
           add(id_);
+          add(clientId_);
+          add(color_);
           add(name_);
         }
 
+        Gtk::TreeModelColumn<bool> ready_;
         Gtk::TreeModelColumn<PlayerId::internal_type> id_;
+        Gtk::TreeModelColumn<ClientId::internal_type> clientId_;
         Gtk::TreeModelColumn<Gdk::Color> color_;
         Gtk::TreeModelColumn<Glib::ustring> name_;
     };
@@ -85,11 +93,17 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     Gtk::Button* newKeyCancelButton_;
 
     // game data
+    class SequenceTag;
     typedef boost::multi_index_container<
-        IdedPlayer,
+        RemotePlayer,
         boost::multi_index::indexed_by<
           boost::multi_index::ordered_unique<
-            BOOST_MULTI_INDEX_CONST_MEM_FUN(IdedPlayer::base, const PlayerId&, get<id>)
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(
+                IdedPlayer::base, const PlayerId&, get<id>
+              )
+          >,
+          boost::multi_index::sequenced<
+            boost::multi_index::tag<SequenceTag>
           >
         >
       > RemotePlayerContainer;
@@ -120,6 +134,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     void playerNameChanged();
     void colorChanged();
     void cancelNewKey();
+    void readinessChange();
     // Though templated, these functions can be in the .cpp file because
     // they're private
     template<int Direction>

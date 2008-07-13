@@ -37,7 +37,12 @@ class Client : boost::noncopyable {
     {
       io_.post(boost::bind(&Socket::send, socket_, message));
     }
-    void addPlayer(const Player&);
+    void addPlayer(const Player& player) {
+      postMessage(Message<MessageType::addPlayer>(player));
+    }
+    void setReadiness(const bool readiness) {
+      postMessage(Message<MessageType::setReadiness>(readiness));
+    }
 
     boost::signal<void (MessageBase::Ptr const&)>& messageSignal() {
       return socket_->messageSignal;

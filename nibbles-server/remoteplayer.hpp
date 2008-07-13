@@ -10,18 +10,19 @@ class RemotePlayer {
     RemotePlayer(
         const Player& player,
         PlayerId id,
-        const Connection::Ptr& connection
+        Connection* connection
       ) :
-      player_(player, id),
+      player_(player, id, connection->id()),
       connection_(connection)
     {}
 
     const IdedPlayer& player() const { return player_; }
     PlayerId id() const { return player_.get<fields::id>(); }
-    Connection::Ptr connection() const { return connection_; }
+    Connection* connection() const { return connection_; }
+    ClientId clientId() const { return connection_->id(); }
   private:
     IdedPlayer player_;
-    Connection::Ptr connection_;
+    Connection* connection_;
 };
 
 }}

@@ -6,8 +6,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 
-#include <nibbles/utility/nulldeleter.hpp>
-
 using namespace std;
 using namespace boost::asio;
 using namespace nibbles::utility;
@@ -42,13 +40,19 @@ void Server::addConnection(const Connection::Ptr& connection)
   connection->terminateSignal.connect(
       boost::bind(&Server::deleteConnection, this, _1)
     );
+  connection->setId(nextClientId_++);
   connection->start();
-  connectionPool_.insert(connection);
-  message(
-      Verbosity::info,
-      "added connection; "+
-      boost::lexical_cast<string>(connectionPool_.size())+" now exist\n"
-    );
+  bool inserted = connectionPool_.insert(connection).second;
+  if (inserted) {
+    message(
+        Verbosity::info,
+        "added connection; "+
+        boost::lexical_cast<string>(connectionPool_.size())+" now exist\n"
+      );
+  } else {
+    message(Verbosity::error, "connection failed; id in use");
+    connection->close();
+  }
 }
 
 void Server::message(Verbosity v, const string& message)
@@ -77,10 +81,10 @@ void Server::shutdown()
 
 void Server::deleteConnection(Connection* connection)
 {
-  Connection::Ptr fakePtr(connection, NullDeleter());
+  ClientId id = connection->id();
   // TODO: inform of player removal
-  players_.get<ConnectionTag>().erase(fakePtr);
-  connectionPool_.erase(fakePtr);
+  players_.get<ClientTag>().erase(id);
+  connectionPool_.erase(id);
   message(
       Verbosity::info,
       "removed connection; "+
@@ -88,36 +92,71 @@ void Server::deleteConnection(Connection* connection)
     );
 }
 
-template<>
-void Server::internalNetMessage(
-    const Message<MessageType::addPlayer>& message,
-    Connection* connection
-  )
+void Server::sendToAll(const MessageBase& message)
 {
-  Connection::Ptr fakePtr(connection, NullDeleter());
-  PlayerContainer::iterator newIt;
-  bool inserted;
-  std::tie(newIt, inserted) = players_.insert(
-      RemotePlayer(message.payload(), nextPlayerId_++, fakePtr)
-    );
-  assert(inserted);
-  const MessageBase& outMessage =
-    Message<MessageType::playerAdded>(newIt->player());
-  boost::multi_index::index<ConnectionPool, SequenceTag>::type& connections =
+  ConnectionPool::index<SequenceTag>::type& connections =
     connectionPool_.get<SequenceTag>();
   for_each(
       connections.begin(), connections.end(),
-      boost::bind(&Connection::send, _1, boost::ref(outMessage))
+      boost::bind(&Connection::send, _1, boost::ref(message))
     );
+}
+
+#define IGNORE_MESSAGE(type)                               \
+template<>                                                 \
+void Server::internalNetMessage(                           \
+    const Message<MessageType::type>&,                     \
+    Connection*                                            \
+  )                                                        \
+{                                                          \
+  message(Verbosity::warning, "ignoring "#type" message"); \
+}
+
+IGNORE_MESSAGE(playerAdded)
+IGNORE_MESSAGE(updateReadiness)
+
+#undef IGNORE_MESSAGE
+
+template<>
+void Server::internalNetMessage(
+    const Message<MessageType::addPlayer>& netMessage,
+    Connection* connection
+  )
+{
+  PlayerContainer::iterator newIt;
+  bool inserted;
+  std::tie(newIt, inserted) = players_.insert(
+      RemotePlayer(netMessage.payload(), nextPlayerId_++, connection)
+    );
+  if (inserted) {
+    const MessageBase& outMessage =
+      Message<MessageType::playerAdded>(newIt->player());
+    sendToAll(outMessage);
+  } else {
+    message(Verbosity::error, "add player failed; id in use");
+  }
 }
 
 template<>
 void Server::internalNetMessage(
-    const Message<MessageType::playerAdded>&,
-    Connection*
+    const Message<MessageType::setReadiness>& netMessage,
+    Connection* connection
   )
 {
-  message(Verbosity::warning, "ignoring playerAdded message");
+  ClientId id = connection->id();
+  bool ready = netMessage.payload();
+  connection->setReady(ready);
+  const MessageBase& outMessage =
+    Message<MessageType::updateReadiness>(make_pair(id, ready));
+  sendToAll(outMessage);
+  typedef ConnectionPool::index<SequenceTag>::type Index;
+  Index& conns = connectionPool_.get<SequenceTag>();
+  Index::iterator unready =
+    find_if(conns.begin(), conns.end(), !boost::bind(&Connection::ready, _1));
+  if (unready == conns.end()) {
+    // TODO: start game
+    throw logic_error("not implemented");
+  }
 }
 
 void Server::netMessage(

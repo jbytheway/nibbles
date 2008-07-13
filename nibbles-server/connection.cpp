@@ -5,7 +5,9 @@
 namespace nibbles { namespace server {
 
 Connection::Connection(const Socket::Ptr& socket) :
-  socket_(socket)
+  id_(ClientId::invalid()),
+  socket_(socket),
+  ready_(false)
 {
   socket_->messageSignal.connect(
       boost::bind(boost::ref(messageSignal), _1, this)
