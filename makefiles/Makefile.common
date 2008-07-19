@@ -120,7 +120,7 @@ GLOBAL_CPPFLAGS ?= -std=c++0x
 LIB_DEP := $(foreach lib,$(LIB_DEP_NAMES), \
 		$(top_builddir)$(subst -,/,$(lib))/lib$(lib).la \
 	)
-INCLUDE := -I$(this_srcdir) -I. -I$(top_srcdir) $(INCLUDE)
+INCLUDE := $(BUILD_INCLUDE) -I$(this_srcdir) -I. -I$(top_srcdir) $(INCLUDE)
 
 # Concatenate all the CXXFLAGSs and CFLAGSs together
 

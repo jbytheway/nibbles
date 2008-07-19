@@ -8,6 +8,7 @@
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/stringize.hpp>
+#include <boost/serialization/nvp.hpp>
 
 // FIXME: the operator>> implementation is hideously slow
 
@@ -17,6 +18,7 @@
 
 #define NIBBLES_UTILITY_ENUM_HEADER(name, values)    \
 class name {                                         \
+  friend class boost::serialization::access;         \
   public:                                            \
     enum internal_enum {                             \
       BOOST_PP_SEQ_ENUM(values),                     \
@@ -41,6 +43,12 @@ class name {                                         \
     }                                                \
   private:                                           \
     internal_enum value;                             \
+                                                     \
+    template<class Archive>                          \
+    void serialize(Archive& ar, unsigned int const /*version*/) \
+    {                                                \
+      ar & BOOST_SERIALIZATION_NVP(value);           \
+    }                                                \
 };                                                   \
                                                      \
 inline std::istream& operator>>(std::istream& is, name& v) { \

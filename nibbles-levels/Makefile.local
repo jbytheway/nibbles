@@ -1,0 +1,5 @@
+BIN := nibbles-levels
+LIBS := -loptimal -lboost_system
+LIB_DEP_NAMES := nibbles
+THIS_LDFLAGS := -no-install
+

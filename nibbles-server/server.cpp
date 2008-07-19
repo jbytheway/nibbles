@@ -5,6 +5,9 @@
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/archive/xml_iarchive.hpp>
 
 using namespace std;
 using namespace boost::asio;
@@ -19,6 +22,14 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
   tcp_(*this)
 {
   signalCatcher.connect(boost::bind(&Server::signalled, this));
+
+  boost::filesystem::path levelsFile(o.levelPack);
+  if (levelsFile.empty()) {
+    throw runtime_error("no levelpack specified");
+  }
+  boost::filesystem::ifstream ifs(levelsFile);
+  boost::archive::xml_iarchive ia(ifs);
+  ia >> BOOST_SERIALIZATION_NVP(levelPack_);
 }
 
 void Server::serve()

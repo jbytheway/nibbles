@@ -9,7 +9,7 @@ struct Number :
   utility::DataClass<
     Number,
     uint32_t, value,
-    std::vector<Position>, positions
+    Block, position
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Number)
 };

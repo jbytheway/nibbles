@@ -32,6 +32,8 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     const Options options_;
     TcpServer tcp_;
 
+    LevelPack levelPack_;
+
     struct SequenceTag;
     typedef boost::multi_index_container<
         Connection::Ptr,

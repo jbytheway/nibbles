@@ -15,6 +15,7 @@ struct Options
   bool useTcp;
   std::string tcpAddress;
   uint16_t tcpPort;
+  std::string levelPack;
 };
 
 }}

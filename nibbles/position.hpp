@@ -1,17 +1,23 @@
 #ifndef NIBBLES__POSITION_HPP
 #define NIBBLES__POSITION_HPP
 
-#include <nibbles/utility/dataclass.hpp>
+#include <nibbles/point.hpp>
+#include <nibbles/direction.hpp>
 
 namespace nibbles {
 
 struct Position :
   utility::DataClass<
     Position,
-    uint32_t, x,
-    uint32_t, y
+    Point, point,
+    Direction, direction
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Position)
+
+  Position& operator-=(const Point& p) {
+    get<point>() -= p;
+    return *this;
+  }
 };
 
 }
