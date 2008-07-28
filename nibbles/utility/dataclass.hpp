@@ -101,6 +101,10 @@ class DataClass : public detail::BaseClassHelper<Fields...>::type {
     template<typename Field>
     struct TypeOfField {
       static_assert(
+          IsField<Field>::type::value,
+          "tag is not a field"
+        );
+      static_assert(
           mpl::has_key<FieldClassMap, Field>::type::value,
           "no such field in DataClass"
         );

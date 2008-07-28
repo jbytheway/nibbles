@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <nibbles/gamesettings.hpp>
 #include <nibbles/utility/verbosity.hpp>
 
 namespace nibbles { namespace server {
@@ -16,6 +17,10 @@ struct Options
   std::string tcpAddress;
   uint16_t tcpPort;
   std::string levelPack;
+  LevelId startLevel;
+  uint32_t startInterval;
+
+  GameSettings gameSettings() const;
 };
 
 }}

@@ -16,15 +16,20 @@ Options::Options(int argc, char const* const* const argv) :
   useTcp(true),
   tcpAddress("127.0.0.1"),
   tcpPort(Network::defaultPort),
-  levelPack()
+  levelPack(),
+  startLevel(),
+  startInterval(100)
 {
   string optionsFile = string(getenv("HOME"))+"/.nibbles/server-config";
+  unsigned int startLevel;
   OptionsParser parser;
   parser.addOption("verbosity",   'v', &verbosity);
   parser.addOption("tcp",         't', &useTcp);
   parser.addOption("tcp-addr",    'a', &tcpAddress);
   parser.addOption("tcp-port",    'p', &tcpPort);
   parser.addOption("levels",      'l', &levelPack);
+  parser.addOption("level",       's', &startLevel);
+  parser.addOption("interval",    'i', &startInterval);
 
   if (parser.parse(optionsFile, argc, argv)) {
     ostringstream message;
@@ -35,6 +40,14 @@ Options::Options(int argc, char const* const* const argv) :
       );
     throw OptionsError(message.str());
   }
+}
+
+GameSettings Options::gameSettings() const
+{
+  return GameSettings(
+      startLevel,
+      boost::posix_time::milliseconds(startInterval)
+    );
 }
 
 }}

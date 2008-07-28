@@ -193,6 +193,14 @@ void UI::internalNetMessage<MessageType::updateReadiness>(
   refreshRemotePlayers();
 }
 
+template<>
+void UI::internalNetMessage<MessageType::gameStart>(
+    const Message<MessageType::gameStart>& /*netMessage*/
+  )
+{
+  throw logic_error("not implemented");
+}
+
 void UI::handleNetMessage(const MessageBase::Ptr& message)
 {
   switch (message->type()) {

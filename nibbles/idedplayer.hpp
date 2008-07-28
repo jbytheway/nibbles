@@ -1,6 +1,7 @@
 #ifndef NIBBLES__IDEDPLAYER_HPP
 #define NIBBLES__IDEDPLAYER_HPP
 
+#include <nibbles/player.hpp>
 #include <nibbles/playerid.hpp>
 #include <nibbles/clientid.hpp>
 

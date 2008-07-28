@@ -8,10 +8,11 @@
 namespace nibbles {
 
 #define NIBBLES_FIELDS() \
-  (blocks)(blue)(clientId)(color)(controls)\
+  (blocks)(blue)(board)(clientId)(color)(controls)\
   (definition)(direction)(green)(h)(id)(level)\
-  (levelId)(levels)(max)(min)(name)(number)(player)(point)(points)(position)\
-  (ready)(red)(snakes)(starts)(value)(w)(x)(y)
+  (levelId)(levels)(max)(min)(name)(number)\
+  (player)(players)(point)(points)(position)(random)\
+  (ready)(red)(settings)(snakes)(starts)(states)(tickInterval)(value)(w)(x)(y)
 
 namespace fields {
 

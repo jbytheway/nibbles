@@ -19,7 +19,9 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
   io_(io),
   out_(out),
   options_(o),
-  tcp_(*this)
+  tcp_(*this),
+  game_(o.gameSettings()),
+  gameTickTimer_(io)
 {
   signalCatcher.connect(boost::bind(&Server::signalled, this));
 
@@ -30,6 +32,7 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
   boost::filesystem::ifstream ifs(levelsFile);
   boost::archive::xml_iarchive ia(ifs);
   ia >> BOOST_SERIALIZATION_NVP(levelPack_);
+  game_.get<levels>() = levelPack_;
 }
 
 void Server::serve()
@@ -131,6 +134,7 @@ void Server::internalNetMessage(                           \
 
 IGNORE_MESSAGE(playerAdded)
 IGNORE_MESSAGE(updateReadiness)
+IGNORE_MESSAGE(gameStart)
 
 #undef IGNORE_MESSAGE
 
@@ -147,7 +151,7 @@ void Server::internalNetMessage(
     );
   if (inserted) {
     const MessageBase& outMessage =
-      Message<MessageType::playerAdded>(newIt->player());
+      Message<MessageType::playerAdded>(*newIt);
     sendToAll(outMessage);
   } else {
     message(Verbosity::error, "add player failed; id in use");
@@ -166,14 +170,7 @@ void Server::internalNetMessage(
   const MessageBase& outMessage =
     Message<MessageType::updateReadiness>(make_pair(id, ready));
   sendToAll(outMessage);
-  typedef ConnectionPool::index<SequenceTag>::type Index;
-  Index& conns = connectionPool_.get<SequenceTag>();
-  Index::iterator unready =
-    find_if(conns.begin(), conns.end(), !boost::bind(&Connection::ready, _1));
-  if (unready == conns.end()) {
-    // TODO: start game
-    throw logic_error("not implemented");
-  }
+  checkForGameStart();
 }
 
 void Server::netMessage(
@@ -194,6 +191,35 @@ void Server::netMessage(
     default:
       throw logic_error("unknown MessageType");
   }
+}
+
+void Server::checkForGameStart()
+{
+  if (connectionPool_.empty() || players_.empty())
+    return;
+  typedef ConnectionPool::index<SequenceTag>::type Index;
+  Index& conns = connectionPool_.get<SequenceTag>();
+  Index::iterator unready =
+    find_if(conns.begin(), conns.end(), !boost::bind(&Connection::ready, _1));
+  if (unready != conns.end()) {
+    return;
+  }
+  game_.start(players_.get<SequenceTag>());
+  sendToAll(Message<MessageType::gameStart>(0/*this 0 means nothing*/));
+  tick();
+}
+
+void Server::tick(const boost::system::error_code& e)
+{
+  if (e) {
+    message(Verbosity::info, "game interrupted");
+    return;
+  }
+  gameTickTimer_.expires_from_now(game_.get<tickInterval>());
+  throw logic_error("not implemented");
+  gameTickTimer_.async_wait(boost::bind(
+        &Server::tick, this, boost::asio::placeholders::error
+      ));
 }
 
 }}

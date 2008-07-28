@@ -35,6 +35,12 @@ struct MessagePayload<MessageType::updateReadiness> {
   typedef std::pair<ClientId, bool> type;
 };
 
+template<>
+struct MessagePayload<MessageType::gameStart> {
+  // TODO: should really be nothing, but can't be bothered to make that work
+  typedef int type;
+};
+
 }
 
 #endif // NIBBLES__MESSAGEPAYLOAD_HPP

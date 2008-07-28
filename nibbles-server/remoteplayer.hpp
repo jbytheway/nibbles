@@ -5,23 +5,21 @@
 
 namespace nibbles { namespace server {
 
-class RemotePlayer {
+class RemotePlayer : public IdedPlayer {
   public:
     RemotePlayer(
         const Player& player,
         PlayerId id,
         Connection* connection
       ) :
-      player_(player, id, connection->id()),
+      IdedPlayer(player, id, connection->id()),
       connection_(connection)
     {}
 
-    const IdedPlayer& player() const { return player_; }
-    PlayerId id() const { return player_.get<fields::id>(); }
+    PlayerId id() const { return get<fields::id>(); }
     Connection* connection() const { return connection_; }
     ClientId clientId() const { return connection_->id(); }
   private:
-    IdedPlayer player_;
     Connection* connection_;
 };
 

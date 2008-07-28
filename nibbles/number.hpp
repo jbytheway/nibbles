@@ -8,10 +8,13 @@ namespace nibbles {
 struct Number :
   utility::DataClass<
     Number,
-    uint32_t, value,
-    Block, position
+    Block, position,
+    uint32_t, value
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Number)
+
+  static const size_t width = 1;
+  static const size_t height = 1;
 };
 
 }

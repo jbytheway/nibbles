@@ -61,6 +61,9 @@ class Server : public utility::MessageHandler, private boost::noncopyable
             BOOST_MULTI_INDEX_CONST_MEM_FUN(
                 RemotePlayer, ClientId, clientId
               )
+          >,
+          boost::multi_index::sequenced<
+            boost::multi_index::tag<SequenceTag>
           >
         >
       > PlayerContainer;
@@ -68,6 +71,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     PlayerId nextPlayerId_;
 
     Game game_;
+    boost::asio::deadline_timer gameTickTimer_;
 
     void netMessage(const MessageBase::Ptr&, Connection*);
     void signalled();
@@ -77,6 +81,9 @@ class Server : public utility::MessageHandler, private boost::noncopyable
 
     template<int Type>
     void internalNetMessage(const Message<Type>&, Connection*);
+
+    void checkForGameStart();
+    void tick(const boost::system::error_code& e = boost::system::error_code());
 };
 
 }}
