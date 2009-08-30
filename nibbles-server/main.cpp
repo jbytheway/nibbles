@@ -1,6 +1,7 @@
 #include <boost/asio.hpp>
 
 #include "server.hpp"
+#include "optionserror.hpp"
 #include "signalcatcher.hpp"
 
 using namespace std;
@@ -14,12 +15,16 @@ static void signalHandler(int signal)
 
 int main(int argc, char const* const* const argv)
 {
-  io_service io;
-  Options options(argc, argv);
-  Server server(io, cout, options);
-  signal(SIGTERM, signalHandler);
-  signal(SIGINT, signalHandler);
-  server.serve();
+  try {
+    io_service io;
+    Options options(argc, argv);
+    Server server(io, cout, options);
+    signal(SIGTERM, signalHandler);
+    signal(SIGINT, signalHandler);
+    server.serve();
+  } catch (OptionsError& e) {
+    cerr << e.what() << endl;
+  }
   return 0;
 }
 

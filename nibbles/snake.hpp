@@ -5,6 +5,7 @@
 
 #include <nibbles/point.hpp>
 #include <nibbles/playerid.hpp>
+#include <nibbles/tickresult.hpp>
 
 namespace nibbles {
 
@@ -20,6 +21,9 @@ struct Snake :
   Snake(PlayerId id, const Position& pos) :
     base(id, std::deque<Point>(1, pos.get<point>()), pos.get<direction>())
   {}
+
+  TickResult advanceHead();
+  void advanceTail();
 };
 
 }

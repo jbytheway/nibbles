@@ -9,6 +9,7 @@
 #include <nibbles/snake.hpp>
 #include <nibbles/number.hpp>
 #include <nibbles/board.hpp>
+#include <nibbles/tickresult.hpp>
 
 namespace nibbles {
 
@@ -30,6 +31,8 @@ struct Level :
       RandomEngine&
     );
 
+    template<typename RandomEngine>
+    TickResult tick(RandomEngine&);
   private:
     template<typename RandomEngine>
     void randomNumber(RandomEngine& random, uint32_t value);
@@ -87,6 +90,27 @@ void Level::randomNumber(RandomEngine& random, uint32_t value)
     }
   } while (!free);
   get<number>() = Number(trialBlock, value);
+}
+
+template<typename RandomEngine>
+TickResult Level::tick(RandomEngine& random)
+{
+  TickResult overallResult = TickResult::none;
+  std::vector<Snake>& snakes = get<fields::snakes>();
+  BOOST_FOREACH(Snake& snake, snakes) {
+    TickResult result = snake.advanceHead();
+    overallResult = std::max(overallResult, result);
+  }
+
+  BOOST_FOREACH(Snake& snake, snakes) {
+    snake.advanceTail();
+  }
+
+  if (overallResult == TickResult::number) {
+    randomNumber(random, get<number>().get<value>());
+  }
+
+  return overallResult;
 }
 
 }

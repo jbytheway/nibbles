@@ -39,6 +39,7 @@ struct Game :
   void start(const Players& p);
 
   void startLevel(LevelId);
+  void tick();
 };
 
 template<typename Players>

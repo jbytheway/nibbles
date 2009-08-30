@@ -12,6 +12,7 @@ struct Options
 {
   Options(int argc, char const* const* const argv);
 
+  bool help;
   utility::Verbosity verbosity;
   bool useTcp;
   std::string tcpAddress;
@@ -20,6 +21,7 @@ struct Options
   LevelId startLevel;
   uint32_t startInterval;
 
+  static std::string usage();
   GameSettings gameSettings() const;
 };
 

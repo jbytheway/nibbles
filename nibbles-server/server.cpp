@@ -216,7 +216,7 @@ void Server::tick(const boost::system::error_code& e)
     return;
   }
   gameTickTimer_.expires_from_now(game_.get<tickInterval>());
-  throw logic_error("not implemented");
+  game_.tick();
   gameTickTimer_.async_wait(boost::bind(
         &Server::tick, this, boost::asio::placeholders::error
       ));
