@@ -97,13 +97,19 @@ TickResult Level::tick(RandomEngine& random)
 {
   TickResult overallResult = TickResult::none;
   std::vector<Snake>& snakes = get<fields::snakes>();
+  Board& b = get<board>();
+
+  std::vector<Point> nextHeads;
   BOOST_FOREACH(Snake& snake, snakes) {
-    TickResult result = snake.advanceHead();
+    nextHeads.push_back(snake.nextHead());
+  }
+  BOOST_FOREACH(Snake& snake, snakes) {
+    TickResult result = snake.advanceHead(b, nextHeads);
     overallResult = std::max(overallResult, result);
   }
 
   BOOST_FOREACH(Snake& snake, snakes) {
-    snake.advanceTail();
+    snake.advanceTail(b);
   }
 
   if (overallResult == TickResult::number) {

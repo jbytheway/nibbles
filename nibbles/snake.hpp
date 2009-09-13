@@ -3,11 +3,15 @@
 
 #include <deque>
 
+#include <nibbles/direction.hpp>
+#include <nibbles/position.hpp>
 #include <nibbles/point.hpp>
 #include <nibbles/playerid.hpp>
 #include <nibbles/tickresult.hpp>
 
 namespace nibbles {
+
+struct Board;
 
 struct Snake :
   utility::DataClass<
@@ -22,8 +26,9 @@ struct Snake :
     base(id, std::deque<Point>(1, pos.get<point>()), pos.get<direction>())
   {}
 
-  TickResult advanceHead();
-  void advanceTail();
+  Point nextHead() const;
+  TickResult advanceHead(Board&, std::vector<Point> const& nextHeads);
+  void advanceTail(Board&);
 };
 
 }

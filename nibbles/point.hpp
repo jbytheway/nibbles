@@ -3,6 +3,7 @@
 
 #include <nibbles/utility/dataclass.hpp>
 #include <nibbles/fields.hpp>
+#include <nibbles/direction.hpp>
 
 namespace nibbles {
 
@@ -25,6 +26,8 @@ struct Point :
   bool operator==(const Point& right) const {
     return get<x>() == right.get<x>() && get<y>() == right.get<y>();
   }
+
+  Point moved(Direction const) const;
 };
 
 }
