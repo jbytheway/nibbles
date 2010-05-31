@@ -23,7 +23,7 @@ TcpServer::TcpServer(Server& server) :
 void TcpServer::serve(const ip::tcp::endpoint& ep)
 {
   acceptor_.open(ip::tcp::v4());
-  startBind(ep, error_code());
+  startBind(ep, boost::system::error_code());
 }
 
 void TcpServer::stop()
@@ -35,7 +35,7 @@ void TcpServer::stop()
 
 void TcpServer::startBind(
     const ip::tcp::endpoint& ep,
-    const error_code& ec
+    const boost::system::error_code& ec
   )
 {
   if (ec) {
@@ -49,7 +49,7 @@ void TcpServer::startBind(
       "TCP server: binding to "+ep.address().to_string()+":"+
       boost::lexical_cast<string>(ep.port())+"\n"
     );
-  error_code error;
+  boost::system::error_code error;
   acceptor_.bind(ep, error);
   if (error == posix_error::address_in_use) {
     server_.message(
