@@ -142,10 +142,14 @@ class DataClass : public detail::BaseClassHelper<Fields...>::type {
     template<typename... Args>
     DataClass(Args&&... args) :
       detail::BaseClassHelper<Fields...>::type(
-          singletonOrSequence(slice<0, numBases_>(std::forward<Args>(args)...))
+          singletonOrSequence(
+            nibbles::utility::slice<0, numBases_>(std::forward<Args>(args)...)
+          )
         ),
       fields_(
-          slice<numBases_, numBases_+numFields_>(std::forward<Args>(args)...)
+          nibbles::utility::slice<numBases_, numBases_+numFields_>(
+            std::forward<Args>(args)...
+          )
         )
     {
       static_assert(
