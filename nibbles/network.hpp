@@ -1,12 +1,14 @@
 #ifndef NIBBLES__NETWORK_HPP
 #define NIBBLES__NETWORK_HPP
 
+#include <cstdint>
+
 namespace nibbles {
 
 struct Network {
-  typedef uint8_t PacketLength;
-  static const uint16_t defaultPort = 53788;
-  static const size_t maxPacketLen = 255;
+  typedef std::uint8_t PacketLength;
+  static const std::uint16_t defaultPort = 53788;
+  static const std::size_t maxPacketLen = 255;
 };
 
 }
