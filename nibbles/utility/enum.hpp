@@ -10,6 +10,8 @@
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <nibbles/fatal.hpp>
+
 // FIXME: the operator>> implementation is hideously slow
 
 #define NIBBLES_UTILITY_ENUM_CASE(r, d, value) \
@@ -34,7 +36,7 @@ class name {                                         \
       switch (value) {                               \
         BOOST_PP_SEQ_FOR_EACH(NIBBLES_UTILITY_ENUM_CASE, _, values) \
         default:                                     \
-          throw std::logic_error("invalid enumeration value"); \
+          NIBBLES_FATAL("invalid enumeration value"); \
       }                                              \
     }                                                \
                                                      \

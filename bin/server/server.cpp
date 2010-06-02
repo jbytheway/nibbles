@@ -189,7 +189,7 @@ void Server::netMessage(
     BOOST_PP_SEQ_FOR_EACH(CASE, _, NIBBLES_MESSAGETYPE_VALUES())
 #undef CASE
     default:
-      throw logic_error("unknown MessageType");
+      NIBBLES_FATAL("unknown MessageType");
   }
 }
 

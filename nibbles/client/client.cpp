@@ -18,7 +18,7 @@ Client::Ptr Client::create(
     case Protocol::tcp:
       return Ptr(new TcpClient(io, out, address, port));
     default:
-      throw logic_error("protocol not supported");
+      NIBBLES_FATAL("protocol not supported");
   }
 }
 

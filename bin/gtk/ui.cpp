@@ -2,6 +2,7 @@
 
 #include "colorconverter.hpp"
 
+#include <nibbles/fatal.hpp>
 #include <nibbles/direction.hpp>
 
 #include <boost/lexical_cast.hpp>
@@ -198,7 +199,7 @@ void UI::internalNetMessage<MessageType::gameStart>(
     const Message<MessageType::gameStart>& /*netMessage*/
   )
 {
-  throw logic_error("not implemented");
+  NIBBLES_FATAL("not implemented");
 }
 
 void UI::handleNetMessage(const MessageBase::Ptr& message)
@@ -213,7 +214,7 @@ void UI::handleNetMessage(const MessageBase::Ptr& message)
     BOOST_PP_SEQ_FOR_EACH(CASE, _, NIBBLES_MESSAGETYPE_VALUES())
 #undef CASE
     default:
-      throw logic_error("unknown MessageType");
+      NIBBLES_FATAL("unknown MessageType");
   }
 }
 
@@ -402,7 +403,7 @@ void UI::createPlayer()
 
 void UI::deletePlayer()
 {
-  throw logic_error("not implemented");
+  NIBBLES_FATAL("not implemented");
 }
 
 void UI::addPlayerToGame()
@@ -421,7 +422,7 @@ void UI::addPlayerToGame()
 
 void UI::removePlayerFromGame()
 {
-  throw logic_error("not implemented");
+  NIBBLES_FATAL("not implemented");
 }
 
 void UI::playerNameChanged()

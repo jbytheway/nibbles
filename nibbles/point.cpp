@@ -13,7 +13,7 @@ Point Point::moved(Direction const dir) const {
     case Direction::right:
       return Point(get<x>()-1, get<y>());
     default:
-      throw std::logic_error("unexpected Direction");
+      NIBBLES_FATAL("unexpected Direction");
   }
 }
 
