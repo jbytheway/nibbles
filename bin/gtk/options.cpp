@@ -1,7 +1,7 @@
 #include "options.hpp"
 
 #include <cstdlib>
-#include <optionsparser.h>
+#include <optimal/optionsparser.hpp>
 #include <nibbles/network.hpp>
 
 #include "optionserror.hpp"
