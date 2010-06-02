@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <boost/filesystem/path.hpp>
+
 #include <nibbles/utility/verbosity.hpp>
 #include <nibbles/client/protocol.hpp>
 
@@ -17,6 +19,7 @@ struct Options {
   client::Protocol protocol;
   std::string address;
   uint16_t port;
+  boost::filesystem::path gladePath;
 };
 
 }}

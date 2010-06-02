@@ -29,6 +29,7 @@ Options::Options(int const argc, char** const argv) :
   parser.addOption("protocol",    'P', &protocol);
   parser.addOption("address",     'a', &address);
   parser.addOption("port",        'p', &port);
+  parser.addOption("glade",       'g', &gladePath);
 
   if (parser.parse(optionsFile, argc, argv)) {
     ostringstream message;

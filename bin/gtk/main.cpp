@@ -3,6 +3,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #include <nibbles/client/client.hpp>
 
@@ -42,13 +43,28 @@ struct IoThread {
 
 int main(int argc, char** argv)
 {
+  auto cwd = boost::filesystem::initial_path();
+
   io_service io;
   Gtk::Main kit(argc, argv);
   const Options options(argc, argv);
+
+  boost::filesystem::path gladePath = options.gladePath;
+
+  if (gladePath.empty()) {
+    boost::filesystem::path exe(argv[0]);
+    if (!exe.has_root_path()) {
+      exe = cwd/exe;
+    }
+    gladePath = exe.parent_path();
+  }
+
+  auto mainGlade = gladePath/"nibbles.glade";
   Glib::RefPtr<Gnome::Glade::Xml> mainXml =
-    Gnome::Glade::Xml::create("nibbles.glade");
+    Gnome::Glade::Xml::create(mainGlade.file_string());
+  auto newKeyGlade = gladePath/"nibbles.newkey.glade";
   Glib::RefPtr<Gnome::Glade::Xml> newKeyXml =
-    Gnome::Glade::Xml::create("nibbles.newkey.glade");
+    Gnome::Glade::Xml::create(newKeyGlade.file_string());
 
   UI ui(io, options, mainXml, newKeyXml);
 
