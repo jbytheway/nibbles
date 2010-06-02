@@ -1,0 +1,2 @@
+SUBDIRS := levels server gtk
+

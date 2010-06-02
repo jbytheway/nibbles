@@ -1,10 +1,6 @@
-SUBDIRS := nibbles nibbles-levels nibbles-server nibbles-gtk
+SUBDIRS := nibbles bin
 
-all-recurse-nibbles-levels all-recurse-nibbles-server \
-		all-recurse-nibbles-gtk: \
-	all-recurse-nibbles
+all-recurse-nibbles-bin: all-recurse-nibbles
 
-test-recurse-nibbles-levels test-recurse-nibbles-server \
-		test-recurse-nibbles-gtk: \
-	test-recurse-nibbles
+test-recurse-bin: test-recurse-nibbles
 
