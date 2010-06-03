@@ -40,7 +40,7 @@ class TcpSocket : public Socket {
         std::string const& address,
         uint16_t const port
       );
-    
+
     utility::MessageHandler& out_;
     boost::asio::ip::tcp::endpoint endpoint_;
     boost::asio::ip::tcp::socket socket_;

@@ -70,7 +70,7 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
     Gtk::TreeView* remotePlayerList_;
     const RemotePlayerListColumns remotePlayerListColumns_;
     Glib::RefPtr<Gtk::ListStore> remotePlayerListStore_;
-    
+
     class PlayerComboColumns : public Gtk::TreeModel::ColumnRecord
     {
       public:

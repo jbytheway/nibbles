@@ -27,7 +27,7 @@ LevelDefinition correction(
   {
     walls[i] -= offset;
   }
-  
+
   return LevelDefinition(id, name, 80, 48, walls, starts);
 }
 
@@ -38,7 +38,7 @@ LevelDefinition classicLevel(LevelId levelNumber)
   string name;
   vector<Position> starts(2);
   vector<Block> walls;
-  
+
   switch (levelNumber)
   {
     case 0:
@@ -138,7 +138,7 @@ LevelDefinition classicLevel(LevelId levelNumber)
       starts[1] = Position(Point(15, 43), Direction(Direction::up));
       break;
   }
-  
+
   return correction(levelNumber, name, walls, starts);
 }
 
@@ -150,7 +150,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
   // Standard start locations
   starts[0] = Position(Point(70, 25), Direction(Direction::up));
   starts[1] = Position(Point(10, 25), Direction(Direction::down));
-  
+
   switch(levelNumber)
   {
     case 0:
@@ -169,7 +169,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       return classicLevel(LevelId::fromInteger(2));
     case 3:
       name = "T";
-      // 
+      //
       // ---
       //  |
       //
@@ -211,11 +211,11 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       return classicLevel(LevelId::fromInteger(3));
     case 7:
       name = "3 bar";
-      // 
+      //
       // -----
       //
       // -----
-      // 
+      //
       // -----
       //
       walls.push_back(Block(20, 15, 41, 1));
@@ -295,7 +295,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       return classicLevel(LevelId::fromInteger(4));
     case 13:
       name = "Skew";
-      // 
+      //
       //     --------\   //
       //             |
       //     ------\ |
@@ -305,7 +305,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       // | \------
       // |
       // \--------
-      // 
+      //
       walls.push_back(Block(21, 18, 1, 24));
       walls.push_back(Block(25, 18, 1, 20));
       walls.push_back(Block(55, 15, 1, 20));
@@ -557,7 +557,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       random_device device;
       mt19937 random(device);
       bernoulli_distribution dist(0.15);
-      
+
       for (int i=4+gap; i<=49-gap; i++)
       {
         for (int j=2+gap; j<=79-gap; j++)
@@ -570,7 +570,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       starts[1] = Position(Point(2, 49), Direction(Direction::up));
       break;
   }
-  
+
   return correction(levelNumber, name, walls, starts);
 }
 

@@ -96,7 +96,7 @@ UI::UI(
   assert(playerComboListStore_);
   playerCombo_->set_model(playerComboListStore_);
   playerCombo_->pack_start(playerComboColumns_.name_);
-  
+
   // Connect signals from widgets to the UI
 #define CONNECT_BUTTON(buttonName, memFunName)     \
   w##buttonName##Button->signal_clicked().connect( \
@@ -376,7 +376,7 @@ bool UI::nameInUse(const string& name)
 void UI::createPlayer()
 {
   string newName = "New player";
-  
+
   if (nameInUse(newName)) {
     message(Verbosity::error, "name '"+newName+"' in use\n");
     return;

@@ -32,7 +32,7 @@ class CrossThreadSignal {
     void raise(const Args&... args) {
       signal_(args...);
     }
-    
+
     typedef decltype(
         boost::bind(
           &CrossThreadSignal::raise,
