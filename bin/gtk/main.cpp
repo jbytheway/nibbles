@@ -65,8 +65,11 @@ int main(int argc, char** argv)
   auto newKeyGlade = gladePath/"nibbles.newkey.glade";
   Glib::RefPtr<Gnome::Glade::Xml> newKeyXml =
     Gnome::Glade::Xml::create(newKeyGlade.file_string());
+  auto playGlade = gladePath/"nibbles.play.glade";
+  Glib::RefPtr<Gnome::Glade::Xml> playXml =
+    Gnome::Glade::Xml::create(playGlade.file_string());
 
-  UI ui(io, options, mainXml, newKeyXml);
+  UI ui(io, options, mainXml, newKeyXml, playXml);
 
   if (options.threaded) {
     IoThread ioThreadObj(io);

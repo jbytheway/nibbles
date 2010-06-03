@@ -23,7 +23,8 @@ UI::UI(
     boost::asio::io_service& io,
     const Options& options,
     const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-    const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
+    const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
+    const Glib::RefPtr<Gnome::Glade::Xml>& playXml
   ) :
   io_(io),
   options_(options),
@@ -63,6 +64,9 @@ UI::UI(
 
   GET_WIDGET(newKey, Dialog, NewKeyDialog);
   GET_WIDGET(newKey, Button, NewKeyCancelButton);
+
+  GET_WIDGET(play, Window, PlayWindow);
+  GET_WIDGET(play, DrawingArea, LevelDisplay);
 #undef GET_WIDGET
 
   // Store pointers to those widgets we need to access later
@@ -80,6 +84,9 @@ UI::UI(
 
   newKeyDialog_ = wNewKeyDialog;
   newKeyCancelButton_ = wNewKeyCancelButton;
+
+  playWindow_ = wPlayWindow;
+  levelDisplay_ = wLevelDisplay;
 
   // Attach the columns to their controls
   remotePlayerListStore_ = Gtk::ListStore::create(remotePlayerListColumns_);

@@ -26,7 +26,8 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
         boost::asio::io_service& io,
         const Options&,
         const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-        const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
+        const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
+        const Glib::RefPtr<Gnome::Glade::Xml>& playXml
       );
     ~UI();
     Gtk::Window& window() { return *window_; }
@@ -91,6 +92,9 @@ class UI : public utility::MessageHandler, private boost::noncopyable {
 
     Gtk::Dialog* newKeyDialog_;
     Gtk::Button* newKeyCancelButton_;
+
+    Gtk::Window* playWindow_;
+    Gtk::DrawingArea* levelDisplay_;
 
     // game data
     class SequenceTag;
