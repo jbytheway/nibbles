@@ -1,7 +1,9 @@
 #ifndef NIBBLES_GTK__CROSSTHREADSIGNAL_HPP
 #define NIBBLES_GTK__CROSSTHREADSIGNAL_HPP
 
-//#include <nibbles/utility/argpack.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/signal.hpp>
 
 namespace nibbles { namespace gtk {
 

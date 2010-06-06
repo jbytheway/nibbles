@@ -5,6 +5,8 @@
 #include <boost/thread.hpp>
 #include <boost/filesystem/operations.hpp>
 
+#include <gtkmm.h>
+
 #include <nibbles/client/client.hpp>
 
 #include "ui.hpp"
@@ -74,16 +76,14 @@ int main(int argc, char** argv)
   if (options.threaded) {
     IoThread ioThreadObj(io);
     boost::thread ioThread(boost::ref(ioThreadObj));
-    Gtk::Main::run(ui.window());
-    ui.disconnect();
+    Gtk::Main::run();
     ioThreadObj.interrupt();
     ioThread.join();
   } else {
     // FIXME: This polling version is very inefficient (most CPU time spent
     // spinlocking)
-    ui.window().show();
     //struct timespec sleepTime = { 0, 0 };
-    while (ui.window().is_visible()) {
+    while (!ui.ended()) {
       Gtk::Main::iteration(false);
       io.poll();
       io.reset();
@@ -91,7 +91,6 @@ int main(int argc, char** argv)
       // sleeps for ~10ms
       //nanosleep(&sleepTime, NULL);
     }
-    ui.disconnect();
     io.run();
   }
   return 0;

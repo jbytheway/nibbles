@@ -1,16 +1,27 @@
 #include "ui.hpp"
 
-#include "colorconverter.hpp"
-
-#include <nibbles/fatal.hpp>
-#include <nibbles/direction.hpp>
-
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/foreach.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+
+#include <gtkmm.h>
+
+#include <nibbles/fatal.hpp>
+#include <nibbles/direction.hpp>
+#include <nibbles/message.hpp>
+#include <nibbles/client/client.hpp>
+
+#include "colorconverter.hpp"
+#include "crossthreadsignal.hpp"
+#include "remoteplayer.hpp"
+#include "controlledplayer.hpp"
 
 using namespace std;
 using namespace boost::system;
@@ -19,7 +30,150 @@ using namespace nibbles::client;
 
 namespace nibbles { namespace gtk {
 
+class UI::Impl : public utility::MessageHandler {
+  public:
+    Impl(
+        boost::asio::io_service& io,
+        const Options&,
+        const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
+        const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
+        const Glib::RefPtr<Gnome::Glade::Xml>& playXml
+      );
+    ~Impl();
+
+    bool ended() { return !window_->is_visible(); }
+    virtual void message(utility::Verbosity, const std::string& message);
+  private:
+    boost::asio::io_service& io_;
+    Options options_;
+
+    CrossThreadSignal<std::string> messageSignal_;
+    void writeMessage(const std::string&); // Call only on GUI thread
+
+    CrossThreadSignal<MessageBase::Ptr> netMessageSignal_;
+    void handleNetMessage(const MessageBase::Ptr&); // Call only on GUI thread
+    template<int Type>
+    void internalNetMessage(const Message<Type>&);
+
+    // controls
+    Gtk::Window* window_;
+    Gtk::TextView* messageView_;
+    Gtk::CheckButton* readyCheck_;
+
+    class RemotePlayerListColumns : public Gtk::TreeModel::ColumnRecord
+    {
+      public:
+        RemotePlayerListColumns()
+        {
+          add(ready_);
+          add(id_);
+          add(clientId_);
+          add(color_);
+          add(name_);
+        }
+
+        Gtk::TreeModelColumn<bool> ready_;
+        Gtk::TreeModelColumn<PlayerId::internal_type> id_;
+        Gtk::TreeModelColumn<ClientId::internal_type> clientId_;
+        Gtk::TreeModelColumn<Gdk::Color> color_;
+        Gtk::TreeModelColumn<Glib::ustring> name_;
+    };
+    Gtk::TreeView* remotePlayerList_;
+    const RemotePlayerListColumns remotePlayerListColumns_;
+    Glib::RefPtr<Gtk::ListStore> remotePlayerListStore_;
+
+    class PlayerComboColumns : public Gtk::TreeModel::ColumnRecord
+    {
+      public:
+        PlayerComboColumns()
+        {
+          add(name_);
+        }
+
+        Gtk::TreeModelColumn<Glib::ustring> name_;
+    };
+    Gtk::ComboBox* playerCombo_;
+    const PlayerComboColumns playerComboColumns_;
+    Glib::RefPtr<Gtk::ListStore> playerComboListStore_;
+
+    Gtk::Entry* playerName_;
+    Gtk::ColorButton* playerColor_;
+    std::array<Gtk::Button*, Direction::max> playerControlButtons_;
+
+    Gtk::Dialog* newKeyDialog_;
+    Gtk::Button* newKeyCancelButton_;
+
+    Gtk::Window* playWindow_;
+    Gtk::DrawingArea* levelDisplay_;
+
+    // game data
+    class SequenceTag;
+    typedef boost::multi_index_container<
+        RemotePlayer,
+        boost::multi_index::indexed_by<
+          boost::multi_index::ordered_unique<
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(
+                IdedPlayer::base, const PlayerId&, get<id>
+              )
+          >,
+          boost::multi_index::sequenced<
+            boost::multi_index::tag<SequenceTag>
+          >
+        >
+      > RemotePlayerContainer;
+    RemotePlayerContainer remotePlayers_;
+    std::vector<ControlledPlayer> localPlayers_;
+
+    client::Client::Ptr client_;
+
+    // Convinience functions
+    ControlledPlayer* getCurrentPlayer();
+
+    // File access stuff
+    void loadLocalPlayers();
+    void saveLocalPlayers();
+
+    // UI update
+    void refreshRemotePlayers();
+    void refreshLocalPlayers();
+    void refreshLocalPlayer();
+
+    // UI bindings
+    void windowClosed();
+    void connect();
+    void disconnect(); // not really a UI binding
+    bool nameInUse(const std::string& name);
+    void createPlayer();
+    void deletePlayer();
+    void addPlayerToGame();
+    void removePlayerFromGame();
+    void playerNameChanged();
+    void colorChanged();
+    void cancelNewKey();
+    void readinessChange();
+    // Though templated, these functions can be in the .cpp file because
+    // they're private
+    template<int Direction>
+    void setBinding();
+    template<int Direction>
+    bool newKey(GdkEventKey* event);
+};
+
 UI::UI(
+    boost::asio::io_service& io,
+    const Options& options,
+    const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
+    const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
+    const Glib::RefPtr<Gnome::Glade::Xml>& playXml
+  ) :
+  impl_(new Impl(io, options, mainXml, newKeyXml, playXml))
+{}
+
+UI::~UI() = default;
+
+bool UI::ended() { return impl_->ended(); }
+
+UI::Impl::Impl(
     boost::asio::io_service& io,
     const Options& options,
     const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
@@ -32,8 +186,8 @@ UI::UI(
   playerCombo_(NULL)
 {
   // Connect the message alert signals to our functions
-  messageSignal_.connect(sigc::mem_fun(this, &UI::writeMessage));
-  netMessageSignal_.connect(sigc::mem_fun(this, &UI::handleNetMessage));
+  messageSignal_.connect(sigc::mem_fun(this, &Impl::writeMessage));
+  netMessageSignal_.connect(sigc::mem_fun(this, &Impl::handleNetMessage));
 
 #define GET_WIDGET(xml, type, name)              \
   Gtk::type* w##name = NULL;                     \
@@ -107,7 +261,7 @@ UI::UI(
   // Connect signals from widgets to the UI
 #define CONNECT_BUTTON(buttonName, memFunName)     \
   w##buttonName##Button->signal_clicked().connect( \
-      sigc::mem_fun(this, &UI::memFunName)         \
+      sigc::mem_fun(this, &Impl::memFunName)         \
     );
   CONNECT_BUTTON(Connect, connect);
   CONNECT_BUTTON(Create, createPlayer);
@@ -120,35 +274,41 @@ UI::UI(
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
   CONNECT_BUTTON(NewKeyCancel, cancelNewKey);
 #undef CONNECT_BUTTON
+  window_->signal_hide().connect(
+    sigc::mem_fun(this, &Impl::windowClosed)
+  );
   wReadyCheck->signal_toggled().connect(
-      sigc::mem_fun(this, &UI::readinessChange)
-    );
+    sigc::mem_fun(this, &Impl::readinessChange)
+  );
   wPlayerColorButton->signal_color_set().connect(
-      sigc::mem_fun(this, &UI::colorChanged)
-    );
+    sigc::mem_fun(this, &Impl::colorChanged)
+  );
   playerCombo_->signal_changed().connect(
-      sigc::mem_fun(this, &UI::refreshLocalPlayer)
-    );
+    sigc::mem_fun(this, &Impl::refreshLocalPlayer)
+  );
   playerName_->signal_changed().connect(
-      sigc::mem_fun(this, &UI::playerNameChanged)
-    );
+    sigc::mem_fun(this, &Impl::playerNameChanged)
+  );
 
   loadLocalPlayers();
+
+  // Finally, show the GUI
+  window_->show();
 }
 
-UI::~UI()
+UI::Impl::~Impl()
 {
   saveLocalPlayers();
 }
 
-void UI::message(utility::Verbosity v, const std::string& message)
+void UI::Impl::message(utility::Verbosity v, const std::string& message)
 {
   if (options_.verbosity <= v) {
     messageSignal_(message);
   }
 }
 
-void UI::writeMessage(const string& message)
+void UI::Impl::writeMessage(const string& message)
 {
   Glib::RefPtr<Gtk::TextBuffer> buffer = messageView_->get_buffer();
   buffer->insert(buffer->end(), message);
@@ -158,7 +318,7 @@ void UI::writeMessage(const string& message)
 
 #define IGNORE_MESSAGE(type)                                 \
 template<>                                                   \
-void UI::internalNetMessage<MessageType::type>(              \
+void UI::Impl::internalNetMessage<MessageType::type>(              \
     const Message<MessageType::type>&                        \
   )                                                          \
 {                                                            \
@@ -171,7 +331,7 @@ IGNORE_MESSAGE(setReadiness)
 #undef IGNORE_MESSAGE
 
 template<>
-void UI::internalNetMessage<MessageType::playerAdded>(
+void UI::Impl::internalNetMessage<MessageType::playerAdded>(
     const Message<MessageType::playerAdded>& netMessage
   )
 {
@@ -184,7 +344,7 @@ void UI::internalNetMessage<MessageType::playerAdded>(
 }
 
 template<>
-void UI::internalNetMessage<MessageType::updateReadiness>(
+void UI::Impl::internalNetMessage<MessageType::updateReadiness>(
     const Message<MessageType::updateReadiness>& netMessage
   )
 {
@@ -202,14 +362,14 @@ void UI::internalNetMessage<MessageType::updateReadiness>(
 }
 
 template<>
-void UI::internalNetMessage<MessageType::gameStart>(
+void UI::Impl::internalNetMessage<MessageType::gameStart>(
     const Message<MessageType::gameStart>& /*netMessage*/
   )
 {
   NIBBLES_FATAL("not implemented");
 }
 
-void UI::handleNetMessage(const MessageBase::Ptr& message)
+void UI::Impl::handleNetMessage(const MessageBase::Ptr& message)
 {
   switch (message->type()) {
 #define CASE(r, d, value)                                            \
@@ -225,7 +385,7 @@ void UI::handleNetMessage(const MessageBase::Ptr& message)
   }
 }
 
-ControlledPlayer* UI::getCurrentPlayer()
+ControlledPlayer* UI::Impl::getCurrentPlayer()
 {
   Gtk::TreeModel::iterator iter = playerCombo_->get_active();
   if (!iter)
@@ -236,7 +396,7 @@ ControlledPlayer* UI::getCurrentPlayer()
   return &localPlayers_[index];
 }
 
-void UI::loadLocalPlayers()
+void UI::Impl::loadLocalPlayers()
 {
   using namespace boost::filesystem;
   path playerFilePath(options_.playerFile);
@@ -250,7 +410,7 @@ void UI::loadLocalPlayers()
   refreshLocalPlayers();
 }
 
-void UI::saveLocalPlayers()
+void UI::Impl::saveLocalPlayers()
 {
   using namespace boost::filesystem;
   path playerFilePath(options_.playerFile);
@@ -272,7 +432,7 @@ void UI::saveLocalPlayers()
   rename(tempPlayerFilePath, playerFilePath);
 }
 
-void UI::refreshRemotePlayers()
+void UI::Impl::refreshRemotePlayers()
 {
   // Save the current player so we can put things back properly afterwards
   PlayerId currentId = PlayerId::invalid();
@@ -297,7 +457,7 @@ void UI::refreshRemotePlayers()
   }
 }
 
-void UI::refreshLocalPlayers()
+void UI::Impl::refreshLocalPlayers()
 {
   // Save the current player so we can put things back properly afterwards
   string currentName;
@@ -319,7 +479,7 @@ void UI::refreshLocalPlayers()
   refreshLocalPlayer();
 }
 
-void UI::refreshLocalPlayer()
+void UI::Impl::refreshLocalPlayer()
 {
   const ControlledPlayer* player = getCurrentPlayer();
   if (player) {
@@ -339,7 +499,14 @@ void UI::refreshLocalPlayer()
   }
 }
 
-void UI::connect()
+void UI::Impl::windowClosed()
+{
+  if (options_.threaded) {
+    Gtk::Main::quit();
+  }
+}
+
+void UI::Impl::connect()
 {
   client_ =
     Client::create(
@@ -348,7 +515,7 @@ void UI::connect()
   try {
     client_->messageSignal().connect(boost::ref(netMessageSignal_));
     client_->terminateSignal().connect(
-        boost::bind(&UI::disconnect, this)
+        boost::bind(&Impl::disconnect, this)
       );
     client_->connect();
   } catch (system_error& e) {
@@ -357,7 +524,7 @@ void UI::connect()
   }
 }
 
-void UI::disconnect()
+void UI::Impl::disconnect()
 {
   message(Verbosity::error, "disconnecting\n");
   if (client_) {
@@ -368,7 +535,7 @@ void UI::disconnect()
   }
 }
 
-bool UI::nameInUse(const string& name)
+bool UI::Impl::nameInUse(const string& name)
 {
   // TODO: Do we need a faster-than-linear implementation?
   BOOST_FOREACH(const ControlledPlayer& player, localPlayers_) {
@@ -380,7 +547,7 @@ bool UI::nameInUse(const string& name)
   return false;
 }
 
-void UI::createPlayer()
+void UI::Impl::createPlayer()
 {
   string newName = "New player";
 
@@ -408,12 +575,12 @@ void UI::createPlayer()
   refreshLocalPlayer();
 }
 
-void UI::deletePlayer()
+void UI::Impl::deletePlayer()
 {
   NIBBLES_FATAL("not implemented");
 }
 
-void UI::addPlayerToGame()
+void UI::Impl::addPlayerToGame()
 {
   Player* currentPlayer = getCurrentPlayer();
   if (!currentPlayer) {
@@ -427,12 +594,12 @@ void UI::addPlayerToGame()
   client_->addPlayer(*currentPlayer);
 }
 
-void UI::removePlayerFromGame()
+void UI::Impl::removePlayerFromGame()
 {
   NIBBLES_FATAL("not implemented");
 }
 
-void UI::playerNameChanged()
+void UI::Impl::playerNameChanged()
 {
   string newName = playerName_->get_text();
   if (nameInUse(newName)) {
@@ -445,7 +612,7 @@ void UI::playerNameChanged()
   }
 }
 
-void UI::colorChanged()
+void UI::Impl::colorChanged()
 {
   if (Player* currentPlayer = getCurrentPlayer()) {
     currentPlayer->get<color>() =
@@ -453,29 +620,29 @@ void UI::colorChanged()
   }
 }
 
-void UI::cancelNewKey()
+void UI::Impl::cancelNewKey()
 {
   newKeyDialog_->hide();
 }
 
-void UI::readinessChange()
+void UI::Impl::readinessChange()
 {
   bool readiness = readyCheck_->get_active();
   client_->setReadiness(readiness);
 }
 
 template<int Direction>
-void UI::setBinding()
+void UI::Impl::setBinding()
 {
   if (!getCurrentPlayer())
     return;
   sigc::connection connection0 =
     newKeyDialog_->signal_key_press_event().connect(
-      sigc::mem_fun(this, &UI::newKey<Direction>)
+      sigc::mem_fun(this, &Impl::newKey<Direction>)
     );
   sigc::connection connection1 =
     newKeyCancelButton_->signal_key_press_event().connect(
-      sigc::mem_fun(this, &UI::newKey<Direction>)
+      sigc::mem_fun(this, &Impl::newKey<Direction>)
     );
   newKeyDialog_->run();
   // Bizarrely, if close button clicked, doesn't hide but does return from
@@ -488,7 +655,7 @@ void UI::setBinding()
 }
 
 template<int Direction>
-bool UI::newKey(GdkEventKey* event)
+bool UI::Impl::newKey(GdkEventKey* event)
 {
   uint32_t keyval = event->keyval;
   ControlledPlayer* player = getCurrentPlayer();
