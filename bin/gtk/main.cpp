@@ -9,7 +9,7 @@
 
 #include <nibbles/client/client.hpp>
 
-#include "ui.hpp"
+#include "ui/ui.hpp"
 
 using namespace std;
 using namespace boost::asio;
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
   Glib::RefPtr<Gnome::Glade::Xml> playXml =
     Gnome::Glade::Xml::create(playGlade.file_string());
 
-  UI ui(io, options, mainXml, newKeyXml, playXml);
+  ui::UI ui(io, options, mainXml, newKeyXml, playXml);
 
   if (options.threaded) {
     IoThread ioThreadObj(io);

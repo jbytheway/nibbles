@@ -1,5 +1,5 @@
-#ifndef NIBBLES_GTK__UI_HPP
-#define NIBBLES_GTK__UI_HPP
+#ifndef NIBBLES_GTK__UI__UI_HPP
+#define NIBBLES_GTK__UI__UI_HPP
 
 #include <boost/utility.hpp>
 #include <boost/asio/io_service.hpp>
@@ -11,7 +11,7 @@
 
 #include "options.hpp"
 
-namespace nibbles { namespace gtk {
+namespace nibbles { namespace gtk { namespace ui {
 
 class UI : private boost::noncopyable {
   public:
@@ -29,7 +29,7 @@ class UI : private boost::noncopyable {
     boost::scoped_ptr<Impl> impl_;
 };
 
-}}
+}}}
 
-#endif // NIBBLES_GTK__UI_HPP
+#endif // NIBBLES_GTK__UI__UI_HPP
 

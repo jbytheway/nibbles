@@ -1,5 +1,6 @@
 BIN := nibbles-gtk
-THIS_CPPFLAGS := `pkg-config --cflags libglademm-2.4`
+SOURCE_DIRS := ui
+THIS_CPPFLAGS := -I$(this_srcdir) `pkg-config --cflags libglademm-2.4`
 THIS_LDFLAGS := -no-install
 LIBS := \
 	-loptimal `pkg-config --libs libglademm-2.4` \

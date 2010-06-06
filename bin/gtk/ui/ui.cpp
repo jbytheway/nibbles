@@ -28,7 +28,7 @@ using namespace boost::system;
 using namespace nibbles::utility;
 using namespace nibbles::client;
 
-namespace nibbles { namespace gtk {
+namespace nibbles { namespace gtk { namespace ui {
 
 class UI::Impl : public utility::MessageHandler {
   public:
@@ -665,5 +665,5 @@ bool UI::Impl::newKey(GdkEventKey* event)
   return false;
 }
 
-}}
+}}}
 
