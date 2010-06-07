@@ -1,6 +1,6 @@
 SUBDIRS := nibbles bin
 
-all-recurse-nibbles-bin: all-recurse-nibbles
+all-recurse-bin: all-recurse-nibbles
 
 test-recurse-bin: test-recurse-nibbles
 
