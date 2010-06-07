@@ -3,6 +3,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/serialization/access.hpp>
 
 namespace nibbles { namespace utility {
 
