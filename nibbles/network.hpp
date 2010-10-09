@@ -2,6 +2,7 @@
 #define NIBBLES__NETWORK_HPP
 
 #include <cstdint>
+#include <cstddef>
 
 namespace nibbles {
 
