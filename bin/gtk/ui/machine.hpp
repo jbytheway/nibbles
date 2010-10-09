@@ -74,6 +74,9 @@ class Machine : public sc::state_machine<Machine, Active> {
     boost::signal<void ()>& terminating() {
       return terminating_;
     }
+
+    // For debugging
+    void dump();
   private:
     // Stuff passed down from on high
     utility::MessageHandler& messageHandler_;

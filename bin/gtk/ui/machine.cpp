@@ -21,5 +21,15 @@ bool Machine::ended()
   return state_cast<Terminated const*>();
 }
 
+void Machine::dump()
+{
+  std::string result = "State machine dump:\n";
+  for (auto leaf = state_begin(); leaf != state_end(); ++leaf) {
+    result += typeid(*leaf).name();
+    result += "\n";
+  }
+  messageHandler_.message(utility::Verbosity::debug, result);
+}
+
 }}}
 
