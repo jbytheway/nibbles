@@ -13,6 +13,7 @@ namespace nibbles { namespace gtk {
 struct Options {
   Options(int const argc, char** const argv);
 
+  bool help;
   utility::Verbosity verbosity;
   bool threaded;
   std::string playerFile;
@@ -20,6 +21,8 @@ struct Options {
   std::string address;
   uint16_t port;
   boost::filesystem::path gladePath;
+
+  void show_help(std::ostream&) const;
 };
 
 }}

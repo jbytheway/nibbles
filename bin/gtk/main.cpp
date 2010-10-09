@@ -50,6 +50,10 @@ int main(int argc, char** argv)
   io_service io;
   Gtk::Main kit(argc, argv);
   const Options options(argc, argv);
+  if (options.help) {
+    options.show_help(std::cout);
+    return 0;
+  }
 
   boost::filesystem::path gladePath = options.gladePath;
 
