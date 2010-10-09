@@ -106,7 +106,22 @@ class Active :
   >
 {
   public:
-    typedef sc::transition<events::Terminate, Terminated> reactions;
+    typedef boost::mpl::list<
+#define REACTION(r, _, type) \
+      sc::custom_reaction<events::Message<MessageType::type>>,
+      BOOST_PP_SEQ_FOR_EACH(REACTION, _, NIBBLES_MESSAGETYPE_VALUES())
+      sc::transition<events::Terminate, Terminated>
+#undef REACTION
+    > reactions;
+
+    template<MessageType::internal_enum Type>
+    sc::result react(events::Message<Type> const&) {
+      context<Machine>().messageHandler().message(
+        utility::Verbosity::warning,
+        "unhandled message of type "+MessageType(Type).string()+"\n"
+      );
+      return forward_event();
+    }
 };
 
 /// The first orthogonal component of Active follows the UI through
