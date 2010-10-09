@@ -33,6 +33,7 @@ struct Message : public sc::event<Message<Type>> {
 
 struct Terminate : public sc::event<Terminate> {};
 struct Connect : public sc::event<Connect> {};
+struct Connected : public sc::event<Connected> {};
 struct Disconnect : public sc::event<Disconnect> {};
 
 }
@@ -117,6 +118,7 @@ class Configuring :
   public:
     typedef boost::mpl::list<
       sc::custom_reaction<events::Message<MessageType::playerAdded>>,
+      sc::custom_reaction<events::Connected>,
       sc::custom_reaction<events::Disconnect>
     > reactions;
     Configuring(my_context);
@@ -124,6 +126,7 @@ class Configuring :
 
     virtual void message(std::string const&) const;
     sc::result react(events::Message<MessageType::playerAdded> const&);
+    sc::result react(events::Connected const&);
     sc::result react(events::Disconnect const&);
   private:
     class Impl;
@@ -153,8 +156,9 @@ class NotConnected :
 };
 
 class Connected :
-  public sc::simple_state<Connected, Connectedness> {
+  public sc::state<Connected, Connectedness> {
   public:
+    Connected(my_context);
     ~Connected();
 
     typedef sc::transition<events::Disconnect, NotConnected> reactions;

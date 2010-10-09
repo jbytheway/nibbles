@@ -2,6 +2,11 @@
 
 namespace nibbles { namespace gtk { namespace ui {
 
+Connected::Connected(my_context ctx) : my_base(ctx)
+{
+  post_event(events::Connected());
+}
+
 Connected::~Connected()
 {
   auto& client = context<Connectedness>().client_;

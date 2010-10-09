@@ -42,6 +42,7 @@ class Configuring::Impl {
     // Network reactions
     void playerAdded(const Message<MessageType::playerAdded>&);
     void updateReadiness(const Message<MessageType::updateReadiness>&);
+    void connected();
     void disconnected();
   private:
     // Link back to state machine
@@ -172,6 +173,12 @@ sc::result Configuring::react(
 sc::result Configuring::react(events::Disconnect const&)
 {
   impl_->disconnected();
+  return forward_event();
+}
+
+sc::result Configuring::react(events::Connected const&)
+{
+  impl_->connected();
   return forward_event();
 }
 
@@ -338,6 +345,15 @@ ControlledPlayer* Configuring::Impl::getCurrentPlayer()
   size_t index = std::distance(playerComboListStore_->children().begin(), iter);
   assert(index < localPlayers_.size());
   return &localPlayers_[index];
+}
+
+void Configuring::Impl::connected()
+{
+  // If readiness is checked, need to tell server
+  if (readyCheck_->get_active()) {
+    auto const& client = parent_->state_cast<Connectedness const&>().client();
+    client->setReadiness(true);
+  }
 }
 
 void Configuring::Impl::disconnected()
