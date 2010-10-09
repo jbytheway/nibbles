@@ -153,6 +153,7 @@ void UI::Impl::handleNetMessage(const MessageBase::Ptr& message)
 
 void UI::Impl::disconnect()
 {
+  writeMessage("disconnecting...\n");
   machine_.process_event(events::Disconnect());
 }
 
