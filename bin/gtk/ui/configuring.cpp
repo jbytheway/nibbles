@@ -172,7 +172,7 @@ sc::result Configuring::react(
 sc::result Configuring::react(events::Disconnect const&)
 {
   impl_->disconnected();
-  return discard_event();
+  return forward_event();
 }
 
 Configuring::Impl::Impl(
