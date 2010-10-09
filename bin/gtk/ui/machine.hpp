@@ -94,18 +94,19 @@ class Terminated : public sc::state<Terminated, Machine> {
 };
 
 class Configuring;
-class NotConnected;
-class Connected;
+class Connectedness;
 
 class Active :
   public sc::simple_state<
-    Active, Machine, boost::mpl::list<Configuring, NotConnected>
+    Active, Machine, boost::mpl::list<Configuring, Connectedness>
   >
 {
   public:
     typedef sc::transition<events::Terminate, Terminated> reactions;
 };
 
+/// The first orthogonal component of Active follows the UI through
+/// configuration and then playing the game
 class Configuring :
   public sc::state<Configuring, Active::orthogonal<0>>,
   public MessageSinkState
@@ -126,21 +127,34 @@ class Configuring :
     boost::scoped_ptr<Impl> impl_;
 };
 
-class NotConnected :
-  public sc::simple_state<NotConnected, Active::orthogonal<1>> {
+class NotConnected;
+class Connected;
+
+/// The second orthogonal component of Active follows the network interface
+class Connectedness :
+  public sc::simple_state<Connectedness, Active::orthogonal<1>, NotConnected> {
   public:
-    typedef sc::transition<events::Connect, Connected> reactions;
+    client::Client::Ptr const& client() const { return client_; }
+  private:
+    friend class Connected;
+    friend class NotConnected;
+    client::Client::Ptr client_;
+};
+
+class NotConnected :
+  public sc::simple_state<NotConnected, Connectedness> {
+  public:
+    typedef sc::custom_reaction<events::Connect> reactions;
+
+    sc::result react(events::Connect const&);
 };
 
 class Connected :
-  public sc::state<Connected, Active::orthogonal<1>> {
+  public sc::simple_state<Connected, Connectedness> {
   public:
-    Connected(my_context);
     ~Connected();
 
-    client::Client::Ptr const& client() const { return client_; }
-  private:
-    client::Client::Ptr client_;
+    typedef sc::transition<events::Disconnect, NotConnected> reactions;
 };
 
 }}}

@@ -2,20 +2,16 @@
 
 namespace nibbles { namespace gtk { namespace ui {
 
-Connected::Connected(my_context context) : my_base(context)
-{
-  client_ = this->context<Machine>().clientFactory().makeClient();
-}
-
 Connected::~Connected()
 {
+  auto& client = context<Connectedness>().client_;
   context<Machine>().messageHandler().message(
     utility::Verbosity::error, "disconnecting\n"
   );
-  assert(client_);
+  assert(client);
 
-  client_->close();
-  client_.reset();
+  client->close();
+  client.reset();
 }
 
 }}}

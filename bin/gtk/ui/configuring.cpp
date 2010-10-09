@@ -519,8 +519,9 @@ void Configuring::Impl::addPlayerToGame()
     );
     return;
   }
-  if (Connected const* connected = parent_->state_cast<Connected const*>()) {
-    connected->client()->addPlayer(*currentPlayer);
+  if (auto const& client =
+      parent_->state_cast<Connectedness const&>().client()) {
+    client->addPlayer(*currentPlayer);
   } else {
     parent_->context<Machine>().messageHandler().message(
       utility::Verbosity::error, "not connected\n"
@@ -562,8 +563,9 @@ void Configuring::Impl::cancelNewKey()
 void Configuring::Impl::readinessChange()
 {
   bool readiness = readyCheck_->get_active();
-  if (Connected const* connected = parent_->state_cast<Connected const*>()) {
-    connected->client()->setReadiness(readiness);
+  if (auto const& client =
+      parent_->state_cast<Connectedness const&>().client()) {
+    client->setReadiness(readiness);
   }
 }
 
