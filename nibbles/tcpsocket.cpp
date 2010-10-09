@@ -86,16 +86,17 @@ void TcpSocket::handleRead(
   )
 {
   out_.message(
-      Verbosity::info, "read "+boost::lexical_cast<string>(bytes)+" bytes\n"
+      Verbosity::debug,
+      "TcpSocket: read "+boost::lexical_cast<string>(bytes)+" bytes\n"
     );
   if (error) {
-    out_.message(Verbosity::error, "read: "+error.message()+"\n");
+    out_.message(Verbosity::error, "TcpSocket: read: "+error.message()+"\n");
     terminateSignal();
   } else {
     dataLen_ += bytes;
     size_t packetLen;
     while (dataLen_ >= 1+(packetLen = data_[0])) {
-      out_.message(Verbosity::info, "got packet\n");
+      out_.message(Verbosity::debug, "TcpSocket: got packet\n");
       uint8_t const* const packetStart = data_.data()+1;
       messageSignal(MessageBase::create(packetStart, packetLen));
       memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);
@@ -112,8 +113,8 @@ void TcpSocket::startWrite()
   if (writing_.empty())
     return;
   out_.message(
-      Verbosity::info,
-      "TcpClient: writing "+boost::lexical_cast<string>(writing_.size())+
+      Verbosity::debug,
+      "TcpSocket: writing "+boost::lexical_cast<string>(writing_.size())+
       " bytes\n"
     );
   async_write(socket_, buffer(writing_), boost::bind(
@@ -129,8 +130,8 @@ void TcpSocket::handleWrite(
   )
 {
   out_.message(
-      Verbosity::info,
-      "TcpClient: wrote "+boost::lexical_cast<string>(bytes_transferred)+
+      Verbosity::debug,
+      "TcpSocket: wrote "+boost::lexical_cast<string>(bytes_transferred)+
       " bytes\n"
     );
   writing_.clear();
