@@ -4,10 +4,6 @@
 
 #include <nibbles/network.hpp>
 
-using namespace std;
-using namespace boost::asio;
-using nibbles::utility::Verbosity;
-
 namespace nibbles { namespace client {
 
 TcpClient::TcpClient(
