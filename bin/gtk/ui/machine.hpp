@@ -133,6 +133,7 @@ class Configuring :
   public:
     typedef boost::mpl::list<
       sc::custom_reaction<events::Message<MessageType::playerAdded>>,
+      sc::custom_reaction<events::Message<MessageType::updateReadiness>>,
       sc::custom_reaction<events::Connected>,
       sc::custom_reaction<events::Disconnect>
     > reactions;
@@ -141,6 +142,7 @@ class Configuring :
 
     virtual void message(std::string const&) const;
     sc::result react(events::Message<MessageType::playerAdded> const&);
+    sc::result react(events::Message<MessageType::updateReadiness> const&);
     sc::result react(events::Connected const&);
     sc::result react(events::Disconnect const&);
   private:

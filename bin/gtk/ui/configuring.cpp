@@ -170,6 +170,14 @@ sc::result Configuring::react(
   return discard_event();
 }
 
+sc::result Configuring::react(
+  events::Message<MessageType::updateReadiness> const& event
+)
+{
+  impl_->updateReadiness(event.message);
+  return discard_event();
+}
+
 sc::result Configuring::react(events::Disconnect const&)
 {
   impl_->disconnected();
