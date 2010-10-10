@@ -120,7 +120,7 @@ class Active :
         utility::Verbosity::warning,
         "unhandled message of type "+MessageType(Type).string()+"\n"
       );
-      return forward_event();
+      return discard_event();
     }
 };
 
