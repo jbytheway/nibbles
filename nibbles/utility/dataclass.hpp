@@ -246,6 +246,12 @@ struct FieldMapHelper<InheritFrom<BaseType>, Next, More...>
   typedef typename FieldMapHelper<Next, More...>::type type;
 };
 
+template<typename BaseType>
+struct FieldMapHelper<InheritFrom<BaseType>>
+{
+  typedef typename FieldMapHelper<>::type type;
+};
+
 template<typename... Fields>
 struct BaseClassHelper {
   typedef typename mpl::inherit_linearly<
