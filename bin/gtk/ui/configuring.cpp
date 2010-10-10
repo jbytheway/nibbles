@@ -113,6 +113,7 @@ class Configuring::Impl {
       > RemotePlayerContainer;
     RemotePlayerContainer remotePlayers_;
     std::vector<ControlledPlayer> localPlayers_;
+    std::map<ClientId, bool> clientReadiness_;
 
     // Convinience functions
     ControlledPlayer* getCurrentPlayer();
@@ -317,7 +318,7 @@ void Configuring::Impl::playerAdded(
   const Message<MessageType::playerAdded>& netMessage
 )
 {
-  RemotePlayer newPlayer(netMessage.payload(), false);
+  RemotePlayer newPlayer(netMessage.payload());
   bool inserted = remotePlayers_.insert(newPlayer).second;
   if (!inserted) {
     parent_->context<Machine>().messageHandler().message(
@@ -333,14 +334,7 @@ void Configuring::Impl::updateReadiness(
 {
   ClientId id = netMessage.payload().first;
   bool ready = netMessage.payload().second;
-  typedef RemotePlayerContainer::index<SequenceTag>::type Index;
-  Index& index = remotePlayers_.get<SequenceTag>();
-
-  for (Index::iterator i = index.begin(); i != index.end(); ++i) {
-    if (i->get<clientId>() == id) {
-      index.replace(i, RemotePlayer(*i, ready));
-    }
-  }
+  clientReadiness_[id] = ready;
   refreshRemotePlayers();
 }
 
@@ -419,11 +413,17 @@ void Configuring::Impl::refreshRemotePlayers()
   // Clear out the list box
   remotePlayerListStore_->clear();
   BOOST_FOREACH(const RemotePlayer& player, remotePlayers_) {
+    auto const cId = player.get<clientId>();
+    auto const readinessIt = clientReadiness_.find(cId);
+    bool ready = false;
+    if (readinessIt != clientReadiness_.end()) {
+      ready = readinessIt->second;
+    }
     Gtk::TreeModel::iterator iter = remotePlayerListStore_->append();
     Gtk::TreeModel::Row row = *iter;
-    row[remotePlayerListColumns_.ready_] = player.get<ready>();
+    row[remotePlayerListColumns_.ready_] = ready;
     row[remotePlayerListColumns_.id_] = player.get<id>();
-    row[remotePlayerListColumns_.clientId_] = player.get<clientId>();
+    row[remotePlayerListColumns_.clientId_] = cId;
     row[remotePlayerListColumns_.color_] =
       ColorConverter::toGdkColor(player.get<color>());
     row[remotePlayerListColumns_.name_] = player.get<name>();

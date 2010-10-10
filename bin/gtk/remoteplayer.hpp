@@ -8,8 +8,7 @@ namespace nibbles { namespace gtk {
 struct RemotePlayer :
   utility::DataClass<
     RemotePlayer,
-    utility::InheritFrom<IdedPlayer>,
-    bool, ready
+    utility::InheritFrom<IdedPlayer>
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(RemotePlayer)
 };
