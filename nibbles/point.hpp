@@ -15,7 +15,9 @@ struct Point :
   > {
   typedef uint32_t value_type;
 
-  NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Point)
+  Point() : base(-1, -1) {}
+
+  Point(uint32_t const x, uint32_t const y) : base(x, y) {}
 
   Point& operator-=(const Point& p) {
     get<x>() -= p.get<x>();
