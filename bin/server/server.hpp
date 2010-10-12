@@ -78,6 +78,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     void shutdown();
     void deleteConnection(Connection* connection);
     void sendToAll(const MessageBase&);
+    void sendStateToConnection(Connection::Ptr const&);
 
     template<int Type>
     void internalNetMessage(const Message<Type>&, Connection*);

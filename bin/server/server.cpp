@@ -69,6 +69,7 @@ void Server::addConnection(const Connection::Ptr& connection)
         "added connection; "+
         boost::lexical_cast<string>(connectionPool_.size())+" now exist\n"
       );
+    sendStateToConnection(connection);
   } else {
     message(Verbosity::error, "connection failed; id in use");
     connection->close();
@@ -120,6 +121,19 @@ void Server::sendToAll(const MessageBase& message)
       connections.begin(), connections.end(),
       boost::bind(&Connection::send, _1, boost::ref(message))
     );
+}
+
+void Server::sendStateToConnection(Connection::Ptr const& connection)
+{
+  BOOST_FOREACH(Connection::Ptr const& conn, connectionPool_) {
+    connection->send(Message<MessageType::updateReadiness>(
+        {conn->id(), conn->ready()}
+    ));
+  }
+
+  BOOST_FOREACH(RemotePlayer const& player, players_) {
+    connection->send(Message<MessageType::playerAdded>(player));
+  }
 }
 
 #define IGNORE_MESSAGE(type)                               \
