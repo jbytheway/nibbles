@@ -31,6 +31,9 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
     throw runtime_error("no levelpack specified");
   }
   boost::filesystem::ifstream ifs(levelsFile);
+  if (!ifs.is_open()) {
+    throw runtime_error("failed to open levelpack "+levelsFile.file_string());
+  }
   boost::archive::xml_iarchive ia(ifs);
   ia >> BOOST_SERIALIZATION_NVP(levelPack_);
   game_.get<levels>() = levelPack_;
