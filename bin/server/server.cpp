@@ -94,6 +94,7 @@ void Server::shutdown()
 {
   message(Verbosity::info, "caught interrupt, shutting down...");
   tcp_.stop();
+  gameTickTimer_.cancel();
   BOOST_FOREACH(const Connection::Ptr& c, connectionPool_) {
     c->close();
   }
