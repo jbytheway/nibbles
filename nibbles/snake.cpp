@@ -33,8 +33,10 @@ TickResult Snake::advanceHead(Board& board, std::vector<Point> const& nextHeads)
 
 void Snake::advanceTail(Board& board)
 {
-  board[get<points>().back()] = BoardState::empty;
-  get<points>().pop_back();
+  auto& pts = get<points>();
+  assert(!pts.empty());
+  board[pts.back()] = BoardState::empty;
+  pts.pop_back();
 }
 
 }
