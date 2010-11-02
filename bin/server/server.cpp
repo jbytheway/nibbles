@@ -43,13 +43,13 @@ void Server::serve()
   }
 
   io_.run(); // Blocks until all stuff is done
-  message(Verbosity::info, "server done\n");
+  message(Verbosity::info, "server done");
 }
 
 void Server::addConnection(const Connection::Ptr& connection)
 {
   if (game_.started()) {
-    message(Verbosity::error, "connection failed; game started\n");
+    message(Verbosity::error, "connection failed; game started");
     connection->close();
     return;
   }
@@ -67,7 +67,7 @@ void Server::addConnection(const Connection::Ptr& connection)
     message(
         Verbosity::info,
         "added connection; "+
-        boost::lexical_cast<string>(connectionPool_.size())+" now exist\n"
+        boost::lexical_cast<string>(connectionPool_.size())+" now exist"
       );
     sendStateToConnection(connection);
   } else {
@@ -79,7 +79,7 @@ void Server::addConnection(const Connection::Ptr& connection)
 void Server::message(Verbosity v, const string& message)
 {
   if (options_.verbosity <= v)
-    out_ << message << flush;
+    out_ << message << std::endl;
 }
 
 // Server::netMessage last so as not to precede specializations of
@@ -92,7 +92,7 @@ void Server::signalled()
 
 void Server::shutdown()
 {
-  message(Verbosity::info, "caught interrupt, shutting down...\n");
+  message(Verbosity::info, "caught interrupt, shutting down...");
   tcp_.stop();
   BOOST_FOREACH(const Connection::Ptr& c, connectionPool_) {
     c->close();
@@ -109,7 +109,7 @@ void Server::deleteConnection(Connection* connection)
   message(
       Verbosity::info,
       "removed connection; "+
-      boost::lexical_cast<string>(connectionPool_.size())+" remain\n"
+      boost::lexical_cast<string>(connectionPool_.size())+" remain"
     );
 }
 
