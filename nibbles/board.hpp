@@ -27,6 +27,7 @@ struct Board :
 
   void init(const LevelDefinition&);
   void assign(const Block&, const BoardState);
+  Point adjacent(Point const&, Direction const) const;
 
   // for debugging - print board to cout
   void dumpBoard();

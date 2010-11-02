@@ -101,7 +101,7 @@ TickResult Level::tick(RandomEngine& random)
 
   std::vector<Point> nextHeads;
   BOOST_FOREACH(Snake& snake, snakes) {
-    nextHeads.push_back(snake.nextHead());
+    nextHeads.push_back(snake.nextHead(b));
   }
   BOOST_FOREACH(Snake& snake, snakes) {
     TickResult result = snake.advanceHead(b, nextHeads);

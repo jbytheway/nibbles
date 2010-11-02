@@ -4,15 +4,15 @@
 
 namespace nibbles {
 
-Point Snake::nextHead() const
+Point Snake::nextHead(Board const& board) const
 {
   Point front = get<points>().front();
-  return front.moved(get<direction>());
+  return board.adjacent(front, get<direction>());
 }
 
 TickResult Snake::advanceHead(Board& board, std::vector<Point> const& nextHeads)
 {
-  Point next = nextHead();
+  Point next = nextHead(board);
   size_t numNextHeads = std::count(nextHeads.begin(), nextHeads.end(), next);
   if (numNextHeads > 1) {
     return TickResult::dead;

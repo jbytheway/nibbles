@@ -26,7 +26,7 @@ struct Snake :
     base(id, std::deque<Point>(1, pos.get<point>()), pos.get<direction>())
   {}
 
-  Point nextHead() const;
+  Point nextHead(Board const&) const;
   TickResult advanceHead(Board&, std::vector<Point> const& nextHeads);
   void advanceTail(Board&);
 };

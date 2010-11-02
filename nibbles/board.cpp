@@ -49,6 +49,39 @@ void Board::assign(const Block& block, const BoardState state)
   }
 }
 
+Point Board::adjacent(Point const& p, Direction const dir) const
+{
+  auto st = get<states>();
+  switch (dir) {
+    case Direction::up:
+      {
+        auto yc = p.get<y>();
+        if (yc == st.shape()[1] - 1) yc = 0; else ++yc;
+        return Point(p.get<x>(), yc);
+      }
+    case Direction::down:
+      {
+        auto yc = p.get<y>();
+        if (yc == 0) yc = st.shape()[1] - 1; else --yc;
+        return Point(p.get<x>(), yc);
+      }
+    case Direction::left:
+      {
+        auto xc = p.get<x>();
+        if (xc == 0) xc = st.shape()[0] - 1; else --xc;
+        return Point(xc, p.get<y>());
+      }
+    case Direction::right:
+      {
+        auto xc = p.get<x>();
+        if (xc == st.shape()[0] - 1) xc = 0; else ++xc;
+        return Point(xc, p.get<y>());
+      }
+    default:
+      NIBBLES_FATAL("unexpected Direction");
+  }
+}
+
 void Board::dumpBoard()
 {
   boost::multi_array<BoardState, 2>& array = get<states>();
