@@ -15,6 +15,7 @@
 #include "options.hpp"
 #include "tcpserver.hpp"
 #include "remoteplayer.hpp"
+#include "eventforwarder.hpp"
 
 namespace nibbles { namespace server {
 
@@ -72,6 +73,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
 
     Game game_;
     boost::asio::deadline_timer gameTickTimer_;
+    EventForwarder forwarder_;
 
     void netMessage(const MessageBase::Ptr&, Connection*);
     void signalled();

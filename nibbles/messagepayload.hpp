@@ -4,6 +4,7 @@
 #include <nibbles/player.hpp>
 #include <nibbles/idedplayer.hpp>
 #include <nibbles/clientid.hpp>
+#include <nibbles/leveldefinition.hpp>
 
 namespace nibbles {
 
@@ -39,6 +40,11 @@ template<>
 struct MessagePayload<MessageType::gameStart> {
   // TODO: should really be nothing, but can't be bothered to make that work
   typedef int type;
+};
+
+template<>
+struct MessagePayload<MessageType::levelStart> {
+  typedef LevelDefinition type;
 };
 
 }

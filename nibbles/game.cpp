@@ -4,19 +4,24 @@ using namespace std;
 
 namespace nibbles {
 
-void Game::startLevel(LevelId levelId)
+void Game::startLevel(LevelId levelId, GameEventHandler& handler)
 {
   const vector<LevelDefinition>& levelDefs = get<levels>().get<levels>();
   assert(!levelDefs.empty());
   LevelId realLevelId =
     LevelId::fromInteger(std::min<size_t>(levelId, levelDefs.size()-1));
   const LevelDefinition& levelDef = levelDefs[realLevelId];
+  handler.startLevel(levelDef);
   get<level>() = Level(levelDef, get<players>(), get<random>());
+  get<fields::levelId>() = levelId;
 }
 
-void Game::tick()
+void Game::tick(GameEventHandler& handler)
 {
-  get<level>().tick(get<random>());
+  auto tickResult = get<level>().tick(get<random>());
+  if (tickResult == TickResult::dead) {
+    startLevel(get<levelId>(), handler);
+  }
 }
 
 }

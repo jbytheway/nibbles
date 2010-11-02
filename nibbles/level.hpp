@@ -52,6 +52,7 @@ Level::Level(
   if (starts.size() < playerIds.size()) {
     throw std::logic_error("level has insufficient starts");
   }
+  //auto start_length = get<definition>().get<fields::start_length>();
   size_t start = 0;
   BOOST_FOREACH(const PlayerId playerId, playerIds) {
     get<snakes>().push_back(Snake(playerId, starts[start]));

@@ -7,6 +7,7 @@
 #include <nibbles/level.hpp>
 #include <nibbles/gamesettings.hpp>
 #include <nibbles/idedplayer.hpp>
+#include <nibbles/gameeventhandler.hpp>
 
 namespace nibbles {
 
@@ -36,21 +37,21 @@ struct Game :
   bool started() const { return get<levelId>().valid(); }
 
   template<typename Players>
-  void start(const Players& p);
+  void start(const Players& p, GameEventHandler&);
 
-  void startLevel(LevelId);
-  void tick();
+  void startLevel(LevelId, GameEventHandler&);
+  void tick(GameEventHandler&);
 };
 
 template<typename Players>
-void Game::start(const Players& p) {
+void Game::start(const Players& p, GameEventHandler& handler) {
   std::random_device device;
   get<random>().seed(device);
   std::vector<PlayerId>& playerIds = get<players>();
   BOOST_FOREACH(const IdedPlayer& player, p) {
     playerIds.push_back(player.get<id>());
   }
-  startLevel(get<settings>().get<level>());
+  startLevel(get<settings>().get<level>(), handler);
 }
 
 }

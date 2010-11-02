@@ -21,7 +21,8 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
   options_(o),
   tcp_(*this),
   game_(o.gameSettings()),
-  gameTickTimer_(io)
+  gameTickTimer_(io),
+  forwarder_(boost::bind(&Server::sendToAll, this, _1))
 {
   signalCatcher.connect(boost::bind(&Server::signalled, this));
 
@@ -150,6 +151,7 @@ void Server::internalNetMessage(                           \
 IGNORE_MESSAGE(playerAdded)
 IGNORE_MESSAGE(updateReadiness)
 IGNORE_MESSAGE(gameStart)
+IGNORE_MESSAGE(levelStart)
 
 #undef IGNORE_MESSAGE
 
@@ -219,8 +221,8 @@ void Server::checkForGameStart()
   if (unready != conns.end()) {
     return;
   }
-  game_.start(players_.get<SequenceTag>());
   sendToAll(Message<MessageType::gameStart>(0/*this 0 means nothing*/));
+  game_.start(players_.get<SequenceTag>(), forwarder_);
   tick();
 }
 
@@ -231,7 +233,7 @@ void Server::tick(const boost::system::error_code& e)
     return;
   }
   gameTickTimer_.expires_from_now(game_.get<tickInterval>());
-  game_.tick();
+  game_.tick(forwarder_);
   gameTickTimer_.async_wait(boost::bind(
         &Server::tick, this, boost::asio::placeholders::error
       ));
