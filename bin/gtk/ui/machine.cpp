@@ -6,14 +6,12 @@ Machine::Machine(
   utility::MessageHandler& messageHandler,
   ClientFactory& clientFactory,
   boost::filesystem::path playerFile,
-  const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-  const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
+  const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
 ) :
   messageHandler_(messageHandler),
   clientFactory_(clientFactory),
   playerFile_(playerFile),
-  mainXml_(mainXml),
-  newKeyXml_(newKeyXml)
+  gladeXml_(gladeXml)
 {}
 
 bool Machine::ended()

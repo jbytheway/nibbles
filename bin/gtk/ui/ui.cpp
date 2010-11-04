@@ -21,9 +21,7 @@ class UI::Impl :
     Impl(
         boost::asio::io_service& io,
         const Options&,
-        const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-        const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
-        const Glib::RefPtr<Gnome::Glade::Xml>& playXml
+        const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
       );
 
     bool ended() { return machine_.ended(); }
@@ -52,11 +50,9 @@ class UI::Impl :
 UI::UI(
     boost::asio::io_service& io,
     const Options& options,
-    const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-    const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
-    const Glib::RefPtr<Gnome::Glade::Xml>& playXml
+    const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
   ) :
-  impl_(new Impl(io, options, mainXml, newKeyXml, playXml))
+  impl_(new Impl(io, options, gladeXml))
 {}
 
 UI::~UI() = default;
@@ -66,13 +62,11 @@ bool UI::ended() { return impl_->ended(); }
 UI::Impl::Impl(
     boost::asio::io_service& io,
     const Options& options,
-    const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-    const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
-    const Glib::RefPtr<Gnome::Glade::Xml>& playXml
+    const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
   ) :
   io_(io),
   options_(options),
-  machine_(*this, *this, options.playerFile, mainXml, newKeyXml)
+  machine_(*this, *this, options.playerFile, gladeXml)
 {
   // Connect the message alert signals to our functions
   messageSignal_.connect(sigc::mem_fun(this, &Impl::writeMessage));
@@ -81,17 +75,17 @@ UI::Impl::Impl(
   // Detect termination so we can shut down the event loop
   machine_.terminating().connect(sigc::mem_fun(this, &Impl::shutdown));
 
-#define GET_WIDGET(xml, type, name)              \
+#define GET_WIDGET(type, name)                   \
   Gtk::type* w##name = NULL;                     \
   do {                                           \
-    xml##Xml->get_widget(#name, w##name);        \
+    gladeXml->get_widget(#name, w##name);        \
     if (!w##name) {                              \
       throw std::runtime_error("missing "#name); \
     }                                            \
   } while (false)
 
-  GET_WIDGET(play, Window, PlayWindow);
-  GET_WIDGET(play, DrawingArea, LevelDisplay);
+  GET_WIDGET(Window, PlayWindow);
+  GET_WIDGET(DrawingArea, LevelDisplay);
 #undef GET_WIDGET
 
   playWindow_ = wPlayWindow;

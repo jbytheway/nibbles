@@ -55,27 +55,21 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  boost::filesystem::path gladePath = options.gladePath;
+  boost::filesystem::path gladeDir = options.gladePath;
 
-  if (gladePath.empty()) {
+  if (gladeDir.empty()) {
     boost::filesystem::path exe(argv[0]);
     if (!exe.has_root_path()) {
       exe = cwd/exe;
     }
-    gladePath = exe.parent_path();
+    gladeDir = exe.parent_path();
   }
 
-  auto mainGlade = gladePath/"nibbles.glade";
-  Glib::RefPtr<Gnome::Glade::Xml> mainXml =
-    Gnome::Glade::Xml::create(mainGlade.file_string());
-  auto newKeyGlade = gladePath/"nibbles.newkey.glade";
-  Glib::RefPtr<Gnome::Glade::Xml> newKeyXml =
-    Gnome::Glade::Xml::create(newKeyGlade.file_string());
-  auto playGlade = gladePath/"nibbles.play.glade";
-  Glib::RefPtr<Gnome::Glade::Xml> playXml =
-    Gnome::Glade::Xml::create(playGlade.file_string());
+  auto gladeFile = gladeDir/"nibbles.glade";
+  Glib::RefPtr<Gnome::Glade::Xml> gladeXml =
+    Gnome::Glade::Xml::create(gladeFile.file_string());
 
-  ui::UI ui(io, options, mainXml, newKeyXml, playXml);
+  ui::UI ui(io, options, gladeXml);
 
   if (options.threaded) {
     IoThread ioThreadObj(io);

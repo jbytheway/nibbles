@@ -18,9 +18,7 @@ class UI : private boost::noncopyable {
     UI(
         boost::asio::io_service& io,
         const Options&,
-        const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-        const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml,
-        const Glib::RefPtr<Gnome::Glade::Xml>& playXml
+        const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
       );
     ~UI();
     bool ended();

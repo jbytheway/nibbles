@@ -31,8 +31,7 @@ class Configuring::Impl {
   public:
     Impl(
         Configuring* parent,
-        const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-        const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
+        const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
       );
     ~Impl();
 
@@ -151,8 +150,7 @@ Configuring::Configuring(my_context context) :
   my_base(context),
   impl_(new Impl(
       this,
-      this->context<Machine>().mainXml(),
-      this->context<Machine>().newKeyXml()
+      this->context<Machine>().gladeXml()
     ))
 {}
 
@@ -193,42 +191,41 @@ sc::result Configuring::react(events::Connected const&)
 
 Configuring::Impl::Impl(
   Configuring* parent,
-  const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-  const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
+  const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
 ) :
   parent_(parent),
   window_(NULL),
   playerCombo_(NULL)
 {
-#define GET_WIDGET(xml, type, name)              \
+#define GET_WIDGET(type, name)                   \
   Gtk::type* w##name = NULL;                     \
   do {                                           \
-    xml##Xml->get_widget(#name, w##name);        \
+    gladeXml->get_widget(#name, w##name);        \
     if (!w##name) {                              \
       throw std::runtime_error("missing "#name); \
     }                                            \
   } while (false)
 
-  GET_WIDGET(main, Window, MainWindow);
-  GET_WIDGET(main, TextView, MessageText);
-  GET_WIDGET(main, Entry, ServerAddressEntry);
-  GET_WIDGET(main, CheckButton, ReadyCheck);
-  GET_WIDGET(main, TreeView, RemotePlayerList);
-  GET_WIDGET(main, ComboBox, PlayerCombo);
-  GET_WIDGET(main, Entry, PlayerNameEntry);
-  GET_WIDGET(main, ColorButton, PlayerColorButton);
-  GET_WIDGET(main, Button, ConnectButton);
-  GET_WIDGET(main, Button, CreateButton);
-  GET_WIDGET(main, Button, DeleteButton);
-  GET_WIDGET(main, Button, AddButton);
-  GET_WIDGET(main, Button, RemoveButton);
-  GET_WIDGET(main, Button, UpButton);
-  GET_WIDGET(main, Button, DownButton);
-  GET_WIDGET(main, Button, LeftButton);
-  GET_WIDGET(main, Button, RightButton);
+  GET_WIDGET(Window, MainWindow);
+  GET_WIDGET(TextView, MessageText);
+  GET_WIDGET(Entry, ServerAddressEntry);
+  GET_WIDGET(CheckButton, ReadyCheck);
+  GET_WIDGET(TreeView, RemotePlayerList);
+  GET_WIDGET(ComboBox, PlayerCombo);
+  GET_WIDGET(Entry, PlayerNameEntry);
+  GET_WIDGET(ColorButton, PlayerColorButton);
+  GET_WIDGET(Button, ConnectButton);
+  GET_WIDGET(Button, CreateButton);
+  GET_WIDGET(Button, DeleteButton);
+  GET_WIDGET(Button, AddButton);
+  GET_WIDGET(Button, RemoveButton);
+  GET_WIDGET(Button, UpButton);
+  GET_WIDGET(Button, DownButton);
+  GET_WIDGET(Button, LeftButton);
+  GET_WIDGET(Button, RightButton);
 
-  GET_WIDGET(newKey, Dialog, NewKeyDialog);
-  GET_WIDGET(newKey, Button, NewKeyCancelButton);
+  GET_WIDGET(Dialog, NewKeyDialog);
+  GET_WIDGET(Button, NewKeyCancelButton);
 #undef GET_WIDGET
 
   // Store pointers to those widgets we need to access later

@@ -51,8 +51,7 @@ class Machine : public sc::state_machine<Machine, Active> {
       utility::MessageHandler& messageHandler,
       ClientFactory& clientFactory,
       boost::filesystem::path playerFile,
-      const Glib::RefPtr<Gnome::Glade::Xml>& mainXml,
-      const Glib::RefPtr<Gnome::Glade::Xml>& newKeyXml
+      const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
     );
 
     bool ended();
@@ -66,11 +65,8 @@ class Machine : public sc::state_machine<Machine, Active> {
     boost::filesystem::path const& playerFile() {
       return playerFile_;
     }
-    Glib::RefPtr<Gnome::Glade::Xml> const& mainXml() const {
-      return mainXml_;
-    }
-    Glib::RefPtr<Gnome::Glade::Xml> const& newKeyXml() const {
-      return newKeyXml_;
+    Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml() const {
+      return gladeXml_;
     }
     boost::signal<void ()>& terminating() {
       return terminating_;
@@ -83,8 +79,7 @@ class Machine : public sc::state_machine<Machine, Active> {
     utility::MessageHandler& messageHandler_;
     ClientFactory& clientFactory_;
     boost::filesystem::path playerFile_;
-    Glib::RefPtr<Gnome::Glade::Xml> mainXml_;
-    Glib::RefPtr<Gnome::Glade::Xml> newKeyXml_;
+    Glib::RefPtr<Gnome::Glade::Xml> gladeXml_;
 
     // Signals to talk back to UI
     boost::signal<void ()> terminating_;
