@@ -467,10 +467,25 @@
             <property name="n_rows">2</property>
             <property name="n_columns">3</property>
             <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
+              <widget class="GtkScrolledWindow" id="scrolledwindow1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">automatic</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <widget class="GtkTextView" id="PlayMessageText">
+                    <property name="width_request">400</property>
+                    <property name="height_request">100</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="right_attach">3</property>
+                <property name="bottom_attach">2</property>
+              </packing>
             </child>
             <child>
               <placeholder/>

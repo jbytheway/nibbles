@@ -121,6 +121,8 @@ class Active :
 
 /// The first orthogonal component of Active follows the UI through
 /// configuration and then playing the game
+class Playing;
+
 class Configuring :
   public sc::state<Configuring, Active::orthogonal<0>>,
   public MessageSinkState
@@ -130,7 +132,8 @@ class Configuring :
       sc::custom_reaction<events::Message<MessageType::playerAdded>>,
       sc::custom_reaction<events::Message<MessageType::updateReadiness>>,
       sc::custom_reaction<events::Connected>,
-      sc::custom_reaction<events::Disconnect>
+      sc::custom_reaction<events::Disconnect>,
+      sc::transition<events::Message<MessageType::gameStart>, Playing>
     > reactions;
     Configuring(my_context);
     ~Configuring();
@@ -145,10 +148,27 @@ class Configuring :
     boost::scoped_ptr<Impl> impl_;
 };
 
+class Playing :
+  public sc::state<Playing, Active::orthogonal<0>>,
+  public MessageSinkState
+{
+  public:
+    typedef boost::mpl::list<
+    >::type reactions;
+
+    Playing(my_context);
+    ~Playing();
+
+    virtual void message(std::string const&) const;
+  private:
+    class Impl;
+    boost::scoped_ptr<Impl> impl_;
+};
+
+/// The second orthogonal component of Active follows the network interface
 class NotConnected;
 class Connected;
 
-/// The second orthogonal component of Active follows the network interface
 class Connectedness :
   public sc::simple_state<Connectedness, Active::orthogonal<1>, NotConnected> {
   public:

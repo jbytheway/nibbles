@@ -52,6 +52,9 @@ class Configuring::Impl {
     Gtk::TextView* messageView_;
     Gtk::CheckButton* readyCheck_;
 
+    // event handler connections
+    sigc::connection windowHiddenConnection_;
+
     class RemotePlayerListColumns : public Gtk::TreeModel::ColumnRecord
     {
       public:
@@ -276,7 +279,7 @@ Configuring::Impl::Impl(
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
   CONNECT_BUTTON(NewKeyCancel, cancelNewKey);
 #undef CONNECT_BUTTON
-  window_->signal_hide().connect(
+  windowHiddenConnection_ = window_->signal_hide().connect(
     sigc::mem_fun(this, &Impl::windowClosed)
   );
   wReadyCheck->signal_toggled().connect(
@@ -300,7 +303,11 @@ Configuring::Impl::Impl(
 
 Configuring::Impl::~Impl()
 {
+  // Disconnect the window hidden signal handler because we're about to hide it
+  // ourselves, and we don't want to send a terminate event because of it!
+  windowHiddenConnection_.disconnect();
   saveLocalPlayers();
+  window_->hide();
 }
 
 void Configuring::Impl::message(const std::string& message)
