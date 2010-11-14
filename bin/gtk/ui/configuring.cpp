@@ -446,6 +446,7 @@ void Configuring::Impl::refreshLocalPlayers()
 
   // Clear out the combo box
   playerComboListStore_->clear();
+  bool activeSet = false;
   BOOST_FOREACH(const ControlledPlayer& player, localPlayers_) {
     Gtk::TreeModel::iterator iter = playerComboListStore_->append();
     Gtk::TreeModel::Row row = *iter;
@@ -453,6 +454,12 @@ void Configuring::Impl::refreshLocalPlayers()
     row[playerComboColumns_.name_] = name;
     if (name == currentName) {
       playerCombo_->set_active(iter);
+    } else if (currentName == "" && !activeSet) {
+      // When no previous selection, select the first entry
+      // (note that even if the previously selected player has the empty name,
+      // this will still work because it will be set later).
+      playerCombo_->set_active(iter);
+      activeSet = true;
     }
   }
 
