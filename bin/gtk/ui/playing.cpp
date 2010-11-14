@@ -19,6 +19,7 @@ class Playing::Impl {
     // Network reactions
     void levelStart(const Message<MessageType::levelStart>&);
     void newNumber(const Message<MessageType::newNumber>&);
+    void tick(const Message<MessageType::tick>&);
   private:
     // Link back to state machine
     Playing* parent_;
@@ -71,6 +72,14 @@ sc::result Playing::react(
 )
 {
   impl_->newNumber(event.message);
+  return discard_event();
+}
+
+sc::result Playing::react(
+  events::Message<MessageType::tick> const& event
+)
+{
+  impl_->tick(event.message);
   return discard_event();
 }
 
@@ -143,6 +152,13 @@ void Playing::Impl::newNumber(const Message<MessageType::newNumber>& m)
 {
   if (!level_) NIBBLES_FATAL("number without level");
   level_->get<number>() = m.payload();
+  redraw();
+}
+
+void Playing::Impl::tick(const Message<MessageType::tick>& m)
+{
+  if (!level_) NIBBLES_FATAL("tick without level");
+  level_->tick(m.payload());
   redraw();
 }
 

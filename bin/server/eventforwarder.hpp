@@ -14,6 +14,7 @@ class EventForwarder : public GameEventHandler {
 
     virtual void startLevel(LevelDefinition const&);
     virtual void newNumber(Number const&);
+    virtual void tick(Moves const&);
   private:
     boost::function<void (MessageBase const&)> sink_;
 };

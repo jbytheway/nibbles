@@ -189,7 +189,8 @@ class Playing :
   public:
     typedef boost::mpl::list<
       sc::custom_reaction<events::Message<MessageType::levelStart>>,
-      sc::custom_reaction<events::Message<MessageType::newNumber>>
+      sc::custom_reaction<events::Message<MessageType::newNumber>>,
+      sc::custom_reaction<events::Message<MessageType::tick>>
     > reactions;
 
     Playing(my_context);
@@ -198,6 +199,7 @@ class Playing :
     virtual void message(std::string const&) const;
     sc::result react(events::Message<MessageType::levelStart> const&);
     sc::result react(events::Message<MessageType::newNumber> const&);
+    sc::result react(events::Message<MessageType::tick> const&);
   private:
     class Impl;
     boost::scoped_ptr<Impl> impl_;

@@ -6,6 +6,7 @@
 #include <nibbles/clientid.hpp>
 #include <nibbles/leveldefinition.hpp>
 #include <nibbles/number.hpp>
+#include <nibbles/moves.hpp>
 
 namespace nibbles {
 
@@ -51,6 +52,11 @@ struct MessagePayload<MessageType::levelStart> {
 template<>
 struct MessagePayload<MessageType::newNumber> {
   typedef Number type;
+};
+
+template<>
+struct MessagePayload<MessageType::tick> {
+  typedef Moves type;
 };
 
 }

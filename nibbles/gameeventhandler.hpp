@@ -3,6 +3,7 @@
 
 #include <nibbles/leveldefinition.hpp>
 #include <nibbles/number.hpp>
+#include <nibbles/moves.hpp>
 
 namespace nibbles {
 
@@ -13,6 +14,7 @@ class GameEventHandler {
 
     virtual void startLevel(LevelDefinition const&) = 0;
     virtual void newNumber(Number const&) = 0;
+    virtual void tick(Moves const&) = 0;
   protected:
     GameEventHandler();
     virtual ~GameEventHandler() = 0;

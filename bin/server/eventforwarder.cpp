@@ -19,5 +19,10 @@ void EventForwarder::newNumber(Number const& number)
   sink_(Message<MessageType::newNumber>(number));
 }
 
+void EventForwarder::tick(Moves const& moves)
+{
+  sink_(Message<MessageType::tick>(moves));
+}
+
 }}
 

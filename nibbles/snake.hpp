@@ -33,6 +33,7 @@ struct Snake :
     if (startLength == 0) ++get<pendingGrowth>();
   }
 
+  void turn(Direction const);
   Point nextHead(Board const&) const;
   TickResult advanceHead(Board&, std::vector<Point> const& nextHeads);
   void advanceTail(Board&);

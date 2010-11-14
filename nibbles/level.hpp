@@ -4,6 +4,10 @@
 #include <random>
 
 #include <boost/foreach.hpp>
+#include <boost/spirit/home/phoenix/core/argument.hpp>
+#include <boost/spirit/home/phoenix/operator/self.hpp>
+#include <boost/spirit/home/phoenix/operator/member.hpp>
+#include <boost/spirit/home/phoenix/operator/comparison.hpp>
 
 #include <nibbles/leveldefinition.hpp>
 #include <nibbles/snake.hpp>
@@ -40,7 +44,9 @@ class Level :
     );
 
     template<typename RandomEngine>
-    TickResult tick(RandomEngine&, GameEventHandler&);
+    TickResult tick(RandomEngine&, GameEventHandler&, Moves const&);
+
+    TickResult tick(Moves const&);
   private:
     template<typename RandomEngine>
     void randomNumber(RandomEngine& random, uint32_t value, GameEventHandler&);
@@ -112,30 +118,19 @@ void Level::randomNumber(
 }
 
 template<typename RandomEngine>
-TickResult Level::tick(RandomEngine& random, GameEventHandler& handler)
+TickResult Level::tick(
+  RandomEngine& random,
+  GameEventHandler& handler,
+  Moves const& moves
+)
 {
-  TickResult overallResult = TickResult::none;
-  std::vector<Snake>& snakes = get<fields::snakes>();
-  Board& b = get<board>();
+  TickResult result = tick(moves);
 
-  std::vector<Point> nextHeads;
-  BOOST_FOREACH(Snake& snake, snakes) {
-    nextHeads.push_back(snake.nextHead(b));
-  }
-  BOOST_FOREACH(Snake& snake, snakes) {
-    TickResult result = snake.advanceHead(b, nextHeads);
-    overallResult = std::max(overallResult, result);
-  }
-
-  BOOST_FOREACH(Snake& snake, snakes) {
-    snake.advanceTail(b);
-  }
-
-  if (overallResult == TickResult::number) {
+  if (result == TickResult::number) {
     randomNumber(random, get<number>().get<value>(), handler);
   }
 
-  return overallResult;
+  return result;
 }
 
 template<typename Range>

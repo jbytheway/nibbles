@@ -156,6 +156,7 @@ IGNORE_MESSAGE(updateReadiness)
 IGNORE_MESSAGE(gameStart)
 IGNORE_MESSAGE(levelStart)
 IGNORE_MESSAGE(newNumber)
+IGNORE_MESSAGE(tick)
 
 #undef IGNORE_MESSAGE
 
@@ -237,7 +238,10 @@ void Server::tick(const boost::system::error_code& e)
     return;
   }
   gameTickTimer_.expires_from_now(game_.get<tickInterval>());
-  game_.tick(forwarder_);
+  Moves moves;
+  // TODO: fetch moves from RemotePlayers
+  forwarder_.tick(moves);
+  game_.tick(forwarder_, moves);
   gameTickTimer_.async_wait(boost::bind(
         &Server::tick, this, boost::asio::placeholders::error
       ));

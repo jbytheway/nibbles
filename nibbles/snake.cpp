@@ -4,6 +4,15 @@
 
 namespace nibbles {
 
+void Snake::turn(Direction const newDir)
+{
+  auto& dir = get<direction>();
+  if (newDir == dir || newDir == directionOpposite(dir)) {
+    return;
+  }
+  dir = newDir;
+}
+
 Point Snake::nextHead(Board const& board) const
 {
   Point front = get<points>().front();
