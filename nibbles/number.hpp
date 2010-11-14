@@ -14,7 +14,7 @@ struct Number :
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Number)
 
   static const size_t width = 1;
-  static const size_t height = 1;
+  static const size_t height = 2;
 };
 
 }
