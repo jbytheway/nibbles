@@ -195,6 +195,29 @@ void Server::internalNetMessage(
   checkForGameStart();
 }
 
+template<>
+void Server::internalNetMessage(
+    const Message<MessageType::turn>& netMessage,
+    Connection* connection
+  )
+{
+  ClientId clientId = connection->id();
+  PlayerId playerId = netMessage.payload().first;
+
+  auto it = players_.find(playerId);
+  if (it == players_.end()) {
+    message(Verbosity::warning, "turn for non-existant player");
+    return;
+  }
+  ClientId purportedClientId = it->clientId();
+  if (clientId != purportedClientId) {
+    message(Verbosity::warning, "attempted spoofed turn");
+    return;
+  }
+  Direction dir = netMessage.payload().second;
+  it->queueTurn(dir);
+}
+
 void Server::netMessage(
     const MessageBase::Ptr& message,
     Connection* connection
@@ -239,7 +262,12 @@ void Server::tick(const boost::system::error_code& e)
   }
   gameTickTimer_.expires_from_now(game_.get<tickInterval>());
   Moves moves;
-  // TODO: fetch moves from RemotePlayers
+  BOOST_FOREACH(auto const& player, players_) {
+    auto move = player.dequeue();
+    if (move) {
+      moves.push_back({player.id(), *move});
+    }
+  }
   forwarder_.tick(moves);
   game_.tick(forwarder_, moves);
   gameTickTimer_.async_wait(boost::bind(

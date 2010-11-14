@@ -1,7 +1,11 @@
 #ifndef NIBBLES_SERVER__REMOTEPLAYER_HPP
 #define NIBBLES_SERVER__REMOTEPLAYER_HPP
 
-#include <nibbles/playerid.hpp>
+#include <queue>
+
+#include <nibbles/idedplayer.hpp>
+
+#include "connection.hpp"
 
 namespace nibbles { namespace server {
 
@@ -13,14 +17,20 @@ class RemotePlayer : public IdedPlayer {
         Connection* connection
       ) :
       IdedPlayer(player, id, connection->id()),
-      connection_(connection)
+      connection_(connection),
+      nominalDirection_(Direction::max)
     {}
 
     PlayerId id() const { return get<fields::id>(); }
     Connection* connection() const { return connection_; }
     ClientId clientId() const { return connection_->id(); }
+    void queueTurn(Direction const) const;
+    boost::optional<Direction> dequeue() const;
   private:
     Connection* connection_;
+    // HACK: can we do without this mutable??
+    mutable Direction nominalDirection_;
+    mutable std::queue<Direction> turnQueue_;
 };
 
 }}

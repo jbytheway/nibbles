@@ -59,6 +59,11 @@ struct MessagePayload<MessageType::tick> {
   typedef Moves type;
 };
 
+template<>
+struct MessagePayload<MessageType::turn> {
+  typedef std::pair<PlayerId, Direction> type;
+};
+
 }
 
 #endif // NIBBLES__MESSAGEPAYLOAD_HPP

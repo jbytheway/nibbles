@@ -17,7 +17,6 @@
 #include <nibbles/utility/verbosity.hpp>
 #include <nibbles/utility/messagehandler.hpp>
 
-#include "controlledplayer.hpp"
 #include "colorconverter.hpp"
 
 namespace nibbles { namespace gtk { namespace ui {
@@ -94,11 +93,11 @@ class Configuring::Impl {
     Gtk::Button* newKeyCancelButton_;
 
     // game data
-    std::vector<ControlledPlayer> localPlayers_;
     std::map<ClientId, bool> clientReadiness_;
 
     // Convinience functions
     Active::RemotePlayerContainer& remotePlayers();
+    std::vector<ControlledPlayer>& localPlayers();
     ControlledPlayer* getCurrentPlayer();
 
     // File access stuff
@@ -328,15 +327,21 @@ Active::RemotePlayerContainer& Configuring::Impl::remotePlayers()
   return parent_->context<Active>().remotePlayers();
 }
 
+std::vector<ControlledPlayer>& Configuring::Impl::localPlayers()
+{
+  return parent_->context<Active>().localPlayers();
+}
+
 ControlledPlayer* Configuring::Impl::getCurrentPlayer()
 {
   Gtk::TreeModel::iterator iter = playerCombo_->get_active();
   if (!iter)
     return NULL;
   // TODO: Do we need a faster-than-linear implementation?
-  size_t index = std::distance(playerComboListStore_->children().begin(), iter);
-  assert(index < localPlayers_.size());
-  return &localPlayers_[index];
+  size_t index =
+    std::distance(playerComboListStore_->children().begin(), iter);
+  assert(index < localPlayers().size());
+  return &localPlayers()[index];
 }
 
 void Configuring::Impl::connected()
@@ -363,7 +368,7 @@ void Configuring::Impl::loadLocalPlayers()
   }
   ifstream ifs(playerFilePath);
   boost::archive::xml_iarchive ia(ifs);
-  ia >> BOOST_SERIALIZATION_NVP(localPlayers_);
+  ia >> boost::serialization::make_nvp("localPlayers", localPlayers());
   refreshLocalPlayers();
 }
 
@@ -384,7 +389,7 @@ void Configuring::Impl::saveLocalPlayers()
   {
     boost::filesystem::ofstream ofs(tempPlayerFilePath);
     boost::archive::xml_oarchive oa(ofs);
-    oa << BOOST_SERIALIZATION_NVP(localPlayers_);
+    oa << boost::serialization::make_nvp("localPlayers", localPlayers());
   }
   if (exists(playerFilePath)) {
     remove(playerFilePath);
@@ -433,7 +438,7 @@ void Configuring::Impl::refreshLocalPlayers()
   // Clear out the combo box
   playerComboListStore_->clear();
   bool activeSet = false;
-  BOOST_FOREACH(const ControlledPlayer& player, localPlayers_) {
+  BOOST_FOREACH(const ControlledPlayer& player, localPlayers()) {
     Gtk::TreeModel::iterator iter = playerComboListStore_->append();
     Gtk::TreeModel::Row row = *iter;
     std::string name = player.get<fields::name>();
@@ -487,7 +492,7 @@ void Configuring::Impl::windowClosed()
 bool Configuring::Impl::isNameInUse(const std::string& name)
 {
   // TODO: Do we need a faster-than-linear implementation?
-  BOOST_FOREACH(const ControlledPlayer& player, localPlayers_) {
+  BOOST_FOREACH(const ControlledPlayer& player, localPlayers()) {
     if (player.get<fields::name>() == name) {
       return true;
     }
@@ -517,7 +522,7 @@ void Configuring::Impl::createPlayer()
       Player(newName, Color::yellow),
       newControls
     );
-  localPlayers_.push_back(newPlayer);
+  localPlayers().push_back(newPlayer);
   assert(playerComboListStore_);
   Gtk::TreeModel::iterator iter = playerComboListStore_->append();
   (*iter)[playerComboColumns_.name_] = newName;

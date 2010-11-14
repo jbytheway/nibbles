@@ -12,6 +12,12 @@ inline Direction directionOpposite(Direction d) {
   return Direction(d^1);
 }
 
+inline Direction& operator++(Direction& d)
+{
+  d = Direction(d+1);
+  return d;
+}
+
 }
 
 #endif // NIBBLES__DIRECTION_HPP

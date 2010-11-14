@@ -23,6 +23,7 @@
 
 #include "clientfactory.hpp"
 #include "remoteplayer.hpp"
+#include "controlledplayer.hpp"
 
 namespace nibbles { namespace gtk { namespace ui {
 
@@ -131,6 +132,7 @@ class Active :
       return forward_event();
     }
 
+    class NameTag;
     class SequenceTag;
     typedef boost::multi_index_container<
         RemotePlayer,
@@ -138,6 +140,12 @@ class Active :
           boost::multi_index::ordered_unique<
             BOOST_MULTI_INDEX_CONST_MEM_FUN(
                 IdedPlayer::base, const PlayerId&, get<id>
+              )
+          >,
+          boost::multi_index::ordered_unique<
+            boost::multi_index::tag<NameTag>,
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(
+                IdedPlayer::base, const std::string&, get<name>
               )
           >,
           boost::multi_index::sequenced<
@@ -149,8 +157,13 @@ class Active :
     RemotePlayerContainer const& remotePlayers() const {
       return remotePlayers_;
     }
+    std::vector<ControlledPlayer>& localPlayers() { return localPlayers_; }
+    std::vector<ControlledPlayer> const& localPlayers() const {
+      return localPlayers_;
+    }
   private:
     RemotePlayerContainer remotePlayers_;
+    std::vector<ControlledPlayer> localPlayers_;
 };
 
 /// The first orthogonal component of Active follows the UI through

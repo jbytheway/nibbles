@@ -33,15 +33,18 @@ class Playing::Impl {
     Gtk::DrawingArea* levelDisplay_;
 
     // game data
+    std::map<uint32_t, std::pair<PlayerId, Direction>> keyBindings_;
     boost::scoped_ptr<Level> level_;
 
     // convenience functions
-    Active::RemotePlayerContainer& remotePlayers();
+    Active::RemotePlayerContainer const& remotePlayers();
+    std::vector<ControlledPlayer> const& localPlayers();
     void redraw();
 
     // UI bindings
     void windowClosed();
     bool levelExposed(GdkEventExpose*);
+    void keyPress(GdkEventKey*);
 };
 
 Playing::Playing(my_context context) :
@@ -116,6 +119,20 @@ Playing::Impl::Impl(
   levelDisplay_->signal_expose_event().connect(
     sigc::mem_fun(this, &Impl::levelExposed)
   );
+  window_->signal_key_press_event().connect_notify(
+    sigc::mem_fun(this, &Impl::keyPress)
+  );
+
+  // Set up key mapping
+  auto const& remoteNameIndex = remotePlayers().get<Active::NameTag>();
+  BOOST_FOREACH(auto const& player, localPlayers()) {
+    auto const it = remoteNameIndex.find(player.get<name>());
+    if (it == remoteNameIndex.end()) continue;
+    auto const controls = player.get<fields::controls>();
+    for (Direction dir = Direction(0); dir < Direction::max; ++dir) {
+      keyBindings_[controls[dir]] = {it->get<id>(), dir};
+    }
+  }
 
   window_->show();
 }
@@ -162,9 +179,14 @@ void Playing::Impl::tick(const Message<MessageType::tick>& m)
   redraw();
 }
 
-Active::RemotePlayerContainer& Playing::Impl::remotePlayers()
+Active::RemotePlayerContainer const& Playing::Impl::remotePlayers()
 {
   return parent_->context<Active>().remotePlayers();
+}
+
+std::vector<ControlledPlayer> const& Playing::Impl::localPlayers()
+{
+  return parent_->context<Active>().localPlayers();
 }
 
 void Playing::Impl::redraw()
@@ -299,6 +321,20 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
   }
 
   return true;
+}
+
+void Playing::Impl::keyPress(GdkEventKey* event)
+{
+  auto it = keyBindings_.find(event->keyval);
+  if (it == keyBindings_.end()) {
+    return;
+  }
+  if (auto const& client =
+      parent_->state_cast<Connectedness const&>().client()) {
+    client->turn(it->second);
+  } else {
+    NIBBLES_FATAL("playing but not connected");
+  }
 }
 
 }}}

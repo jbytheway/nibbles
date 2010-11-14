@@ -7,7 +7,7 @@ namespace nibbles {
 
 #define NIBBLES_MESSAGETYPE_VALUES() \
   (addPlayer)(playerAdded)(setReadiness)(updateReadiness)\
-  (gameStart)(levelStart)(newNumber)(tick)
+  (gameStart)(levelStart)(newNumber)(tick)(turn)
 
 NIBBLES_UTILITY_ENUM_HEADER(MessageType, NIBBLES_MESSAGETYPE_VALUES())
 
