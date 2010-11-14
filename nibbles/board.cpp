@@ -56,25 +56,25 @@ Point Board::adjacent(Point const& p, Direction const dir) const
     case Direction::up:
       {
         auto yc = p.get<y>();
-        if (yc == st.shape()[1] - 1) yc = 0; else ++yc;
+        if (yc == height() - 1) yc = 0; else ++yc;
         return Point(p.get<x>(), yc);
       }
     case Direction::down:
       {
         auto yc = p.get<y>();
-        if (yc == 0) yc = st.shape()[1] - 1; else --yc;
+        if (yc == 0) yc = height() - 1; else --yc;
         return Point(p.get<x>(), yc);
       }
     case Direction::left:
       {
         auto xc = p.get<x>();
-        if (xc == 0) xc = st.shape()[0] - 1; else --xc;
+        if (xc == 0) xc = width() - 1; else --xc;
         return Point(xc, p.get<y>());
       }
     case Direction::right:
       {
         auto xc = p.get<x>();
-        if (xc == st.shape()[0] - 1) xc = 0; else ++xc;
+        if (xc == width() - 1) xc = 0; else ++xc;
         return Point(xc, p.get<y>());
       }
     default:
