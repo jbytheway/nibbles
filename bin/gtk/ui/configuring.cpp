@@ -7,10 +7,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
 
 #include <gtkmm.h>
 
@@ -21,7 +17,6 @@
 #include <nibbles/utility/verbosity.hpp>
 #include <nibbles/utility/messagehandler.hpp>
 
-#include "remoteplayer.hpp"
 #include "controlledplayer.hpp"
 #include "colorconverter.hpp"
 
@@ -99,25 +94,11 @@ class Configuring::Impl {
     Gtk::Button* newKeyCancelButton_;
 
     // game data
-    class SequenceTag;
-    typedef boost::multi_index_container<
-        RemotePlayer,
-        boost::multi_index::indexed_by<
-          boost::multi_index::ordered_unique<
-            BOOST_MULTI_INDEX_CONST_MEM_FUN(
-                IdedPlayer::base, const PlayerId&, get<id>
-              )
-          >,
-          boost::multi_index::sequenced<
-            boost::multi_index::tag<SequenceTag>
-          >
-        >
-      > RemotePlayerContainer;
-    RemotePlayerContainer remotePlayers_;
     std::vector<ControlledPlayer> localPlayers_;
     std::map<ClientId, bool> clientReadiness_;
 
     // Convinience functions
+    Active::RemotePlayerContainer& remotePlayers();
     ControlledPlayer* getCurrentPlayer();
 
     // File access stuff
@@ -323,7 +304,7 @@ void Configuring::Impl::playerAdded(
 )
 {
   RemotePlayer newPlayer(netMessage.payload());
-  bool inserted = remotePlayers_.insert(newPlayer).second;
+  bool inserted = remotePlayers().insert(newPlayer).second;
   if (!inserted) {
     parent_->context<Machine>().messageHandler().message(
       utility::Verbosity::error, "duplicate player added\n"
@@ -340,6 +321,11 @@ void Configuring::Impl::updateReadiness(
   bool ready = netMessage.payload().second;
   clientReadiness_[id] = ready;
   refreshRemotePlayers();
+}
+
+Active::RemotePlayerContainer& Configuring::Impl::remotePlayers()
+{
+  return parent_->context<Active>().remotePlayers();
 }
 
 ControlledPlayer* Configuring::Impl::getCurrentPlayer()
@@ -364,7 +350,7 @@ void Configuring::Impl::connected()
 
 void Configuring::Impl::disconnected()
 {
-  remotePlayers_.clear();
+  remotePlayers().clear();
   refreshRemotePlayers();
 }
 
@@ -416,7 +402,7 @@ void Configuring::Impl::refreshRemotePlayers()
 
   // Clear out the list box
   remotePlayerListStore_->clear();
-  BOOST_FOREACH(const RemotePlayer& player, remotePlayers_) {
+  BOOST_FOREACH(const RemotePlayer& player, remotePlayers()) {
     auto const cId = player.get<clientId>();
     auto const readinessIt = clientReadiness_.find(cId);
     bool ready = false;

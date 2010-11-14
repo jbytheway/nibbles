@@ -13,22 +13,28 @@
 
 namespace nibbles {
 
-struct Level :
-  utility::DataClass<
+class Level :
+  public utility::DataClass<
     Level,
     LevelDefinition, definition,
     std::vector<Snake>, snakes,
     Number, number,
     Board, board
   > {
-  Level() {}
-  //NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Level)
+  public:
+    Level() {}
 
-  template<typename Container, typename RandomEngine>
-  Level(
+    template<typename Range, typename RandomEngine>
+    Level(
       const LevelDefinition&,
-      const Container& playerIds,
+      const Range& playerIds,
       RandomEngine&
+    );
+
+    template<typename Range>
+    Level(
+      const LevelDefinition&,
+      const Range& playerIds
     );
 
     template<typename RandomEngine>
@@ -36,32 +42,35 @@ struct Level :
   private:
     template<typename RandomEngine>
     void randomNumber(RandomEngine& random, uint32_t value);
+
+    template<typename Range>
+    void initSnakes(Range const& playerIds);
+
     void initBoard() { get<board>().init(get<definition>()); }
 };
 
-template<typename Container, typename RandomEngine>
+template<typename Range, typename RandomEngine>
 Level::Level(
     const LevelDefinition& def,
-    const Container& playerIds,
+    const Range& playerIds,
     RandomEngine& random
   ) :
   base(def, std::vector<Snake>(), Number(), Board())
 {
-  const std::vector<Position>& starts =
-    get<definition>().get<fields::starts>();
-  if (starts.size() < playerIds.size()) {
-    throw std::logic_error("level has insufficient starts");
-  }
-  // TODO: make this value customizable
-  SnakeLength startLength = 2;
-  size_t start = 0;
-  BOOST_FOREACH(const PlayerId playerId, playerIds) {
-    get<snakes>().push_back(Snake(playerId, starts[start], startLength));
-    ++start;
-  }
-
+  initSnakes(playerIds);
   initBoard();
   randomNumber(random, 1);
+}
+
+template<typename Range>
+Level::Level(
+    const LevelDefinition& def,
+    const Range& playerIds
+  ) :
+  base(def, std::vector<Snake>(), Number(), Board())
+{
+  initSnakes(playerIds);
+  initBoard();
 }
 
 template<typename RandomEngine>
@@ -119,6 +128,23 @@ TickResult Level::tick(RandomEngine& random)
   }
 
   return overallResult;
+}
+
+template<typename Range>
+void Level::initSnakes(Range const& playerIds)
+{
+  const std::vector<Position>& starts =
+    get<definition>().get<fields::starts>();
+  if (starts.size() < playerIds.size()) {
+    throw std::logic_error("level has insufficient starts");
+  }
+  // TODO: make this value customizable
+  SnakeLength startLength = 2;
+  size_t start = 0;
+  BOOST_FOREACH(const PlayerId playerId, playerIds) {
+    get<snakes>().push_back(Snake(playerId, starts[start], startLength));
+    ++start;
+  }
 }
 
 }

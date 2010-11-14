@@ -10,6 +10,10 @@
 #include <boost/statechart/simple_state.hpp>
 #include <boost/statechart/transition.hpp>
 #include <boost/statechart/custom_reaction.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 
 #include <libglademm.h>
 
@@ -18,6 +22,7 @@
 #include <nibbles/client/client.hpp>
 
 #include "clientfactory.hpp"
+#include "remoteplayer.hpp"
 
 namespace nibbles { namespace gtk { namespace ui {
 
@@ -105,18 +110,47 @@ class Active :
 #define REACTION(r, _, type) \
       sc::custom_reaction<events::Message<MessageType::type>>,
       BOOST_PP_SEQ_FOR_EACH(REACTION, _, NIBBLES_MESSAGETYPE_VALUES())
-      sc::transition<events::Terminate, Terminated>
 #undef REACTION
+      sc::transition<events::Terminate, Terminated>
     > reactions;
 
     template<MessageType::internal_enum Type>
     sc::result react(events::Message<Type> const&) {
+      std::string message =
+        "unhandled message of type "+MessageType(Type).string()+"\n";
+      for (state_iterator leaf = state_begin();
+          leaf != state_end(); ++leaf) {
+        message += typeid(*leaf).name();
+        message += " ";
+      }
+      message += "\n";
+
       context<Machine>().messageHandler().message(
-        utility::Verbosity::warning,
-        "unhandled message of type "+MessageType(Type).string()+"\n"
+        utility::Verbosity::warning, message
       );
-      return discard_event();
+      return forward_event();
     }
+
+    class SequenceTag;
+    typedef boost::multi_index_container<
+        RemotePlayer,
+        boost::multi_index::indexed_by<
+          boost::multi_index::ordered_unique<
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(
+                IdedPlayer::base, const PlayerId&, get<id>
+              )
+          >,
+          boost::multi_index::sequenced<
+            boost::multi_index::tag<SequenceTag>
+          >
+        >
+      > RemotePlayerContainer;
+    RemotePlayerContainer& remotePlayers() { return remotePlayers_; }
+    RemotePlayerContainer const& remotePlayers() const {
+      return remotePlayers_;
+    }
+  private:
+    RemotePlayerContainer remotePlayers_;
 };
 
 /// The first orthogonal component of Active follows the UI through
@@ -153,13 +187,14 @@ class Playing :
   public MessageSinkState
 {
   public:
-    typedef boost::mpl::list<
-    >::type reactions;
+    typedef sc::custom_reaction<events::Message<MessageType::levelStart>>
+      reactions;
 
     Playing(my_context);
     ~Playing();
 
     virtual void message(std::string const&) const;
+    sc::result react(events::Message<MessageType::levelStart> const&);
   private:
     class Impl;
     boost::scoped_ptr<Impl> impl_;

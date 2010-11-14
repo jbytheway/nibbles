@@ -1,6 +1,10 @@
 #include "playing.hpp"
 
+#include <boost/foreach.hpp>
+
 #include <gtkmm.h>
+
+#include <nibbles/level.hpp>
 
 namespace nibbles { namespace gtk { namespace ui {
 
@@ -11,6 +15,9 @@ class Playing::Impl {
 
     // Implementation of MessageSink interface
     virtual void message(std::string const&);
+
+    // Network reactions
+    void levelStart(const Message<MessageType::levelStart>&);
   private:
     // Link back to state machine
     Playing* parent_;
@@ -22,6 +29,12 @@ class Playing::Impl {
     Gtk::Window* window_;
     Gtk::TextView* messageView_;
     Gtk::DrawingArea* levelDisplay_;
+
+    // game data
+    boost::scoped_ptr<Level> level_;
+
+    // convenience functions
+    void redraw();
 
     // UI bindings
     void windowClosed();
@@ -41,6 +54,15 @@ Playing::~Playing() = default;
 void Playing::message(std::string const& message) const
 {
   impl_->message(message);
+}
+
+sc::result Playing::react(
+  events::Message<MessageType::levelStart> const& event
+)
+{
+  fprintf(stderr, "reacting to levelStart!\n");
+  impl_->levelStart(event.message);
+  return discard_event();
 }
 
 Playing::Impl::Impl(
@@ -96,6 +118,25 @@ void Playing::Impl::message(const std::string& message)
   messageView_->scroll_to(end);
 }
 
+void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
+{
+  auto const& def = m.payload();
+  auto const& remotePlayers =
+    parent_->context<Active>().remotePlayers().get<Active::SequenceTag>();
+  std::vector<PlayerId> playerIds;
+  BOOST_FOREACH(auto const& player, remotePlayers) {
+    playerIds.push_back(player.get<id>());
+  }
+  level_.reset(new Level(def, playerIds));
+  redraw();
+}
+
+void Playing::Impl::redraw()
+{
+  Glib::RefPtr<Gdk::Window> window = levelDisplay_->get_window();
+  window->invalidate(false /*invalidate children*/);
+}
+
 void Playing::Impl::windowClosed()
 {
   // Crazy dangerous risking reentrancy madness
@@ -108,14 +149,11 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
 
   if(window)
   {
-    /*Gtk::Allocation = get_allocation();
-    int const width = allocation.get_width();
-    int const height = allocation.get_height();*/
-
-    int const width = levelDisplay_->get_width();
-    int const height = levelDisplay_->get_height();
+    double const width = levelDisplay_->get_width();
+    double const height = levelDisplay_->get_height();
 
     Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
+    cr->set_antialias(Cairo::ANTIALIAS_NONE);
 
     if (event) {
       // clip to the area indicated by the expose event so that we only
@@ -125,12 +163,41 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
       cr->clip();
     }
 
-    cr->scale(width, height);
-    cr->set_line_width(0.1);
-    cr->set_source_rgb(1, 0, 0);
-    cr->move_to(0, 0);
-    cr->line_to(1, 1);
-    cr->stroke();
+    if (level_) {
+      // Fill with blue
+      cr->set_source_rgb(0, 0, 1);
+      cr->paint();
+
+      auto const& board = level_->get<fields::board>();
+      auto const levelWidth = board.width();
+      auto const levelHeight = board.height();
+      // Rescale to game units
+      // TODO: ensure correct aspect ratio
+      cr->scale(width/levelWidth, height/levelHeight);
+
+      // Paint the walls red
+      cr->set_source_rgb(1, 0, 0);
+      for (size_t x=0; x<levelWidth; ++x) {
+        for (size_t y=0; y<levelHeight; ++y) {
+          if (board[Point(x,y)] == BoardState::wall) {
+            cr->move_to(x, y);
+            cr->line_to(x+1, y);
+            cr->line_to(x+1, y+1);
+            cr->line_to(x, y+1);
+            cr->close_path();
+            cr->fill();
+          }
+        }
+      }
+    } else {
+      // Draw a red slash for no particular reason
+      cr->scale(width, height);
+      cr->set_line_width(0.1);
+      cr->set_source_rgb(1, 0, 0);
+      cr->move_to(0, 0);
+      cr->line_to(1, 1);
+      cr->stroke();
+    }
   }
 
   return true;
