@@ -10,7 +10,7 @@ namespace nibbles {
 #define NIBBLES_FIELDS() \
   (blocks)(blue)(board)(clientId)(color)(controls)\
   (definition)(direction)(green)(h)(id)(level)\
-  (levelId)(levels)(max)(min)(name)(number)\
+  (levelId)(levels)(max)(min)(name)(number)(pendingGrowth)\
   (player)(players)(point)(points)(position)(random)\
   (ready)(red)(settings)(snakes)(starts)(states)(tickInterval)(value)(w)(x)(y)
 

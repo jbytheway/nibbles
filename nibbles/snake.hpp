@@ -8,6 +8,7 @@
 #include <nibbles/point.hpp>
 #include <nibbles/playerid.hpp>
 #include <nibbles/tickresult.hpp>
+#include <nibbles/snakelength.hpp>
 
 namespace nibbles {
 
@@ -18,13 +19,19 @@ struct Snake :
     Snake,
     PlayerId, player,
     std::deque<Point>, points,
-    Direction, direction
+    Direction, direction,
+    SnakeLength, pendingGrowth
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Snake)
 
-  Snake(PlayerId id, const Position& pos) :
-    base(id, std::deque<Point>(1, pos.get<point>()), pos.get<direction>())
-  {}
+  Snake(PlayerId id, const Position& pos, SnakeLength startLength) :
+    base(
+      id, std::deque<Point>(1, pos.get<point>()), pos.get<direction>(),
+      startLength-1
+    )
+  {
+    if (startLength == 0) ++get<pendingGrowth>();
+  }
 
   Point nextHead(Board const&) const;
   TickResult advanceHead(Board&, std::vector<Point> const& nextHeads);
