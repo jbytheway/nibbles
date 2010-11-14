@@ -163,16 +163,32 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
     }
 
     if (level_) {
-      // Fill with blue
-      cr->set_source_rgb(0, 0, 1);
+      // Fill with black
+      cr->set_source_rgb(0, 0, 0);
       cr->paint();
 
       auto const& board = level_->get<fields::board>();
       auto const levelWidth = board.width();
       auto const levelHeight = board.height();
       // Rescale to game units
-      // TODO: ensure correct aspect ratio
-      cr->scale(width/levelWidth, height/levelHeight);
+      double const widthAspect = width/levelWidth;
+      double const heightAspect = height/levelHeight;
+      double const aspect = std::min(widthAspect, heightAspect);
+      cr->scale(aspect, aspect);
+      // Centre the level in the display
+      cr->translate(
+        (widthAspect-aspect)/aspect/2*levelWidth,
+        (heightAspect-aspect)/aspect/2*levelHeight
+      );
+
+      // Fill level with blue
+      cr->set_source_rgb(0, 0, 1);
+      cr->move_to(0, 0);
+      cr->line_to(levelWidth, 0);
+      cr->line_to(levelWidth, levelHeight);
+      cr->line_to(0, levelHeight);
+      cr->close_path();
+      cr->fill();
 
       // Paint the walls red
       cr->set_source_rgb(1, 0, 0);
