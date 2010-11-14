@@ -26,6 +26,8 @@ struct Board :
   }
 
   void init(const LevelDefinition&);
+  size_t width() const { return get<states>().shape()[0]; }
+  size_t height() const { return get<states>().shape()[1]; }
   void assign(const Block&, const BoardState);
   Point adjacent(Point const&, Direction const) const;
 
