@@ -55,13 +55,13 @@ Point Board::adjacent(Point const& p, Direction const dir) const
     case Direction::up:
       {
         auto yc = p.get<y>();
-        if (yc == height() - 1) yc = 0; else ++yc;
+        if (yc == 0) yc = height() - 1; else --yc;
         return Point(p.get<x>(), yc);
       }
     case Direction::down:
       {
         auto yc = p.get<y>();
-        if (yc == 0) yc = height() - 1; else --yc;
+        if (yc == height() - 1) yc = 0; else ++yc;
         return Point(p.get<x>(), yc);
       }
     case Direction::left:
