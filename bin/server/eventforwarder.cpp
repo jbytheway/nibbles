@@ -14,5 +14,10 @@ void EventForwarder::startLevel(LevelDefinition const& levelDef)
   sink_(Message<MessageType::levelStart>(levelDef));
 }
 
+void EventForwarder::newNumber(Number const& number)
+{
+  sink_(Message<MessageType::newNumber>(number));
+}
+
 }}
 

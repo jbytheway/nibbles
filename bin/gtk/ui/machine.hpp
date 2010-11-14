@@ -187,14 +187,17 @@ class Playing :
   public MessageSinkState
 {
   public:
-    typedef sc::custom_reaction<events::Message<MessageType::levelStart>>
-      reactions;
+    typedef boost::mpl::list<
+      sc::custom_reaction<events::Message<MessageType::levelStart>>,
+      sc::custom_reaction<events::Message<MessageType::newNumber>>
+    > reactions;
 
     Playing(my_context);
     ~Playing();
 
     virtual void message(std::string const&) const;
     sc::result react(events::Message<MessageType::levelStart> const&);
+    sc::result react(events::Message<MessageType::newNumber> const&);
   private:
     class Impl;
     boost::scoped_ptr<Impl> impl_;

@@ -10,6 +10,7 @@
 #include <nibbles/number.hpp>
 #include <nibbles/board.hpp>
 #include <nibbles/tickresult.hpp>
+#include <nibbles/gameeventhandler.hpp>
 
 namespace nibbles {
 
@@ -28,7 +29,8 @@ class Level :
     Level(
       const LevelDefinition&,
       const Range& playerIds,
-      RandomEngine&
+      RandomEngine&,
+      GameEventHandler&
     );
 
     template<typename Range>
@@ -38,10 +40,10 @@ class Level :
     );
 
     template<typename RandomEngine>
-    TickResult tick(RandomEngine&);
+    TickResult tick(RandomEngine&, GameEventHandler&);
   private:
     template<typename RandomEngine>
-    void randomNumber(RandomEngine& random, uint32_t value);
+    void randomNumber(RandomEngine& random, uint32_t value, GameEventHandler&);
 
     template<typename Range>
     void initSnakes(Range const& playerIds);
@@ -53,13 +55,14 @@ template<typename Range, typename RandomEngine>
 Level::Level(
     const LevelDefinition& def,
     const Range& playerIds,
-    RandomEngine& random
+    RandomEngine& random,
+    GameEventHandler& handler
   ) :
   base(def, std::vector<Snake>(), Number(), Board())
 {
   initSnakes(playerIds);
   initBoard();
-  randomNumber(random, 1);
+  randomNumber(random, 1, handler);
 }
 
 template<typename Range>
@@ -74,7 +77,11 @@ Level::Level(
 }
 
 template<typename RandomEngine>
-void Level::randomNumber(RandomEngine& random, uint32_t value)
+void Level::randomNumber(
+  RandomEngine& random,
+  uint32_t value,
+  GameEventHandler& handler
+)
 {
   const LevelDefinition& def = get<definition>();
   const Board& board = get<fields::board>();
@@ -101,10 +108,11 @@ void Level::randomNumber(RandomEngine& random, uint32_t value)
     }
   } while (!free);
   get<number>() = Number(trialBlock, value);
+  handler.newNumber(get<number>());
 }
 
 template<typename RandomEngine>
-TickResult Level::tick(RandomEngine& random)
+TickResult Level::tick(RandomEngine& random, GameEventHandler& handler)
 {
   TickResult overallResult = TickResult::none;
   std::vector<Snake>& snakes = get<fields::snakes>();
@@ -124,7 +132,7 @@ TickResult Level::tick(RandomEngine& random)
   }
 
   if (overallResult == TickResult::number) {
-    randomNumber(random, get<number>().get<value>());
+    randomNumber(random, get<number>().get<value>(), handler);
   }
 
   return overallResult;

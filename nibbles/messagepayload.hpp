@@ -5,6 +5,7 @@
 #include <nibbles/idedplayer.hpp>
 #include <nibbles/clientid.hpp>
 #include <nibbles/leveldefinition.hpp>
+#include <nibbles/number.hpp>
 
 namespace nibbles {
 
@@ -45,6 +46,11 @@ struct MessagePayload<MessageType::gameStart> {
 template<>
 struct MessagePayload<MessageType::levelStart> {
   typedef LevelDefinition type;
+};
+
+template<>
+struct MessagePayload<MessageType::newNumber> {
+  typedef Number type;
 };
 
 }

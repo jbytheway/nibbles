@@ -155,6 +155,7 @@ IGNORE_MESSAGE(playerAdded)
 IGNORE_MESSAGE(updateReadiness)
 IGNORE_MESSAGE(gameStart)
 IGNORE_MESSAGE(levelStart)
+IGNORE_MESSAGE(newNumber)
 
 #undef IGNORE_MESSAGE
 

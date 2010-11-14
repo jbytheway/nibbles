@@ -18,6 +18,7 @@ class Playing::Impl {
 
     // Network reactions
     void levelStart(const Message<MessageType::levelStart>&);
+    void newNumber(const Message<MessageType::newNumber>&);
   private:
     // Link back to state machine
     Playing* parent_;
@@ -61,6 +62,14 @@ sc::result Playing::react(
 )
 {
   impl_->levelStart(event.message);
+  return discard_event();
+}
+
+sc::result Playing::react(
+  events::Message<MessageType::newNumber> const& event
+)
+{
+  impl_->newNumber(event.message);
   return discard_event();
 }
 
@@ -127,6 +136,13 @@ void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
     playerIds.push_back(player.get<id>());
   }
   level_.reset(new Level(def, playerIds));
+  redraw();
+}
+
+void Playing::Impl::newNumber(const Message<MessageType::newNumber>& m)
+{
+  if (!level_) NIBBLES_FATAL("number without level");
+  level_->get<number>() = m.payload();
   redraw();
 }
 
@@ -204,6 +220,35 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
           }
         }
       }
+
+      // Draw the number yellow on a green background
+      auto const& number = level_->get<fields::number>();
+      auto const& pos = number.get<position>();
+      cr->set_source_rgb(0, 0.5, 0);
+      cr->move_to(
+        pos.get<min>().get<fields::x>(), pos.get<min>().get<fields::y>()
+      );
+      cr->line_to(
+        pos.get<min>().get<fields::x>(), pos.get<max>().get<fields::y>()
+      );
+      cr->line_to(
+        pos.get<max>().get<fields::x>(), pos.get<max>().get<fields::y>()
+      );
+      cr->line_to(
+        pos.get<max>().get<fields::x>(), pos.get<min>().get<fields::y>()
+      );
+      cr->close_path();
+      cr->fill();
+      cr->set_source_rgb(1, 1, 0);
+      cr->set_font_size(pos.height()-0.2);
+      cr->set_line_width(1/aspect); // Make lines one pixel wide
+      cr->move_to(
+        pos.get<min>().get<fields::x>()-0.1,
+        pos.get<max>().get<fields::y>()-0.2
+      );
+      auto val = boost::lexical_cast<std::string>(number.get<value>());
+      cr->text_path(val);
+      cr->fill();
     } else {
       // Draw a red slash for no particular reason
       cr->scale(width, height);

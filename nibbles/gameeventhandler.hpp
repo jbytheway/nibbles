@@ -2,6 +2,7 @@
 #define NIBBLES__GAMEEVENTHANDLER_HPP
 
 #include <nibbles/leveldefinition.hpp>
+#include <nibbles/number.hpp>
 
 namespace nibbles {
 
@@ -11,6 +12,7 @@ class GameEventHandler {
     GameEventHandler& operator=(GameEventHandler const&) = delete;
 
     virtual void startLevel(LevelDefinition const&) = 0;
+    virtual void newNumber(Number const&) = 0;
   protected:
     GameEventHandler();
     virtual ~GameEventHandler() = 0;

@@ -12,13 +12,13 @@ void Game::startLevel(LevelId levelId, GameEventHandler& handler)
     LevelId::fromInteger(std::min<size_t>(levelId, levelDefs.size()-1));
   const LevelDefinition& levelDef = levelDefs[realLevelId];
   handler.startLevel(levelDef);
-  get<level>() = Level(levelDef, get<players>(), get<random>());
+  get<level>() = Level(levelDef, get<players>(), get<random>(), handler);
   get<fields::levelId>() = levelId;
 }
 
 void Game::tick(GameEventHandler& handler)
 {
-  auto tickResult = get<level>().tick(get<random>());
+  auto tickResult = get<level>().tick(get<random>(), handler);
   if (tickResult == TickResult::dead) {
     startLevel(get<levelId>(), handler);
   }

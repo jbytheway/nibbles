@@ -13,6 +13,7 @@ class EventForwarder : public GameEventHandler {
     EventForwarder(boost::function<void (MessageBase const&)>);
 
     virtual void startLevel(LevelDefinition const&);
+    virtual void newNumber(Number const&);
   private:
     boost::function<void (MessageBase const&)> sink_;
 };
