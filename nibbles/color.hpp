@@ -16,6 +16,10 @@ struct Color :
 {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Color)
 
+  double d_red() const { return get<fields::red>()/255.0; }
+  double d_green() const { return get<fields::green>()/255.0; }
+  double d_blue() const { return get<fields::blue>()/255.0; }
+
   static Color black;
   static Color blue;
   static Color green;

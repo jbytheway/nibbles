@@ -35,6 +35,7 @@ class Playing::Impl {
     boost::scoped_ptr<Level> level_;
 
     // convenience functions
+    Active::RemotePlayerContainer& remotePlayers();
     void redraw();
 
     // UI bindings
@@ -129,10 +130,9 @@ void Playing::Impl::message(const std::string& message)
 void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
 {
   auto const& def = m.payload();
-  auto const& remotePlayers =
-    parent_->context<Active>().remotePlayers().get<Active::SequenceTag>();
+  auto const& playerSequence = remotePlayers().get<Active::SequenceTag>();
   std::vector<PlayerId> playerIds;
-  BOOST_FOREACH(auto const& player, remotePlayers) {
+  BOOST_FOREACH(auto const& player, playerSequence) {
     playerIds.push_back(player.get<id>());
   }
   level_.reset(new Level(def, playerIds));
@@ -144,6 +144,11 @@ void Playing::Impl::newNumber(const Message<MessageType::newNumber>& m)
   if (!level_) NIBBLES_FATAL("number without level");
   level_->get<number>() = m.payload();
   redraw();
+}
+
+Active::RemotePlayerContainer& Playing::Impl::remotePlayers()
+{
+  return parent_->context<Active>().remotePlayers();
 }
 
 void Playing::Impl::redraw()
@@ -249,6 +254,23 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
       auto val = boost::lexical_cast<std::string>(number.get<value>());
       cr->text_path(val);
       cr->fill();
+
+      // Draw the snakes
+      BOOST_FOREACH(Snake const& snake, level_->get<snakes>()) {
+        PlayerId playerId = snake.get<player>();
+        auto color = remotePlayers().find(playerId)->get<fields::color>();
+        cr->set_source_rgb(color.d_red(), color.d_green(), color.d_blue());
+        BOOST_FOREACH(Point const& point, snake.get<points>()) {
+          auto const x = point.get<fields::x>();
+          auto const y = point.get<fields::y>();
+          cr->move_to(x, y);
+          cr->line_to(x+1, y);
+          cr->line_to(x+1, y+1);
+          cr->line_to(x, y+1);
+          cr->close_path();
+          cr->fill();
+        }
+      }
     } else {
       // Draw a red slash for no particular reason
       cr->scale(width, height);
