@@ -60,7 +60,6 @@ sc::result Playing::react(
   events::Message<MessageType::levelStart> const& event
 )
 {
-  fprintf(stderr, "reacting to levelStart!\n");
   impl_->levelStart(event.message);
   return discard_event();
 }
