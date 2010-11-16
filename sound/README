@@ -1,0 +1,16 @@
+The nibbles sounds are derived from the originals in the form of QBasic PLAY
+commands, thus:
+
+Intro:
+PLAY "MBT160O1L8CDEDCDL4ECC"
+
+Level start:
+PLAY "T160O1>L20CDEDCDL10ECC"
+
+Eat number:
+PLAY "MBO0L16>CCCE"
+
+Death:
+PLAY "MBO0L32EFGEFDC"
+
+These are rewritten using the Lilypond files in this directory.
