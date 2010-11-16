@@ -6,5 +6,6 @@
 *.la
 /config.mk
 /user.mk
-/*/Makefile
+/n*/Makefile
+/b*/Makefile
 /*/*/Makefile
