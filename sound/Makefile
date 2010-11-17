@@ -14,14 +14,15 @@ clean:
 $(MIDIS): %.midi: %.ly
 	lilypond $<
 
-#$(WAVS): %.wav: %.midi
-#	timidity -Ow $<
+$(WAVS): %.wav: %.midi
+	timidity -s 48000 -Ow $<
 
-$(FLACS): %.flac: %.midi
-	timidity -OF $<
+#$(FLACS): %.flac: %.midi
+#	timidity -s 48000 -OF $<
 
-#$(FLACS): %.flac: %.wav
-#	flac -f $<
+$(FLACS): %.flac: %.wav
+	rm -f $@
+	flac $<
 
 $(MKAS): %.mka: %.flac
 	mkvmerge -o $@ $<
