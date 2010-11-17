@@ -2,7 +2,7 @@
 
 \score {
   \new Staff \with {midiInstrument = #"electric grand"} {
-    \relative c,, {
+    \relative c, {
       c8 d e d c d e4 c c
     }
   }
