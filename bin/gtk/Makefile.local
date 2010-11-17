@@ -3,7 +3,7 @@ SOURCE_DIRS := ui
 THIS_CPPFLAGS := -I$(this_srcdir) `pkg-config --cflags libglademm-2.4`
 THIS_LDFLAGS := -no-install
 LIBS := \
-	-loptimal `pkg-config --libs libglademm-2.4` \
+	-loptimal `pkg-config --libs libglademm-2.4` -lportaudio -lsndfile \
 	-lboost_filesystem -lboost_thread
 LIB_DEP_NAMES := nibbles nibbles-client
 

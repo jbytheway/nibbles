@@ -9,6 +9,7 @@
 
 #include <nibbles/client/client.hpp>
 
+#include "soundservice.hpp"
 #include "ui/ui.hpp"
 
 using namespace std;
@@ -47,6 +48,12 @@ int main(int argc, char** argv)
 {
   auto cwd = boost::filesystem::initial_path();
 
+  boost::filesystem::path exePath(argv[0]);
+  if (!exePath.has_root_path()) {
+    exePath = cwd/exePath;
+  }
+  exePath = exePath.parent_path();
+
   io_service io;
   Gtk::Main kit(argc, argv);
   const Options options(argc, argv);
@@ -58,16 +65,23 @@ int main(int argc, char** argv)
   boost::filesystem::path gladeDir = options.gladePath;
 
   if (gladeDir.empty()) {
-    boost::filesystem::path exe(argv[0]);
-    if (!exe.has_root_path()) {
-      exe = cwd/exe;
-    }
-    gladeDir = exe.parent_path();
+    gladeDir = exePath;
+  }
+
+  boost::filesystem::path soundDir = options.gladePath;
+
+  if (soundDir.empty()) {
+    soundDir = exePath;
   }
 
   auto gladeFile = gladeDir/"nibbles.glade";
   Glib::RefPtr<Gnome::Glade::Xml> gladeXml =
     Gnome::Glade::Xml::create(gladeFile.file_string());
+
+  SoundService service;
+  auto introSoundFile = soundDir/"intro.flac";
+  auto intro = service.makeSound(introSoundFile);
+  intro->async_play();
 
   ui::UI ui(io, options, gladeXml);
 
