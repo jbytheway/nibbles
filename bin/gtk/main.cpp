@@ -9,6 +9,7 @@
 
 #include <nibbles/client/client.hpp>
 
+#include "gamesounds.hpp"
 #include "soundservice.hpp"
 #include "ui/ui.hpp"
 
@@ -79,9 +80,8 @@ int main(int argc, char** argv)
     Gnome::Glade::Xml::create(gladeFile.file_string());
 
   SoundService service;
-  auto introSoundFile = soundDir/"intro.flac";
-  auto intro = service.makeSound(introSoundFile);
-  intro->async_play();
+  GameSounds sounds(service, soundDir);
+  sounds.intro->async_play();
 
   ui::UI ui(io, options, gladeXml);
 
