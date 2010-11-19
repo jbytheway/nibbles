@@ -269,7 +269,14 @@ void Server::tick(const boost::system::error_code& e)
     }
   }
   forwarder_.tick(moves);
-  game_.tick(forwarder_, moves);
+  auto result = game_.tick(forwarder_, moves);
+  if (result >= TickResult::advanceLevel) {
+    // This means the level is reset, so we need to flush the state in the
+    // players
+    BOOST_FOREACH(auto const& player, players_) {
+      player.reset();
+    }
+  }
   gameTickTimer_.async_wait(boost::bind(
         &Server::tick, this, boost::asio::placeholders::error
       ));

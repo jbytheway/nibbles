@@ -26,11 +26,12 @@ class RemotePlayer : public IdedPlayer {
     ClientId clientId() const { return connection_->id(); }
     void queueTurn(Direction const) const;
     boost::optional<Direction> dequeue() const;
+    void reset() const;
   private:
     Connection* connection_;
     // HACK: can we do without this mutable??
     mutable Direction nominalDirection_;
-    mutable std::queue<Direction> turnQueue_;
+    mutable std::deque<Direction> turnQueue_;
 };
 
 }}
