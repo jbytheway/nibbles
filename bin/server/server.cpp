@@ -249,7 +249,7 @@ void Server::checkForGameStart()
   if (unready != conns.end()) {
     return;
   }
-  sendToAll(Message<MessageType::gameStart>(0/*this 0 is meaningless*/));
+  sendToAll(Message<MessageType::gameStart>(game_.get<settings>()));
   game_.start(players_.get<SequenceTag>(), forwarder_);
   tick();
 }

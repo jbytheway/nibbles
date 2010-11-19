@@ -160,6 +160,14 @@ sc::result Configuring::react(
   return discard_event();
 }
 
+sc::result Configuring::react(
+  events::Message<MessageType::gameStart> const& event
+)
+{
+  context<Active>().settings(event.message.payload());
+  return transit<Playing>();
+}
+
 sc::result Configuring::react(events::Disconnect const&)
 {
   impl_->disconnected();

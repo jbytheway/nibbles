@@ -15,6 +15,7 @@
 #include <nibbles/board.hpp>
 #include <nibbles/tickresult.hpp>
 #include <nibbles/gameeventhandler.hpp>
+#include <nibbles/gamesettings.hpp>
 
 namespace nibbles {
 
@@ -31,6 +32,7 @@ class Level :
 
     template<typename Range, typename RandomEngine>
     Level(
+      GameSettings const&,
       const LevelDefinition&,
       const Range& playerIds,
       RandomEngine&,
@@ -39,6 +41,7 @@ class Level :
 
     template<typename Range>
     Level(
+      GameSettings const&,
       const LevelDefinition&,
       const Range& playerIds
     );
@@ -52,13 +55,14 @@ class Level :
     void randomNumber(RandomEngine& random, uint32_t value, GameEventHandler&);
 
     template<typename Range>
-    void initSnakes(Range const& playerIds);
+    void initSnakes(GameSettings const&, Range const& playerIds);
 
     void initBoard() { get<board>().init(get<definition>()); }
 };
 
 template<typename Range, typename RandomEngine>
 Level::Level(
+    GameSettings const& settings,
     const LevelDefinition& def,
     const Range& playerIds,
     RandomEngine& random,
@@ -66,19 +70,20 @@ Level::Level(
   ) :
   base(def, std::vector<Snake>(), Number(), Board())
 {
-  initSnakes(playerIds);
+  initSnakes(settings, playerIds);
   initBoard();
   randomNumber(random, 1, handler);
 }
 
 template<typename Range>
 Level::Level(
+    GameSettings const& settings,
     const LevelDefinition& def,
     const Range& playerIds
   ) :
   base(def, std::vector<Snake>(), Number(), Board())
 {
-  initSnakes(playerIds);
+  initSnakes(settings, playerIds);
   initBoard();
 }
 
@@ -151,7 +156,7 @@ TickResult Level::tick(
 }
 
 template<typename Range>
-void Level::initSnakes(Range const& playerIds)
+void Level::initSnakes(GameSettings const& settings, Range const& playerIds)
 {
   const std::vector<Position>& starts =
     get<definition>().get<fields::starts>();
@@ -159,7 +164,7 @@ void Level::initSnakes(Range const& playerIds)
     throw std::logic_error("level has insufficient starts");
   }
   // TODO: make this value customizable
-  SnakeLength startLength = 2;
+  SnakeLength startLength = settings.get<fields::startLength>();
   size_t start = 0;
   BOOST_FOREACH(const PlayerId playerId, playerIds) {
     get<snakes>().push_back(Snake(playerId, starts[start], startLength));

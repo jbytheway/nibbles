@@ -7,6 +7,7 @@
 #include <nibbles/leveldefinition.hpp>
 #include <nibbles/number.hpp>
 #include <nibbles/moves.hpp>
+#include <nibbles/gamesettings.hpp>
 
 namespace nibbles {
 
@@ -40,8 +41,7 @@ struct MessagePayload<MessageType::updateReadiness> {
 
 template<>
 struct MessagePayload<MessageType::gameStart> {
-  // TODO: should really be nothing, but can't be bothered to make that work
-  typedef int type;
+  typedef GameSettings type;
 };
 
 template<>

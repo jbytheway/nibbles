@@ -161,7 +161,8 @@ void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
   BOOST_FOREACH(auto const& player, playerSequence) {
     playerIds.push_back(player.get<id>());
   }
-  level_.reset(new Level(def, playerIds));
+  auto const& settings = parent_->context<Active>().settings();
+  level_.reset(new Level(settings, def, playerIds));
   redraw();
 }
 

@@ -20,6 +20,7 @@
 #include <nibbles/messagetype.hpp>
 #include <nibbles/utility/messagehandler.hpp>
 #include <nibbles/client/client.hpp>
+#include <nibbles/gamesettings.hpp>
 
 #include "clientfactory.hpp"
 #include "remoteplayer.hpp"
@@ -165,9 +166,14 @@ class Active :
     std::vector<ControlledPlayer> const& localPlayers() const {
       return localPlayers_;
     }
+    GameSettings const& settings() const { return *settings_; }
+    void settings(GameSettings const& settings) {
+      settings_.reset(new GameSettings(settings));
+    }
   private:
     RemotePlayerContainer remotePlayers_;
     std::vector<ControlledPlayer> localPlayers_;
+    boost::scoped_ptr<GameSettings> settings_;
 };
 
 /// The first orthogonal component of Active follows the UI through
@@ -182,9 +188,9 @@ class Configuring :
     typedef boost::mpl::list<
       sc::custom_reaction<events::Message<MessageType::playerAdded>>,
       sc::custom_reaction<events::Message<MessageType::updateReadiness>>,
+      sc::custom_reaction<events::Message<MessageType::gameStart>>,
       sc::custom_reaction<events::Connected>,
-      sc::custom_reaction<events::Disconnect>,
-      sc::transition<events::Message<MessageType::gameStart>, Playing>
+      sc::custom_reaction<events::Disconnect>
     > reactions;
     Configuring(my_context);
     ~Configuring();
@@ -192,6 +198,7 @@ class Configuring :
     virtual void message(std::string const&) const;
     sc::result react(events::Message<MessageType::playerAdded> const&);
     sc::result react(events::Message<MessageType::updateReadiness> const&);
+    sc::result react(events::Message<MessageType::gameStart> const&);
     sc::result react(events::Connected const&);
     sc::result react(events::Disconnect const&);
   private:

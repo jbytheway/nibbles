@@ -71,7 +71,8 @@ GameSettings Options::gameSettings() const
 {
   return GameSettings(
       startLevel,
-      boost::posix_time::milliseconds(startInterval)
+      boost::posix_time::milliseconds(startInterval),
+      2
     );
 }
 
