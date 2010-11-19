@@ -82,7 +82,7 @@ SoundService::Impl::~Impl()
 }
 
 std::unique_ptr<Sound>
-SoundService::makeSound(boost::filesystem::path const& path)
+SoundService::makeSound(boost::filesystem::path const& path) const
 {
   return std::unique_ptr<Sound>{new PaSound(path, impl_)};
 }

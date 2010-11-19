@@ -15,7 +15,7 @@ class SoundService {
     SoundService(SoundService const&) = delete;
     SoundService& operator=(SoundService const&) = delete;
 
-    std::unique_ptr<Sound> makeSound(boost::filesystem::path const&);
+    std::unique_ptr<Sound> makeSound(boost::filesystem::path const&) const;
   private:
     friend class PaSound;
 
