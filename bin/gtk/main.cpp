@@ -83,7 +83,7 @@ int main(int argc, char** argv)
   GameSounds sounds(service, soundDir);
   sounds.intro->async_play();
 
-  ui::UI ui(io, options, gladeXml);
+  ui::UI ui(io, options, gladeXml, sounds);
 
   if (options.threaded) {
     IoThread ioThreadObj(io);

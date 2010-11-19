@@ -10,6 +10,7 @@
 #include <nibbles/utility/messagehandler.hpp>
 
 #include "options.hpp"
+#include "gamesounds.hpp"
 
 namespace nibbles { namespace gtk { namespace ui {
 
@@ -17,8 +18,9 @@ class UI : private boost::noncopyable {
   public:
     UI(
         boost::asio::io_service& io,
-        const Options&,
-        const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
+        Options const&,
+        Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+        GameSounds const&
       );
     ~UI();
     bool ended();

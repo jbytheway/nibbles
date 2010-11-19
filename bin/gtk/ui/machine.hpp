@@ -24,6 +24,7 @@
 #include "clientfactory.hpp"
 #include "remoteplayer.hpp"
 #include "controlledplayer.hpp"
+#include "gamesounds.hpp"
 
 namespace nibbles { namespace gtk { namespace ui {
 
@@ -57,7 +58,8 @@ class Machine : public sc::state_machine<Machine, Active> {
       utility::MessageHandler& messageHandler,
       ClientFactory& clientFactory,
       boost::filesystem::path playerFile,
-      const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
+      Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+      GameSounds const&
     );
 
     bool ended();
@@ -74,6 +76,7 @@ class Machine : public sc::state_machine<Machine, Active> {
     Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml() const {
       return gladeXml_;
     }
+    GameSounds const& sounds() const { return sounds_; }
     boost::signal<void ()>& terminating() {
       return terminating_;
     }
@@ -86,6 +89,7 @@ class Machine : public sc::state_machine<Machine, Active> {
     ClientFactory& clientFactory_;
     boost::filesystem::path playerFile_;
     Glib::RefPtr<Gnome::Glade::Xml> gladeXml_;
+    GameSounds const& sounds_;
 
     // Signals to talk back to UI
     boost::signal<void ()> terminating_;
