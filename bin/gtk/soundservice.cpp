@@ -24,7 +24,7 @@ class PaSound : public Sound {
     );
     ~PaSound();
 
-    void async_play();
+    void async_play(bool supressExceptions);
     SF_INFO const& info() const { return info_; }
     std::vector<int16_t> const& data() const { return data_; }
   private:
@@ -115,9 +115,13 @@ PaSound::~PaSound()
   playings_.clear();
 }
 
-void PaSound::async_play()
+void PaSound::async_play(bool supressExceptions)
 {
-  playings_.push_back(std::unique_ptr<PaPlaying>{new PaPlaying(*this)});
+  try {
+    playings_.push_back(std::unique_ptr<PaPlaying>{new PaPlaying(*this)});
+  } catch (PaException const&) {
+    if (!supressExceptions) throw;
+  }
 }
 
 PaPlaying::PaPlaying(PaSound const& sound) :
