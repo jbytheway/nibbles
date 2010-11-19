@@ -22,7 +22,10 @@ TickResult Level::tick(Moves const& moves)
     nextHeads.push_back(snake.nextHead(b));
   }
   BOOST_FOREACH(Snake& snake, snakes) {
-    TickResult result = snake.advanceHead(b, nextHeads);
+    TickResult const result = snake.advanceHead(b, nextHeads);
+    if (result == TickResult::number) {
+      snake.get<score>() += get<number>().get<value>();
+    }
     overallResult = std::max(overallResult, result);
   }
 

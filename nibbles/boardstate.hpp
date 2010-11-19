@@ -5,7 +5,7 @@
 
 namespace nibbles {
 
-#define NIBBLES_BOARDSTATE_VALUES() (empty)(wall)(snake)
+#define NIBBLES_BOARDSTATE_VALUES() (empty)(wall)(snake)(number)
 NIBBLES_UTILITY_ENUM_HEADER(BoardState, NIBBLES_BOARDSTATE_VALUES())
 
 }

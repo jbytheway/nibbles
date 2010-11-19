@@ -31,6 +31,10 @@ TickResult Snake::advanceHead(Board& board, std::vector<Point> const& nextHeads)
     case BoardState::wall:
     case BoardState::snake:
       return TickResult::dead;
+    case BoardState::number:
+      get<points>().push_front(next);
+      board[next] = BoardState::snake;
+      return TickResult::number;
     case BoardState::empty:
       get<points>().push_front(next);
       board[next] = BoardState::snake;

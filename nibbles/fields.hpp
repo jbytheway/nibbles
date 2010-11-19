@@ -12,7 +12,8 @@ namespace nibbles {
   (definition)(direction)(green)(h)(id)(level)\
   (levelId)(levels)(max)(min)(name)(number)(pendingGrowth)\
   (player)(players)(point)(points)(position)(random)\
-  (ready)(red)(settings)(snakes)(starts)(states)(tickInterval)(value)(w)(x)(y)
+  (ready)(red)(score)(settings)(snakes)(starts)\
+  (states)(tickInterval)(value)(w)(x)(y)
 
 namespace fields {
 

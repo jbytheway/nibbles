@@ -90,7 +90,15 @@ void Level::randomNumber(
 )
 {
   const LevelDefinition& def = get<definition>();
-  const Board& board = get<fields::board>();
+  Board& board = get<fields::board>();
+  Number& number = get<fields::number>();
+
+  // Clear the old number
+  BOOST_FOREACH(auto const& point, number.get<fields::position>()) {
+    BoardState& state = board[point];
+    if (state == BoardState::number) state = BoardState::empty;
+  }
+
   // These are *inclusive* maxima
   size_t maxX = def.get<w>()-Number::width;
   size_t maxY = def.get<h>()-Number::height;
@@ -113,8 +121,12 @@ void Level::randomNumber(
       }
     }
   } while (!free);
-  get<number>() = Number(trialBlock, value);
-  handler.newNumber(get<number>());
+  number = Number(trialBlock, value);
+  // Set board states
+  BOOST_FOREACH(auto const& point, number.get<position>()) {
+    board[point] = BoardState::number;
+  }
+  handler.newNumber(number);
 }
 
 template<typename RandomEngine>
@@ -127,7 +139,12 @@ TickResult Level::tick(
   TickResult result = tick(moves);
 
   if (result == TickResult::number) {
-    randomNumber(random, get<number>().get<value>(), handler);
+    auto const oldValue = get<number>().get<value>();
+    if (oldValue == 9) {
+      result = TickResult::advanceLevel;
+    } else {
+      randomNumber(random, oldValue + 1, handler);
+    }
   }
 
   return result;
