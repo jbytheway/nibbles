@@ -9,6 +9,8 @@
 
 namespace nibbles { namespace gtk {
 
+#ifdef PORT_AUDIO
+
 class SoundService::Impl {
   public:
     ~Impl();
@@ -42,10 +44,19 @@ class PaPlaying {
     ~PaPlaying();
   private:
     static int paCallback(
-      const void* input, void* output,
+#if 0
+      const void* input,
+#else
+      void* input,
+#endif
+      void* output,
       unsigned long frameCount,
+#if 0
       const PaStreamCallbackTimeInfo* timeInfo,
       PaStreamCallbackFlags statusFlags,
+#else
+      PaTimestamp outTime,
+#endif
       void* userData
     );
 
@@ -134,7 +145,12 @@ PaPlaying::PaPlaying(PaSound const& sound) :
     sound.info().channels,
     paInt16,
     sound.info().samplerate,
+#if 0
     paFramesPerBufferUnspecified,
+#else
+    256,
+    1,
+#endif
     &PaPlaying::paCallback,
     this
   );
@@ -149,7 +165,11 @@ PaPlaying::PaPlaying(PaSound const& sound) :
 
 PaPlaying::~PaPlaying()
 {
+#if 0
   if (!Pa_IsStreamStopped(stream_)) {
+#else
+  if (!Pa_StreamActive(stream_)) {
+#endif
     PaError error = Pa_AbortStream(stream_);
     if (error != paNoError) {
       fprintf(stderr, "Error aborting stream: %s\n",
@@ -164,10 +184,19 @@ PaPlaying::~PaPlaying()
 }
 
 int PaPlaying::paCallback(
-  const void*, void* output,
+#if 0
+  const void*,
+#else
+  void*,
+#endif
+  void* output,
   unsigned long frameCount,
+#if 0
   const PaStreamCallbackTimeInfo* /*timeInfo*/,
   PaStreamCallbackFlags /*statusFlags*/,
+#else
+  PaTimestamp /*outTime*/,
+#endif
   void* userData
 )
 {
@@ -179,13 +208,43 @@ int PaPlaying::paCallback(
   if (numSamples > dataLeft) {
     // Wants more data than there is; stop instead
     std::memcpy(out, &sound.data()[playing.pos_], sizeof(int16_t)*dataLeft);
+#if 0
     return paComplete;
+#else
+    return 1;
+#endif
   } else {
     std::memcpy(out, &sound.data()[playing.pos_], sizeof(int16_t)*numSamples);
     playing.pos_ += numSamples;
     return 0;
   }
 }
+
+#else // PORTAUDIO
+
+class SoundService::Impl {
+  public:
+};
+
+class DudSound : public Sound {
+  public:
+    virtual void async_play(bool) {
+      // Do nothing
+    }
+};
+
+SoundService::SoundService() :
+  impl_()
+{
+}
+
+std::unique_ptr<Sound>
+SoundService::makeSound(boost::filesystem::path const&) const
+{
+  return std::unique_ptr<Sound>{new DudSound()};
+}
+
+#endif // PORTAUDDIO
 
 }}
 
