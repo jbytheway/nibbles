@@ -1,0 +1,42 @@
+This project uses makeshift to build.  If the makeshift directory is empty then
+you probably need to run
+
+$ git submodule init
+$ git submodule update
+
+Next you will need some dependencies:
+
+- gcc >= 4.4 (this code uses recently added C++0x features so new gcc really is
+  needed; other compilers are unikely to cope in the near term)
+- boost of some relatively recent version
+- portaudio
+- libsndfile
+- optimal, my options parsing library.  Read about it at
+  http://github.com/jbytheway/optimal or clone it from
+  git@github.com:jbytheway/optimal.git
+
+You may need to add some things to user.mk, e.g. to get the right g++ version
+or allow it to find optimal if you don't install it (which you shouldn't need
+to.  Here for example is my user.mk:
+
+  CXX = g++-4.4.5
+  BUILD_CPPFLAGS += -I$(top_srcdir)../optimal
+  BUILD_LDFLAGS += -L$(top_srcdir)../optimal/optimal
+
+See makeshift/INSTALL for details of what goes in user.mk.
+
+Then to get a debug version it should be simply
+
+$ make
+
+Parallel build should work fine (with make's -j option) and is advisable on a
+multi-core machine.
+
+The server can be run with
+
+$ ./bin/server/nibbles-server
+
+and the client with
+
+$ ./bin/gtk/nibbles-gtk
+
