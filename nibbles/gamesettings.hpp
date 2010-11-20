@@ -8,6 +8,8 @@
 #include <nibbles/fields.hpp>
 #include <nibbles/levelid.hpp>
 #include <nibbles/snakelength.hpp>
+#include <nibbles/lifecount.hpp>
+#include <nibbles/score.hpp>
 
 namespace nibbles {
 
@@ -16,7 +18,10 @@ struct GameSettings :
     GameSettings,
     LevelId, level,
     boost::posix_time::time_duration, tickInterval,
-    SnakeLength, startLength
+    LifeCount, startLives,
+    SnakeLength, startLength,
+    SnakeLength, growthFactor,
+    Score, deathScore
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(GameSettings)
 };

@@ -72,7 +72,10 @@ GameSettings Options::gameSettings() const
   return GameSettings(
       startLevel,
       boost::posix_time::milliseconds(startInterval),
-      2
+      5 /* Start lives */,
+      2 /* Start length */,
+      3 /* Growth rate */,
+      -10 /* Death score */
     );
 }
 
