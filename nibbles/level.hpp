@@ -47,9 +47,16 @@ class Level :
     );
 
     template<typename RandomEngine>
-    TickResult tick(RandomEngine&, GameEventHandler&, Moves const&);
+    TickResult tick(
+      GameSettings const&,
+      RandomEngine&,
+      GameEventHandler&,
+      Moves const&
+    );
 
-    TickResult tick(Moves const&);
+    TickResult tick(GameSettings const&, Moves const&);
+
+    void setNumber(Number const&);
   private:
     template<typename RandomEngine>
     void randomNumber(RandomEngine& random, uint32_t value, GameEventHandler&);
@@ -98,12 +105,6 @@ void Level::randomNumber(
   Board& board = get<fields::board>();
   Number& number = get<fields::number>();
 
-  // Clear the old number
-  BOOST_FOREACH(auto const& point, number.get<fields::position>()) {
-    BoardState& state = board[point];
-    if (state == BoardState::number) state = BoardState::empty;
-  }
-
   // These are *inclusive* maxima
   size_t maxX = def.get<w>()-Number::width;
   size_t maxY = def.get<h>()-Number::height;
@@ -126,22 +127,19 @@ void Level::randomNumber(
       }
     }
   } while (!free);
-  number = Number(trialBlock, value);
-  // Set board states
-  BOOST_FOREACH(auto const& point, number.get<position>()) {
-    board[point] = BoardState::number;
-  }
+  setNumber(Number(trialBlock, value));
   handler.newNumber(number);
 }
 
 template<typename RandomEngine>
 TickResult Level::tick(
+  GameSettings const& settings,
   RandomEngine& random,
   GameEventHandler& handler,
   Moves const& moves
 )
 {
-  TickResult result = tick(moves);
+  TickResult result = tick(settings, moves);
 
   if (result == TickResult::number) {
     auto const oldValue = get<number>().get<value>();

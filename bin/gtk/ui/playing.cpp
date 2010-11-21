@@ -169,14 +169,15 @@ void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
 void Playing::Impl::newNumber(const Message<MessageType::newNumber>& m)
 {
   if (!level_) NIBBLES_FATAL("number without level");
-  level_->get<number>() = m.payload();
+  level_->setNumber(m.payload());
   redraw();
 }
 
 void Playing::Impl::tick(const Message<MessageType::tick>& m)
 {
   if (!level_) NIBBLES_FATAL("tick without level");
-  level_->tick(m.payload());
+  auto const& settings = parent_->context<Active>().settings();
+  level_->tick(settings, m.payload());
   redraw();
 }
 

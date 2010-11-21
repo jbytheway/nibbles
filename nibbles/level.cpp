@@ -2,7 +2,7 @@
 
 namespace nibbles {
 
-TickResult Level::tick(Moves const& moves)
+TickResult Level::tick(GameSettings const& settings, Moves const& moves)
 {
   assert(std::is_sorted(moves.begin(), moves.end()));
   TickResult overallResult = TickResult::none;
@@ -24,7 +24,9 @@ TickResult Level::tick(Moves const& moves)
   BOOST_FOREACH(Snake& snake, snakes) {
     TickResult const result = snake.advanceHead(b, nextHeads);
     if (result == TickResult::number) {
-      snake.get<score>() += get<number>().get<value>();
+      auto value = get<number>().get<fields::value>();
+      snake.get<score>() += value;
+      snake.get<pendingGrowth>() += value*settings.get<growthFactor>();
     }
     overallResult = std::max(overallResult, result);
   }
@@ -34,6 +36,25 @@ TickResult Level::tick(Moves const& moves)
   }
 
   return overallResult;
+}
+
+void Level::setNumber(Number const& newNumber)
+{
+  Board& board = get<fields::board>();
+  Number& oldNumber = get<fields::number>();
+
+  // Clear the old number
+  BOOST_FOREACH(auto const& point, oldNumber.get<position>()) {
+    BoardState& state = board[point];
+    if (state == BoardState::number) state = BoardState::empty;
+  }
+
+  oldNumber = newNumber;
+
+  // Set board states
+  BOOST_FOREACH(auto const& point, oldNumber.get<position>()) {
+    board[point] = BoardState::number;
+  }
 }
 
 }
