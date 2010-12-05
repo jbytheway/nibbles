@@ -495,7 +495,7 @@
               </widget>
             </child>
             <child>
-              <widget class="GtkTreeView" id="PlayerScoresList">
+              <widget class="GtkTreeView" id="PlayerScoreList">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>

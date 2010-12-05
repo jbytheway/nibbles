@@ -34,14 +34,33 @@ class Playing::Impl {
     Gtk::TextView* messageView_;
     Gtk::DrawingArea* levelDisplay_;
 
+    class PlayerScoreListColumns : public Gtk::TreeModel::ColumnRecord
+    {
+      public:
+        PlayerScoreListColumns()
+        {
+          add(score_);
+          // TODO: colour
+          add(name_);
+        }
+
+        Gtk::TreeModelColumn<Score> score_;
+        Gtk::TreeModelColumn<Glib::ustring> name_;
+    };
+    Gtk::TreeView* playerScoreList_;
+    const PlayerScoreListColumns playerScoreListColumns_;
+    Glib::RefPtr<Gtk::ListStore> playerScoreListStore_;
+
     // game data
     std::map<uint32_t, std::pair<PlayerId, Direction>> keyBindings_;
     boost::scoped_ptr<Level> level_;
+    std::map<PlayerId, Score> scores_;
 
     // convenience functions
     Active::RemotePlayerContainer const& remotePlayers();
     std::vector<ControlledPlayer> const& localPlayers();
     void redraw();
+    void refreshScores();
 
     // UI bindings
     void windowClosed();
@@ -106,7 +125,7 @@ Playing::Impl::Impl(
 
   GET_WIDGET(Window, PlayWindow);
   GET_WIDGET(Label, LevelNameLabel);
-  GET_WIDGET(TreeView, PlayerScoresList);
+  GET_WIDGET(TreeView, PlayerScoreList);
   GET_WIDGET(TextView, PlayMessageText);
   GET_WIDGET(DrawingArea, LevelDisplay);
 #undef GET_WIDGET
@@ -114,8 +133,16 @@ Playing::Impl::Impl(
   // Store pointers to those widgets we need to access later
   window_ = wPlayWindow;
   levelName_ = wLevelNameLabel;
+  playerScoreList_ = wPlayerScoreList;
   messageView_ = wPlayMessageText;
   levelDisplay_ = wLevelDisplay;
+
+  // Attach columns
+  playerScoreListStore_ = Gtk::ListStore::create(playerScoreListColumns_);
+  assert(playerScoreListStore_);
+  playerScoreList_->set_model(playerScoreListStore_);
+  playerScoreList_->append_column("Score", playerScoreListColumns_.score_);
+  playerScoreList_->append_column("Name", playerScoreListColumns_.name_);
 
   // Connect signals from widgets to the UI
   windowHiddenConnection_ = window_->signal_hide().connect(
@@ -137,6 +164,11 @@ Playing::Impl::Impl(
     for (Direction dir = Direction(0); dir < Direction::max; ++dir) {
       keyBindings_[controls[dir]] = {it->get<id>(), dir};
     }
+  }
+
+  // Initialize scores to zero
+  BOOST_FOREACH(auto const& player, remotePlayers()) {
+    scores_.insert({player.get<id>(), 0});
   }
 
   window_->show();
@@ -172,6 +204,7 @@ void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
   auto const& settings = parent_->context<Active>().settings();
   level_.reset(new Level(settings, def, playerIds));
   redraw();
+  refreshScores();
 }
 
 void Playing::Impl::newNumber(const Message<MessageType::newNumber>& m)
@@ -179,6 +212,7 @@ void Playing::Impl::newNumber(const Message<MessageType::newNumber>& m)
   if (!level_) NIBBLES_FATAL("number without level");
   level_->setNumber(m.payload());
   redraw();
+  refreshScores();
 }
 
 void Playing::Impl::tick(const Message<MessageType::tick>& m)
@@ -203,6 +237,18 @@ void Playing::Impl::redraw()
 {
   Glib::RefPtr<Gdk::Window> window = levelDisplay_->get_window();
   window->invalidate(false /*invalidate children*/);
+}
+
+void Playing::Impl::refreshScores()
+{
+  playerScoreListStore_->clear();
+  auto const& playerSequence = remotePlayers().get<Active::SequenceTag>();
+  BOOST_FOREACH(auto const& player, playerSequence) {
+    auto it = playerScoreListStore_->append();
+    auto row = *it;
+    row[playerScoreListColumns_.score_] = scores_[player.get<id>()];
+    row[playerScoreListColumns_.name_] = player.get<name>();
+  }
 }
 
 void Playing::Impl::windowClosed()
