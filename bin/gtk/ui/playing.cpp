@@ -27,7 +27,7 @@ class Playing::Impl {
     Playing* parent_;
 
     // event handler connections
-    sigc::connection windowHiddenConnection_;
+    std::vector<sigc::connection> uiConnections_;
 
     // controls
     Gtk::Window* window_;
@@ -40,11 +40,13 @@ class Playing::Impl {
       public:
         PlayerScoreListColumns()
         {
+          add(lives_);
           add(score_);
           // TODO: colour
           add(name_);
         }
 
+        Gtk::TreeModelColumn<LifeCount> lives_;
         Gtk::TreeModelColumn<Score> score_;
         Gtk::TreeModelColumn<Glib::ustring> name_;
     };
@@ -142,19 +144,20 @@ Playing::Impl::Impl(
   playerScoreListStore_ = Gtk::ListStore::create(playerScoreListColumns_);
   assert(playerScoreListStore_);
   playerScoreList_->set_model(playerScoreListStore_);
+  playerScoreList_->append_column("Lives", playerScoreListColumns_.lives_);
   playerScoreList_->append_column("Score", playerScoreListColumns_.score_);
   playerScoreList_->append_column("Name", playerScoreListColumns_.name_);
 
   // Connect signals from widgets to the UI
-  windowHiddenConnection_ = window_->signal_hide().connect(
+  uiConnections_.push_back(window_->signal_hide().connect(
     sigc::mem_fun(this, &Impl::windowClosed)
-  );
-  levelDisplay_->signal_expose_event().connect(
+  ));
+  uiConnections_.push_back(levelDisplay_->signal_expose_event().connect(
     sigc::mem_fun(this, &Impl::levelExposed)
-  );
-  window_->signal_key_press_event().connect_notify(
+  ));
+  uiConnections_.push_back(window_->signal_key_press_event().connect_notify(
     sigc::mem_fun(this, &Impl::keyPress)
-  );
+  ));
 
   // Set up key mapping
   auto const& remoteNameIndex = remotePlayers().get<Active::NameTag>();
@@ -168,8 +171,9 @@ Playing::Impl::Impl(
   }
 
   // Initialize scores to zero
+  auto const& settings = parent_->context<Active>().settings();
   BOOST_FOREACH(auto const& player, remotePlayers()) {
-    scorer_.add(player.get<id>());
+    scorer_.add(player.get<id>(), settings.get<startLives>());
   }
 
   window_->show();
@@ -179,7 +183,13 @@ Playing::Impl::~Impl()
 {
   // Disconnect the window hidden signal handler because we're about to hide it
   // ourselves, and we don't want to send a terminate event because of it!
-  windowHiddenConnection_.disconnect();
+  // Also all other UI stuff to prevent dangling pointers to this
+  while (!uiConnections_.empty()) {
+    uiConnections_.back().disconnect();
+    uiConnections_.pop_back();
+  }
+  playerScoreList_->unset_model();
+  playerScoreList_->remove_all_columns();
   window_->hide();
 }
 
@@ -247,7 +257,8 @@ void Playing::Impl::refreshScores()
   BOOST_FOREACH(auto const& player, playerSequence) {
     auto it = playerScoreListStore_->append();
     auto row = *it;
-    row[playerScoreListColumns_.score_] = scorer_[player.get<id>()];
+    row[playerScoreListColumns_.lives_] = scorer_.getLives(player.get<id>());
+    row[playerScoreListColumns_.score_] = scorer_.getScore(player.get<id>());
     row[playerScoreListColumns_.name_] = player.get<name>();
   }
 }

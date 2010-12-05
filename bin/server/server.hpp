@@ -78,6 +78,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     EventForwarder forwarder_;
 
     void netMessage(const MessageBase::Ptr&, Connection*);
+    void setReadiness(Connection*, bool ready);
     void signalled();
     void shutdown();
     void deleteConnection(Connection* connection);
@@ -89,6 +90,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
 
     void checkForGameStart();
     void tick(const boost::system::error_code& e = boost::system::error_code());
+    void gameEnd();
 };
 
 }}

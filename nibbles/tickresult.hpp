@@ -5,7 +5,8 @@
 
 namespace nibbles {
 
-#define NIBBLES_TICKRESULT_VALUES() (none)(number)(advanceLevel)(dead)
+#define NIBBLES_TICKRESULT_VALUES() \
+  (none)(number)(advanceLevel)(dead)(gameOver)
 NIBBLES_UTILITY_ENUM_HEADER(TickResult, NIBBLES_TICKRESULT_VALUES())
 
 }

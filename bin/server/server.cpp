@@ -89,6 +89,15 @@ void Server::message(Verbosity v, const string& message)
 // Server::netMessage last so as not to precede specializations of
 // internalNetMessage
 
+void Server::setReadiness(Connection* connection, bool ready)
+{
+  ClientId id = connection->id();
+  connection->setReady(ready);
+  const MessageBase& outMessage =
+    Message<MessageType::updateReadiness>(make_pair(id, ready));
+  sendToAll(outMessage);
+}
+
 void Server::signalled()
 {
   io_.post(boost::bind(&Server::shutdown, this));
@@ -157,6 +166,7 @@ IGNORE_MESSAGE(gameStart)
 IGNORE_MESSAGE(levelStart)
 IGNORE_MESSAGE(newNumber)
 IGNORE_MESSAGE(tick)
+IGNORE_MESSAGE(gameOver)
 
 #undef IGNORE_MESSAGE
 
@@ -186,12 +196,7 @@ void Server::internalNetMessage(
     Connection* connection
   )
 {
-  ClientId id = connection->id();
-  bool ready = netMessage.payload();
-  connection->setReady(ready);
-  const MessageBase& outMessage =
-    Message<MessageType::updateReadiness>(make_pair(id, ready));
-  sendToAll(outMessage);
+  setReadiness(connection, netMessage.payload());
   checkForGameStart();
 }
 
@@ -249,9 +254,11 @@ void Server::checkForGameStart()
   if (unready != conns.end()) {
     return;
   }
-  sendToAll(Message<MessageType::gameStart>(game_.get<settings>()));
+  auto const& settings = game_.get<fields::settings>();
+  sendToAll(Message<MessageType::gameStart>(settings));
   BOOST_FOREACH(auto const& player, players_.get<SequenceTag>()) {
-    scorer_.add(player.id());
+    scorer_.add(player.id(), settings.get<startLives>());
+    player.reset();
   }
   game_.start(players_.get<SequenceTag>(), forwarder_);
   tick();
@@ -273,7 +280,10 @@ void Server::tick(const boost::system::error_code& e)
   }
   forwarder_.tick(moves);
   auto result = game_.tick(scorer_, forwarder_, moves);
-  if (result >= TickResult::advanceLevel) {
+  if (result == TickResult::gameOver) {
+    gameEnd();
+    return;
+  } else if (result >= TickResult::advanceLevel) {
     // This means the level is reset, so we need to flush the state in the
     // players
     BOOST_FOREACH(auto const& player, players_) {
@@ -283,6 +293,16 @@ void Server::tick(const boost::system::error_code& e)
   gameTickTimer_.async_wait(boost::bind(
         &Server::tick, this, boost::asio::placeholders::error
       ));
+}
+
+void Server::gameEnd()
+{
+  // TODO: high score info
+  sendToAll(Message<MessageType::gameOver>(0));
+  BOOST_FOREACH(auto& connection, connectionPool_.get<SequenceTag>()) {
+    setReadiness(&*connection, false);
+  }
+  scorer_.clear();
 }
 
 }}

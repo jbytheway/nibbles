@@ -43,6 +43,7 @@ struct Terminate : public sc::event<Terminate> {};
 struct Connect : public sc::event<Connect> {};
 struct Connected : public sc::event<Connected> {};
 struct Disconnect : public sc::event<Disconnect> {};
+struct HighScoreOk : public sc::event<HighScoreOk> {};
 
 }
 
@@ -180,7 +181,9 @@ class Active :
 
 /// The first orthogonal component of Active follows the UI through
 /// configuration and then playing the game
+class Configuring;
 class Playing;
+class HighScoreView;
 
 class Configuring :
   public sc::state<Configuring, Active::orthogonal<0>>,
@@ -216,7 +219,8 @@ class Playing :
     typedef boost::mpl::list<
       sc::custom_reaction<events::Message<MessageType::levelStart>>,
       sc::custom_reaction<events::Message<MessageType::newNumber>>,
-      sc::custom_reaction<events::Message<MessageType::tick>>
+      sc::custom_reaction<events::Message<MessageType::tick>>,
+      sc::transition<events::Message<MessageType::gameOver>, HighScoreView>
     > reactions;
 
     Playing(my_context);
@@ -226,6 +230,24 @@ class Playing :
     sc::result react(events::Message<MessageType::levelStart> const&);
     sc::result react(events::Message<MessageType::newNumber> const&);
     sc::result react(events::Message<MessageType::tick> const&);
+  private:
+    class Impl;
+    boost::scoped_ptr<Impl> impl_;
+};
+
+class HighScoreView :
+  public sc::state<HighScoreView, Active::orthogonal<0>>,
+  public MessageSinkState
+{
+  public:
+    typedef boost::mpl::list<
+      sc::transition<events::HighScoreOk, Configuring>
+    > reactions;
+
+    HighScoreView(my_context);
+    ~HighScoreView();
+
+    virtual void message(std::string const&) const;
   private:
     class Impl;
     boost::scoped_ptr<Impl> impl_;

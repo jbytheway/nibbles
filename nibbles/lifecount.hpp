@@ -1,9 +1,11 @@
 #ifndef NIBBLES__LIFECOUNT_HPP
 #define NIBBLES__LIFECOUNT_HPP
 
+#include <cstdint>
+
 namespace nibbles {
 
-typedef int32_t LifeCount;
+typedef std::int32_t LifeCount;
 
 }
 

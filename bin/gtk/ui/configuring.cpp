@@ -47,7 +47,7 @@ class Configuring::Impl {
     Gtk::CheckButton* readyCheck_;
 
     // event handler connections
-    sigc::connection windowHiddenConnection_;
+    std::vector<sigc::connection> uiConnections_;
 
     class RemotePlayerListColumns : public Gtk::TreeModel::ColumnRecord
     {
@@ -252,10 +252,12 @@ Configuring::Impl::Impl(
   playerCombo_->pack_start(playerComboColumns_.name_);
 
   // Connect signals from widgets to the UI
-#define CONNECT_BUTTON(buttonName, memFunName)     \
-  w##buttonName##Button->signal_clicked().connect( \
+#define CONNECT_BUTTON(buttonName, memFunName)       \
+  uiConnections_.push_back(                          \
+    w##buttonName##Button->signal_clicked().connect( \
       sigc::mem_fun(this, &Impl::memFunName)         \
-    );
+    )                                                \
+  );
   CONNECT_BUTTON(Connect, connect);
   CONNECT_BUTTON(Create, createPlayer);
   CONNECT_BUTTON(Delete, deletePlayer);
@@ -267,34 +269,46 @@ Configuring::Impl::Impl(
   CONNECT_BUTTON(Right, setBinding<Direction::right>);
   CONNECT_BUTTON(NewKeyCancel, cancelNewKey);
 #undef CONNECT_BUTTON
-  windowHiddenConnection_ = window_->signal_hide().connect(
+  uiConnections_.push_back(window_->signal_hide().connect(
     sigc::mem_fun(this, &Impl::windowClosed)
-  );
-  wReadyCheck->signal_toggled().connect(
+  ));
+  uiConnections_.push_back(wReadyCheck->signal_toggled().connect(
     sigc::mem_fun(this, &Impl::readinessChange)
-  );
-  wPlayerColorButton->signal_color_set().connect(
+  ));
+  uiConnections_.push_back(wPlayerColorButton->signal_color_set().connect(
     sigc::mem_fun(this, &Impl::colorChanged)
-  );
-  playerCombo_->signal_changed().connect(
+  ));
+  uiConnections_.push_back(playerCombo_->signal_changed().connect(
     sigc::mem_fun(this, &Impl::refreshLocalPlayer)
-  );
-  playerName_->signal_changed().connect(
+  ));
+  uiConnections_.push_back(playerName_->signal_changed().connect(
     sigc::mem_fun(this, &Impl::playerNameChanged)
-  );
+  ));
 
   loadLocalPlayers();
 
   // Finally, show the GUI
   window_->show();
+  refreshRemotePlayers();
 }
 
 Configuring::Impl::~Impl()
 {
+  saveLocalPlayers();
   // Disconnect the window hidden signal handler because we're about to hide it
   // ourselves, and we don't want to send a terminate event because of it!
-  windowHiddenConnection_.disconnect();
-  saveLocalPlayers();
+  // Also all the other signal handlers because they'll contain dangling
+  // pointers to this.
+  while (!uiConnections_.empty()) {
+    uiConnections_.back().disconnect();
+    uiConnections_.pop_back();
+  }
+  // Similarly, clear all the TreeView and ComboBox gunk that could lead to
+  // dangling pointers
+  remotePlayerList_->remove_all_columns();
+  remotePlayerList_->unset_model();
+  playerCombo_->clear();
+  playerCombo_->unset_model();
   window_->hide();
 }
 
@@ -314,7 +328,7 @@ void Configuring::Impl::playerAdded(
   bool inserted = remotePlayers().insert(newPlayer).second;
   if (!inserted) {
     parent_->context<Machine>().messageHandler().message(
-      utility::Verbosity::error, "duplicate player added\n"
+      utility::Verbosity::error, "duplicate player added"
     );
   }
   refreshRemotePlayers();
@@ -415,6 +429,11 @@ void Configuring::Impl::refreshRemotePlayers()
 
   // Clear out the list box
   remotePlayerListStore_->clear();
+  parent_->context<Machine>().messageHandler().message(
+    utility::Verbosity::info,
+    "refreshRemotePlayers: adding " +
+      boost::lexical_cast<std::string>(remotePlayers().size())
+  );
   BOOST_FOREACH(const RemotePlayer& player, remotePlayers()) {
     auto const cId = player.get<clientId>();
     auto const readinessIt = clientReadiness_.find(cId);

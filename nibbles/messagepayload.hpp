@@ -40,6 +40,11 @@ struct MessagePayload<MessageType::updateReadiness> {
 };
 
 template<>
+struct MessagePayload<MessageType::gameOver> {
+  typedef int type; /* meaningless int */
+};
+
+template<>
 struct MessagePayload<MessageType::gameStart> {
   typedef GameSettings type;
 };
