@@ -2,7 +2,11 @@
 
 namespace nibbles {
 
-TickResult Level::tick(GameSettings const& settings, Moves const& moves)
+TickResult Level::tick(
+  GameSettings const& settings,
+  ScoreHandler& scorer,
+  Moves const& moves
+)
 {
   assert(std::is_sorted(moves.begin(), moves.end()));
   TickResult overallResult = TickResult::none;
@@ -25,7 +29,7 @@ TickResult Level::tick(GameSettings const& settings, Moves const& moves)
     TickResult const result = snake.advanceHead(b, nextHeads);
     if (result == TickResult::number) {
       auto value = get<number>().get<fields::value>();
-      snake.get<score>() += value;
+      scorer(snake.get<player>(), value);
       snake.get<pendingGrowth>() += value*settings.get<growthFactor>();
     }
     overallResult = std::max(overallResult, result);

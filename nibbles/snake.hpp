@@ -21,15 +21,14 @@ struct Snake :
     PlayerId, player,
     std::deque<Point>, points,
     Direction, direction,
-    SnakeLength, pendingGrowth,
-    Score, score
+    SnakeLength, pendingGrowth
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Snake)
 
   Snake(PlayerId id, const Position& pos, SnakeLength startLength) :
     base(
       id, std::deque<Point>(1, pos.get<point>()), pos.get<direction>(),
-      startLength-1, 0/*score*/
+      startLength-1
     )
   {
     if (startLength == 0) ++get<pendingGrowth>();

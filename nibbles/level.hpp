@@ -14,6 +14,7 @@
 #include <nibbles/number.hpp>
 #include <nibbles/board.hpp>
 #include <nibbles/tickresult.hpp>
+#include <nibbles/scorehandler.hpp>
 #include <nibbles/gameeventhandler.hpp>
 #include <nibbles/gamesettings.hpp>
 
@@ -50,11 +51,12 @@ class Level :
     TickResult tick(
       GameSettings const&,
       RandomEngine&,
+      ScoreHandler&,
       GameEventHandler&,
       Moves const&
     );
 
-    TickResult tick(GameSettings const&, Moves const&);
+    TickResult tick(GameSettings const&, ScoreHandler&, Moves const&);
 
     void setNumber(Number const&);
   private:
@@ -135,11 +137,12 @@ template<typename RandomEngine>
 TickResult Level::tick(
   GameSettings const& settings,
   RandomEngine& random,
+  ScoreHandler& scorer,
   GameEventHandler& handler,
   Moves const& moves
 )
 {
-  TickResult result = tick(settings, moves);
+  TickResult result = tick(settings, scorer, moves);
 
   if (result == TickResult::number) {
     auto const oldValue = get<number>().get<value>();

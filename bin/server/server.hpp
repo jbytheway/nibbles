@@ -10,6 +10,7 @@
 #include <boost/multi_index/mem_fun.hpp>
 
 #include <nibbles/game.hpp>
+#include <nibbles/scoretracker.hpp>
 #include <nibbles/utility/messagehandler.hpp>
 
 #include "options.hpp"
@@ -73,6 +74,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
 
     Game game_;
     boost::asio::deadline_timer gameTickTimer_;
+    ScoreTracker scorer_;
     EventForwarder forwarder_;
 
     void netMessage(const MessageBase::Ptr&, Connection*);

@@ -18,12 +18,13 @@ void Game::startLevel(LevelId levelId, GameEventHandler& handler)
 }
 
 TickResult Game::tick(
+  ScoreHandler& scorer,
   GameEventHandler& handler,
   Moves const& moves
 )
 {
   auto tickResult =
-    get<level>().tick(get<settings>(), get<random>(), handler, moves);
+    get<level>().tick(get<settings>(), get<random>(), scorer, handler, moves);
   switch (tickResult) {
     case TickResult::dead:
       startLevel(get<levelId>(), handler);

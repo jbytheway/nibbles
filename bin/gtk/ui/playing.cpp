@@ -6,6 +6,7 @@
 #include <gtkmm.h>
 
 #include <nibbles/level.hpp>
+#include <nibbles/scoretracker.hpp>
 
 namespace nibbles { namespace gtk { namespace ui {
 
@@ -54,7 +55,7 @@ class Playing::Impl {
     // game data
     std::map<uint32_t, std::pair<PlayerId, Direction>> keyBindings_;
     boost::scoped_ptr<Level> level_;
-    std::map<PlayerId, Score> scores_;
+    ScoreTracker scorer_;
 
     // convenience functions
     Active::RemotePlayerContainer const& remotePlayers();
@@ -168,7 +169,7 @@ Playing::Impl::Impl(
 
   // Initialize scores to zero
   BOOST_FOREACH(auto const& player, remotePlayers()) {
-    scores_.insert({player.get<id>(), 0});
+    scorer_.add(player.get<id>());
   }
 
   window_->show();
@@ -219,7 +220,7 @@ void Playing::Impl::tick(const Message<MessageType::tick>& m)
 {
   if (!level_) NIBBLES_FATAL("tick without level");
   auto const& settings = parent_->context<Active>().settings();
-  level_->tick(settings, m.payload());
+  level_->tick(settings, scorer_, m.payload());
   redraw();
 }
 
@@ -246,7 +247,7 @@ void Playing::Impl::refreshScores()
   BOOST_FOREACH(auto const& player, playerSequence) {
     auto it = playerScoreListStore_->append();
     auto row = *it;
-    row[playerScoreListColumns_.score_] = scores_[player.get<id>()];
+    row[playerScoreListColumns_.score_] = scorer_[player.get<id>()];
     row[playerScoreListColumns_.name_] = player.get<name>();
   }
 }

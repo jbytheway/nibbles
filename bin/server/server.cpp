@@ -250,6 +250,9 @@ void Server::checkForGameStart()
     return;
   }
   sendToAll(Message<MessageType::gameStart>(game_.get<settings>()));
+  BOOST_FOREACH(auto const& player, players_.get<SequenceTag>()) {
+    scorer_.add(player.id());
+  }
   game_.start(players_.get<SequenceTag>(), forwarder_);
   tick();
 }
@@ -269,7 +272,7 @@ void Server::tick(const boost::system::error_code& e)
     }
   }
   forwarder_.tick(moves);
-  auto result = game_.tick(forwarder_, moves);
+  auto result = game_.tick(scorer_, forwarder_, moves);
   if (result >= TickResult::advanceLevel) {
     // This means the level is reset, so we need to flush the state in the
     // players

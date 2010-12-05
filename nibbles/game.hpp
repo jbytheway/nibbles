@@ -40,7 +40,7 @@ struct Game :
   void start(const Players& p, GameEventHandler&);
 
   void startLevel(LevelId, GameEventHandler&);
-  TickResult tick(GameEventHandler&, Moves const&);
+  TickResult tick(ScoreHandler&, GameEventHandler&, Moves const&);
 };
 
 template<typename Players>
