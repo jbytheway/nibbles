@@ -27,10 +27,19 @@ TickResult Level::tick(
   }
   BOOST_FOREACH(Snake& snake, snakes) {
     TickResult const result = snake.advanceHead(b, nextHeads);
-    if (result == TickResult::number) {
-      auto value = get<number>().get<fields::value>();
-      scorer(snake.get<player>(), value);
-      snake.get<pendingGrowth>() += value*settings.get<growthFactor>();
+    switch (result) {
+      case TickResult::number:
+        {
+          auto value = get<number>().get<fields::value>();
+          scorer(snake.get<player>(), value);
+          snake.get<pendingGrowth>() += value*settings.get<growthFactor>();
+        }
+        break;
+      case TickResult::dead:
+        scorer(snake.get<player>(), settings.get<deathScore>());
+        break;
+      default:
+        break;
     }
     overallResult = std::max(overallResult, result);
   }
