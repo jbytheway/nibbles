@@ -7,9 +7,9 @@
 namespace nibbles {
 
 struct Network {
-  typedef std::uint8_t PacketLength;
-  static const std::uint16_t defaultPort = 53788;
-  static const std::size_t maxPacketLen = 255;
+  typedef std::uint16_t PacketLength;
+  static const std::uint16_t defaultPort = 53788; // "bbles" on calculator
+  static const std::size_t maxPacketLen = 32768; // No particular reason
 };
 
 }
