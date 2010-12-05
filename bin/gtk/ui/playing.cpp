@@ -1,6 +1,7 @@
 #include "playing.hpp"
 
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
 #include <gtkmm.h>
 
@@ -29,6 +30,7 @@ class Playing::Impl {
 
     // controls
     Gtk::Window* window_;
+    Gtk::Label* levelName_;
     Gtk::TextView* messageView_;
     Gtk::DrawingArea* levelDisplay_;
 
@@ -103,12 +105,15 @@ Playing::Impl::Impl(
   } while (false)
 
   GET_WIDGET(Window, PlayWindow);
+  GET_WIDGET(Label, LevelNameLabel);
+  GET_WIDGET(TreeView, PlayerScoresList);
   GET_WIDGET(TextView, PlayMessageText);
   GET_WIDGET(DrawingArea, LevelDisplay);
 #undef GET_WIDGET
 
   // Store pointers to those widgets we need to access later
   window_ = wPlayWindow;
+  levelName_ = wLevelNameLabel;
   messageView_ = wPlayMessageText;
   levelDisplay_ = wLevelDisplay;
 
@@ -156,6 +161,9 @@ void Playing::Impl::message(const std::string& message)
 void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
 {
   auto const& def = m.payload();
+  auto fullName =
+    (boost::format("Level %d: %s") % def.get<id>() % def.get<name>()).str();
+  levelName_->set_text(fullName);
   auto const& playerSequence = remotePlayers().get<Active::SequenceTag>();
   std::vector<PlayerId> playerIds;
   BOOST_FOREACH(auto const& player, playerSequence) {
