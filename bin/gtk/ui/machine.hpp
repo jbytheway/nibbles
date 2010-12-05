@@ -122,6 +122,7 @@ class Active :
 
     template<MessageType::internal_enum Type>
     sc::result react(events::Message<Type> const&) {
+#if 0
       std::string message =
         "unhandled message of type "+MessageType(Type).string()+"\n";
       for (state_iterator leaf = state_begin();
@@ -134,6 +135,7 @@ class Active :
       context<Machine>().messageHandler().message(
         utility::Verbosity::warning, message
       );
+#endif
       return forward_event();
     }
 
