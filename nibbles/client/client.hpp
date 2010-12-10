@@ -43,8 +43,8 @@ class Client : boost::noncopyable {
     void setReadiness(const bool readiness) {
       postMessage(Message<MessageType::setReadiness>(readiness));
     }
-    void turn(std::pair<PlayerId, Direction> const& t) {
-      postMessage(Message<MessageType::turn>(t));
+    void command(std::pair<PlayerId, Command> const& t) {
+      postMessage(Message<MessageType::command>(t));
     }
 
     boost::signal<void (MessageBase::Ptr const&)>& messageSignal() {

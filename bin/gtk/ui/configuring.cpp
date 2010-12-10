@@ -87,7 +87,7 @@ class Configuring::Impl {
 
     Gtk::Entry* playerName_;
     Gtk::ColorButton* playerColor_;
-    std::array<Gtk::Button*, Direction::max> playerControlButtons_;
+    std::array<Gtk::Button*, Command::max> playerControlButtons_;
 
     Gtk::Dialog* newKeyDialog_;
     Gtk::Button* newKeyCancelButton_;
@@ -214,6 +214,7 @@ Configuring::Impl::Impl(
   GET_WIDGET(Button, DownButton);
   GET_WIDGET(Button, LeftButton);
   GET_WIDGET(Button, RightButton);
+  GET_WIDGET(Button, PauseButton);
 
   GET_WIDGET(Dialog, NewKeyDialog);
   GET_WIDGET(Button, NewKeyCancelButton);
@@ -227,10 +228,11 @@ Configuring::Impl::Impl(
   playerCombo_ = wPlayerCombo;
   playerName_ = wPlayerNameEntry;
   playerColor_ = wPlayerColorButton;
-  playerControlButtons_[Direction::up] = wUpButton;
-  playerControlButtons_[Direction::down] = wDownButton;
-  playerControlButtons_[Direction::left] = wLeftButton;
-  playerControlButtons_[Direction::right] = wRightButton;
+  playerControlButtons_[Command::up] = wUpButton;
+  playerControlButtons_[Command::down] = wDownButton;
+  playerControlButtons_[Command::left] = wLeftButton;
+  playerControlButtons_[Command::right] = wRightButton;
+  playerControlButtons_[Command::pause] = wPauseButton;
 
   newKeyDialog_ = wNewKeyDialog;
   newKeyCancelButton_ = wNewKeyCancelButton;
@@ -263,10 +265,11 @@ Configuring::Impl::Impl(
   CONNECT_BUTTON(Delete, deletePlayer);
   CONNECT_BUTTON(Add, addPlayerToGame);
   CONNECT_BUTTON(Remove, removePlayerFromGame);
-  CONNECT_BUTTON(Up, setBinding<Direction::up>);
-  CONNECT_BUTTON(Down, setBinding<Direction::down>);
-  CONNECT_BUTTON(Left, setBinding<Direction::left>);
-  CONNECT_BUTTON(Right, setBinding<Direction::right>);
+  CONNECT_BUTTON(Up, setBinding<Command::up>);
+  CONNECT_BUTTON(Down, setBinding<Command::down>);
+  CONNECT_BUTTON(Left, setBinding<Command::left>);
+  CONNECT_BUTTON(Right, setBinding<Command::right>);
+  CONNECT_BUTTON(Pause, setBinding<Command::pause>);
   CONNECT_BUTTON(NewKeyCancel, cancelNewKey);
 #undef CONNECT_BUTTON
   uiConnections_.push_back(window_->signal_hide().connect(
@@ -490,9 +493,9 @@ void Configuring::Impl::refreshLocalPlayer()
   if (player) {
     playerName_->set_text(player->get<name>());
     playerColor_->set_color(ColorConverter::toGdkColor(player->get<color>()));
-    for (int d = 0; d < Direction::max; ++d) {
-      playerControlButtons_[d]->set_label(
-          Direction(d).string()+": "+gdk_keyval_name(player->get<controls>()[d])
+    for (Command c(0); c < Command::max; ++c) {
+      playerControlButtons_[c]->set_label(
+          c.string()+": "+gdk_keyval_name(player->get<controls>()[c])
         );
     }
   } else {
@@ -539,11 +542,12 @@ void Configuring::Impl::createPlayer()
     return;
   }
 
-  std::array<uint32_t, Direction::max> newControls;
-  newControls[Direction::up] = GDK_Up;
-  newControls[Direction::down] = GDK_Down;
-  newControls[Direction::left] = GDK_Left;
-  newControls[Direction::right] = GDK_Right;
+  std::array<uint32_t, Command::max> newControls;
+  newControls[Command::up] = GDK_Up;
+  newControls[Command::down] = GDK_Down;
+  newControls[Command::left] = GDK_Left;
+  newControls[Command::right] = GDK_Right;
+  newControls[Command::pause] = GDK_Pause;
 
   ControlledPlayer newPlayer(
       Player(newName, Color::yellow),

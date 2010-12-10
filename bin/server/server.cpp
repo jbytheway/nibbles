@@ -22,6 +22,8 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
   tcp_(*this),
   game_(o.gameSettings()),
   gameTickTimer_(io),
+  pausing_(false),
+  paused_(false),
   forwarder_(boost::bind(&Server::sendToAll, this, _1))
 {
   signalCatcher.connect(boost::bind(&Server::signalled, this));
@@ -202,7 +204,7 @@ void Server::internalNetMessage(
 
 template<>
 void Server::internalNetMessage(
-    const Message<MessageType::turn>& netMessage,
+    const Message<MessageType::command>& netMessage,
     Connection* connection
   )
 {
@@ -216,11 +218,23 @@ void Server::internalNetMessage(
   }
   ClientId purportedClientId = it->clientId();
   if (clientId != purportedClientId) {
-    message(Verbosity::warning, "attempted spoofed turn");
+    message(Verbosity::warning, "attempted spoofed command");
     return;
   }
-  Direction dir = netMessage.payload().second;
-  it->queueTurn(dir);
+  Command command = netMessage.payload().second;
+  switch (command) {
+    case Direction::up:
+    case Direction::down:
+    case Direction::left:
+    case Direction::right:
+      it->queueTurn(static_cast<Direction>(command));
+      break;
+    case Command::pause:
+      togglePaused();
+      break;
+    default:
+      NIBBLES_FATAL("unexpected command");
+  }
 }
 
 void Server::netMessage(
@@ -270,6 +284,11 @@ void Server::tick(const boost::system::error_code& e)
     message(Verbosity::info, "game interrupted");
     return;
   }
+  if (pausing_) {
+    pausing_ = false;
+    paused_ = true;
+    return;
+  }
   gameTickTimer_.expires_from_now(game_.get<tickInterval>());
   Moves moves;
   BOOST_FOREACH(auto const& player, players_) {
@@ -293,6 +312,16 @@ void Server::tick(const boost::system::error_code& e)
   gameTickTimer_.async_wait(boost::bind(
         &Server::tick, this, boost::asio::placeholders::error
       ));
+}
+
+void Server::togglePaused()
+{
+  if (paused_) {
+    paused_ = false;
+    tick();
+  } else {
+    pausing_ = true;
+  }
 }
 
 void Server::gameEnd()

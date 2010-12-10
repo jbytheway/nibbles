@@ -216,7 +216,18 @@
                       <placeholder/>
                     </child>
                     <child>
-                      <placeholder/>
+                      <widget class="GtkButton" id="PauseButton">
+                        <property name="label" translatable="yes">Pause</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                      </widget>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
                     </child>
                   </widget>
                   <packing>

@@ -55,7 +55,7 @@ class Playing::Impl {
     Glib::RefPtr<Gtk::ListStore> playerScoreListStore_;
 
     // game data
-    std::map<uint32_t, std::pair<PlayerId, Direction>> keyBindings_;
+    std::map<uint32_t, std::pair<PlayerId, Command>> keyBindings_;
     boost::scoped_ptr<Level> level_;
     ScoreTracker scorer_;
 
@@ -165,8 +165,8 @@ Playing::Impl::Impl(
     auto const it = remoteNameIndex.find(player.get<name>());
     if (it == remoteNameIndex.end()) continue;
     auto const controls = player.get<fields::controls>();
-    for (Direction dir = Direction(0); dir < Direction::max; ++dir) {
-      keyBindings_[controls[dir]] = {it->get<id>(), dir};
+    for (Command comm = Command(0); comm < Command::max; ++comm) {
+      keyBindings_[controls[comm]] = {it->get<id>(), comm};
     }
   }
 
@@ -399,7 +399,7 @@ void Playing::Impl::keyPress(GdkEventKey* event)
   }
   if (auto const& client =
       parent_->state_cast<Connectedness const&>().client()) {
-    client->turn(it->second);
+    client->command(it->second);
   } else {
     NIBBLES_FATAL("playing but not connected");
   }

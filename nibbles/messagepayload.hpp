@@ -8,6 +8,7 @@
 #include <nibbles/number.hpp>
 #include <nibbles/moves.hpp>
 #include <nibbles/gamesettings.hpp>
+#include <nibbles/command.hpp>
 
 namespace nibbles {
 
@@ -65,8 +66,8 @@ struct MessagePayload<MessageType::tick> {
 };
 
 template<>
-struct MessagePayload<MessageType::turn> {
-  typedef std::pair<PlayerId, Direction> type;
+struct MessagePayload<MessageType::command> {
+  typedef std::pair<PlayerId, Command> type;
 };
 
 }

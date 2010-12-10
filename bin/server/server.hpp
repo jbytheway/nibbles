@@ -74,6 +74,8 @@ class Server : public utility::MessageHandler, private boost::noncopyable
 
     Game game_;
     boost::asio::deadline_timer gameTickTimer_;
+    bool pausing_; // Will pause at next tick
+    bool paused_; // Am paused
     ScoreTracker scorer_;
     EventForwarder forwarder_;
 
@@ -90,6 +92,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
 
     void checkForGameStart();
     void tick(const boost::system::error_code& e = boost::system::error_code());
+    void togglePaused();
     void gameEnd();
 };
 

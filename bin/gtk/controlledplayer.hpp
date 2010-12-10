@@ -4,7 +4,7 @@
 #include <array>
 
 #include <nibbles/player.hpp>
-#include <nibbles/direction.hpp>
+#include <nibbles/command.hpp>
 
 namespace nibbles { namespace gtk {
 
@@ -12,7 +12,7 @@ struct ControlledPlayer :
   utility::DataClass<
       ControlledPlayer,
       utility::InheritFrom<Player>,
-      std::array<uint32_t, Direction::max>, controls
+      std::array<uint32_t, Command::max>, controls
     >
 {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(ControlledPlayer)
