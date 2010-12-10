@@ -15,7 +15,7 @@ LevelDefinition correction(
     vector<Position>& starts
   )
 {
-  // Adjust for QBASICs 1-based indexing and score line at
+  // Adjust for QBASIC's 1-based indexing and score line at
   // the top
   Point offset(1,3);
   for (size_t i=0; i<starts.size(); i++)
@@ -33,13 +33,16 @@ LevelDefinition correction(
 
 // TODO: when DataClass supports it, remove the wrapping of values by
 // Direction() and (later) string().
-LevelDefinition classicLevel(LevelId levelNumber)
+LevelDefinition classicLevel(
+  uint32_t whichLevel,
+  LevelId levelNumber
+)
 {
   string name;
   vector<Position> starts(2);
   vector<Block> walls;
 
-  switch (levelNumber)
+  switch (whichLevel)
   {
     case 0:
       name = "Field";
@@ -155,18 +158,18 @@ LevelDefinition ultraLevel(LevelId levelNumber)
   {
     case 0:
       // *empty*
-      return classicLevel(LevelId::fromInteger(0));
+      return classicLevel(0, levelNumber);
     case 1:
       //
       // ---
       //
-      return classicLevel(LevelId::fromInteger(1));
+      return classicLevel(1, levelNumber);
     case 2:
       //
       // | |
       // | |
       //
-      return classicLevel(LevelId::fromInteger(2));
+      return classicLevel(2, levelNumber);
     case 3:
       name = "T";
       //
@@ -208,7 +211,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       //      |
       //----- |
       //      |
-      return classicLevel(LevelId::fromInteger(3));
+      return classicLevel(3, levelNumber);
     case 7:
       name = "3 bar";
       //
@@ -292,7 +295,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       // |   |
       //  ---
       //
-      return classicLevel(LevelId::fromInteger(4));
+      return classicLevel(4, levelNumber);
     case 13:
       name = "Skew";
       //
@@ -333,7 +336,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       //
       // | | | |
       // | | | |
-      return classicLevel(LevelId::fromInteger(5));
+      return classicLevel(5, levelNumber);
     case 16:
       name = "Castle";
       //
@@ -364,7 +367,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       break;
     case 17:
       // Central vertical dotted line
-      return classicLevel(LevelId::fromInteger(6));
+      return classicLevel(6, levelNumber);
     case 18:
       name = "Fortress";
       //
@@ -404,7 +407,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       // | | | | |
       // | | | | |
       //   |   |
-      return classicLevel(LevelId::fromInteger(7));
+      return classicLevel(7, levelNumber);
     case 20:
       name = "Deception";
       //
@@ -434,7 +437,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       //  \  \    //
       //   \  \   //
       //
-      return classicLevel(LevelId::fromInteger(8));
+      return classicLevel(8, levelNumber);
     case 22:
       name = "Spill-proof";
       //
@@ -511,7 +514,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       break;
     case 26:
       // Many non-aligned dotted lines
-      return classicLevel(LevelId::fromInteger(9));
+      return classicLevel(9, levelNumber);
     case 27:
       name = "Manhattan";
       // Dense grid of dots
@@ -580,7 +583,7 @@ LevelPack classicLevels()
 {
   vector<LevelDefinition> levels;
   for (LevelId i; i<10; i++)
-    levels.push_back(classicLevel(i));
+    levels.push_back(classicLevel(i, i));
   return LevelPack(string("classic"), std::move(levels));
 }
 
