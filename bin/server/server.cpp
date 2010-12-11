@@ -289,7 +289,9 @@ void Server::tick(const boost::system::error_code& e)
     paused_ = true;
     return;
   }
-  gameTickTimer_.expires_from_now(game_.get<tickInterval>());
+  auto interval = game_.get<tickInterval>();
+  gameTickTimer_.expires_from_now(interval);
+
   Moves moves;
   BOOST_FOREACH(auto const& player, players_) {
     auto move = player.dequeue();

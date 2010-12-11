@@ -19,7 +19,8 @@ Options::Options(int argc, char const* const* const argv) :
   tcpPort(Network::defaultPort),
   levelPack(),
   startLevel(),
-  startInterval(100)
+  startInterval(100),
+  intervalFactor(0.98)
 {
   string optionsFile = string(getenv("HOME"))+"/.nibbles/server-config";
   unsigned int startLevel;
@@ -32,6 +33,7 @@ Options::Options(int argc, char const* const* const argv) :
   parser.addOption("levels",      'l', &levelPack);
   parser.addOption("level",       's', &startLevel);
   parser.addOption("interval",    'i', &startInterval);
+  parser.addOption("factor",      'f', &intervalFactor);
 
   if (parser.parse(optionsFile, argc, argv)) {
     ostringstream message;
@@ -63,6 +65,8 @@ string Options::usage()
     "  -s, --level LEVEL     Specify start level (default 0)\n"
     "  -i, --interval INT    Specify initial tick interval in milliseconds\n"
     "                        (defaults to 100)\n"
+    "  -f, --factor FACT     Specify factor tick interval multiplied by\n"
+    "                        (defaults to 0.98)\n"
     "Options also read from ~/.nibbles/server-config\n";
   return result.str();
 }
@@ -72,6 +76,7 @@ GameSettings Options::gameSettings() const
   return GameSettings(
       startLevel,
       boost::posix_time::milliseconds(startInterval),
+      intervalFactor /* Interval factor */,
       5 /* Start lives */,
       2 /* Start length */,
       3 /* Growth rate */,

@@ -20,6 +20,7 @@ struct Options
   std::string levelPack;
   LevelId startLevel;
   uint32_t startInterval;
+  double intervalFactor;
 
   static std::string usage();
   GameSettings gameSettings() const;

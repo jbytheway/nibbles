@@ -18,6 +18,7 @@ struct GameSettings :
     GameSettings,
     LevelId, level,
     boost::posix_time::time_duration, tickInterval,
+    double, tickIntervalFactor,
     LifeCount, startLives,
     SnakeLength, startLength,
     SnakeLength, growthFactor,
