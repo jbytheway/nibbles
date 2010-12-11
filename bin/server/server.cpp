@@ -24,7 +24,8 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
   gameTickTimer_(io),
   pausing_(false),
   paused_(false),
-  forwarder_(boost::bind(&Server::sendToAll, this, _1))
+  forwarder_(boost::bind(&Server::sendToAll, this, _1)),
+  highScores_(o.highScores)
 {
   signalCatcher.connect(boost::bind(&Server::signalled, this));
 
@@ -328,8 +329,10 @@ void Server::togglePaused()
 
 void Server::gameEnd()
 {
-  // TODO: high score info
-  sendToAll(Message<MessageType::gameOver>(0));
+  HighScore highScore(players_.get<SequenceTag>(), scorer_);
+  auto scoreReport = highScores_.insert(game_.get<settings>(), highScore);
+  highScores_.save();
+  sendToAll(Message<MessageType::gameOver>(scoreReport));
   BOOST_FOREACH(auto& connection, connectionPool_.get<SequenceTag>()) {
     setReadiness(&*connection, false);
   }

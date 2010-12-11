@@ -9,6 +9,7 @@
 #include <nibbles/moves.hpp>
 #include <nibbles/gamesettings.hpp>
 #include <nibbles/command.hpp>
+#include <nibbles/highscorereport.hpp>
 
 namespace nibbles {
 
@@ -42,7 +43,7 @@ struct MessagePayload<MessageType::updateReadiness> {
 
 template<>
 struct MessagePayload<MessageType::gameOver> {
-  typedef int type; /* meaningless int */
+  typedef HighScoreReport type;
 };
 
 template<>

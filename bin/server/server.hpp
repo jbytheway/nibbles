@@ -17,6 +17,7 @@
 #include "tcpserver.hpp"
 #include "remoteplayer.hpp"
 #include "eventforwarder.hpp"
+#include "highscoremanager.hpp"
 
 namespace nibbles { namespace server {
 
@@ -78,6 +79,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     bool paused_; // Am paused
     ScoreTracker scorer_;
     EventForwarder forwarder_;
+    HighScoreManager highScores_;
 
     void netMessage(const MessageBase::Ptr&, Connection*);
     void setReadiness(Connection*, bool ready);

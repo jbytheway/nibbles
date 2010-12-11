@@ -27,6 +27,10 @@ struct GameSettings :
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(GameSettings)
 };
 
+// Ordering doesn't mean anything in particular; just so that GameSettings can
+// be used as an AssociativeContainer key
+bool operator<(GameSettings const&, GameSettings const&);
+
 }
 
 #endif // NIBBLES__GAMESETTINGS_HPP

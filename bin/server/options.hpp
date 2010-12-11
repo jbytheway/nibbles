@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <boost/filesystem/path.hpp>
+
 #include <nibbles/gamesettings.hpp>
 #include <nibbles/utility/verbosity.hpp>
 
@@ -18,6 +20,7 @@ struct Options
   std::string tcpAddress;
   uint16_t tcpPort;
   std::string levelPack;
+  boost::filesystem::path highScores;
   LevelId startLevel;
   uint32_t startInterval;
   double intervalFactor;

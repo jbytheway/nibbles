@@ -18,6 +18,7 @@ Options::Options(int argc, char const* const* const argv) :
   tcpAddress("127.0.0.1"),
   tcpPort(Network::defaultPort),
   levelPack(),
+  highScores(string(getenv("HOME"))+"/.nibbles/server-highscores"),
   startLevel(),
   startInterval(100),
   intervalFactor(0.98)
@@ -31,7 +32,8 @@ Options::Options(int argc, char const* const* const argv) :
   parser.addOption("tcp-addr",    'a', &tcpAddress);
   parser.addOption("tcp-port",    'p', &tcpPort);
   parser.addOption("levels",      'l', &levelPack);
-  parser.addOption("level",       's', &startLevel);
+  parser.addOption("high-scores", 's', &highScores);
+  parser.addOption("level",       'b', &startLevel);
   parser.addOption("interval",    'i', &startInterval);
   parser.addOption("factor",      'f', &intervalFactor);
 
@@ -54,20 +56,22 @@ string Options::usage()
 {
   ostringstream result;
   result <<
-    "Usage: nibbles-server [OPTIONS...]\n"
-    "  -h, --help            Display this message\n"
-    "  -v, --verbosity VERB  Set verbosity to error, warning, info or debug\n"
-    "  -t, --tcp             Serve on TCP (defaults to on\n"
-    "  -a, --tcp-addr ADDR   Address for TCP server (defaults to 127.0.0.1)\n"
-    "  -p, --tcp-port PORT   Port for TCP server (defaults to " <<
-      Network::defaultPort << ")\n"
-    "  -l, --levels FILE     Specify level pack (no default)\n"
-    "  -s, --level LEVEL     Specify start level (default 0)\n"
-    "  -i, --interval INT    Specify initial tick interval in milliseconds\n"
-    "                        (defaults to 100)\n"
-    "  -f, --factor FACT     Specify factor tick interval multiplied by\n"
-    "                        (defaults to 0.98)\n"
-    "Options also read from ~/.nibbles/server-config\n";
+"Usage: nibbles-server [OPTIONS...]\n"
+"  -h, --help              Display this message\n"
+"  -v, --verbosity VERB    Set verbosity to error, warning, info or debug\n"
+"  -t, --tcp               Serve on TCP (default on)\n"
+"  -a, --tcp-addr ADDR     Address for TCP server (default 127.0.0.1)\n"
+"  -p, --tcp-port PORT     Port for TCP server (default " <<
+  Network::defaultPort << ")\n"
+"  -l, --levels FILE       Specify level pack (no default)\n"
+"  -b, --level LEVEL       Specify start level (default 0)\n"
+"  -s, --high-scores FILE  Specify file to store high scores\n"
+"                          (default ~/.nibbles/server-highscores)\n"
+"  -i, --interval INT      Specify initial tick interval in milliseconds\n"
+"                          (defaults to 100)\n"
+"  -f, --factor FACT       Specify factor tick interval multiplied by\n"
+"                          (defaults to 0.98)\n"
+"Options also read from ~/.nibbles/server-config\n";
   return result.str();
 }
 

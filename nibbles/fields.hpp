@@ -11,9 +11,10 @@ namespace nibbles {
   (blocks)(blue)(board)(clientId)(color)(controls)(deathScore)\
   (definition)(direction)(green)(growthFactor)(h)(id)(level)\
   (levelId)(levels)(max)(min)(name)(number)(pendingGrowth)\
-  (player)(players)(point)(points)(position)(random)\
-  (ready)(red)(score)(settings)(snakes)(startLength)(startLives)(starts)\
-  (states)(tickInterval)(tickIntervalFactor)(value)(w)(x)(y)
+  (player)(players)(playerScores)(point)(points)(position)(random)\
+  (ready)(red)(score)(scores)(settings)\
+  (snakes)(startLength)(startLives)(starts)\
+  (states)(tickInterval)(tickIntervalFactor)(time)(totalScore)(value)(w)(x)(y)
 
 namespace fields {
 

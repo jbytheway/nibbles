@@ -25,7 +25,9 @@
 // it's not necessary to remember to use it every time elsewhere
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/serialization/set.hpp>
 
+#include <nibbles/utility/dataclasscompare.hpp>
 #include <nibbles/utility/isfield.hpp>
 #include <nibbles/utility/getfieldname.hpp>
 #include <nibbles/utility/singletonorsequence.hpp>
@@ -79,6 +81,7 @@ struct Inherit;
 template<typename Derived, typename... Fields>
 class DataClass : public detail::BaseClassHelper<Fields...>::type {
   friend class boost::serialization::access;
+  friend class DataClassCompare<DataClass>;
   private:
     typedef typename detail::FieldMapHelper<Fields...>::type FieldMapSequence;
     static const size_t numFields_ =

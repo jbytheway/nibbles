@@ -80,6 +80,7 @@ class IdBase {
     }
     friend bool operator==(TDerived l, TDerived r) { return l.val == r.val; }
     friend bool operator!=(TDerived l, TDerived r) { return l.val != r.val; }
+    friend bool operator<(TDerived l, TDerived r) { return l.val < r.val; }
   protected:
     /** \brief Default constructor always produces the same, valid id */
     IdBase() : val(0) {}
