@@ -118,7 +118,7 @@ client::Client::Ptr UI::Impl::makeClient()
   } catch (boost::system::system_error& e) {
     message(
       utility::Verbosity::error,
-      std::string("connection failed: ")+e.what()+"\n"
+      std::string("connection failed: ")+e.what()
     );
     throw;
   }
@@ -150,7 +150,7 @@ void UI::Impl::handleNetMessage(const MessageBase::Ptr& message)
 
 void UI::Impl::disconnect()
 {
-  writeMessage("disconnecting...\n");
+  writeMessage("disconnecting...");
   machine_.process_event(events::Disconnect());
 }
 
