@@ -173,10 +173,17 @@ class Active :
     void settings(GameSettings const& settings) {
       settings_.reset(new GameSettings(settings));
     }
+    HighScoreReport const& highScoreReport() const {
+      return *highScoreReport_;
+    }
+    void highScoreReport(HighScoreReport const& highScoreReport) {
+      highScoreReport_.reset(new HighScoreReport(highScoreReport));
+    }
   private:
     RemotePlayerContainer remotePlayers_;
     std::vector<ControlledPlayer> localPlayers_;
     boost::scoped_ptr<GameSettings> settings_;
+    boost::scoped_ptr<HighScoreReport> highScoreReport_;
 };
 
 /// The first orthogonal component of Active follows the UI through
@@ -220,7 +227,7 @@ class Playing :
       sc::custom_reaction<events::Message<MessageType::levelStart>>,
       sc::custom_reaction<events::Message<MessageType::newNumber>>,
       sc::custom_reaction<events::Message<MessageType::tick>>,
-      sc::transition<events::Message<MessageType::gameOver>, HighScoreView>
+      sc::custom_reaction<events::Message<MessageType::gameOver>>
     > reactions;
 
     Playing(my_context);
@@ -230,6 +237,7 @@ class Playing :
     sc::result react(events::Message<MessageType::levelStart> const&);
     sc::result react(events::Message<MessageType::newNumber> const&);
     sc::result react(events::Message<MessageType::tick> const&);
+    sc::result react(events::Message<MessageType::gameOver> const&);
   private:
     class Impl;
     boost::scoped_ptr<Impl> impl_;

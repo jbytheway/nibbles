@@ -110,6 +110,14 @@ sc::result Playing::react(
   return discard_event();
 }
 
+sc::result Playing::react(
+  events::Message<MessageType::gameOver> const& event
+)
+{
+  context<Active>().highScoreReport(event.message.payload());
+  return transit<HighScoreView>();
+}
+
 Playing::Impl::Impl(
   Playing* parent,
   const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml

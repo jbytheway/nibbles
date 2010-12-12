@@ -550,7 +550,7 @@
             <property name="visible">True</property>
             <property name="orientation">vertical</property>
             <child>
-              <widget class="GtkTreeView" id="HighScoreView">
+              <widget class="GtkTreeView" id="HighScoreList">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>
