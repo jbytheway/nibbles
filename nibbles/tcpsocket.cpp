@@ -97,7 +97,7 @@ void TcpSocket::handleRead(
     while (true) {
       Network::PacketLength packetLength;
       if (dataLen_ < sizeof(packetLength)) break;
-      packetLength = *reinterpret_cast<Network::PacketLength*>(data_.data());
+      memcpy(&packetLength, data_.data(), sizeof(packetLength));
       utility::ntoh(packetLength);
       if (dataLen_ < sizeof(packetLength)+packetLength) break;
       uint8_t const* const packetStart = data_.data()+sizeof(packetLength);
