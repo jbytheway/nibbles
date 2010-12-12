@@ -3,7 +3,7 @@
 
 namespace nibbles {
 
-class DeserializationException : std::runtime_error {
+class DeserializationException : public std::runtime_error {
   public:
     DeserializationException(const std::string& message) :
       std::runtime_error(message)
