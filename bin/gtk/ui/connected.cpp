@@ -11,7 +11,7 @@ Connected::~Connected()
 {
   auto& client = context<Connectedness>().client_;
   context<Machine>().messageHandler().message(
-    utility::Verbosity::error, "disconnecting\n"
+    utility::Verbosity::error, "disconnecting"
   );
   assert(client);
 

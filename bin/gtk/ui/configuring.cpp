@@ -572,7 +572,7 @@ void Configuring::Impl::addPlayerToGame()
   Player* currentPlayer = getCurrentPlayer();
   if (!currentPlayer) {
     parent_->context<Machine>().messageHandler().message(
-      utility::Verbosity::error, "no player selected\n"
+      utility::Verbosity::error, "no player selected"
     );
     return;
   }
@@ -581,7 +581,7 @@ void Configuring::Impl::addPlayerToGame()
     client->addPlayer(*currentPlayer);
   } else {
     parent_->context<Machine>().messageHandler().message(
-      utility::Verbosity::error, "not connected\n"
+      utility::Verbosity::error, "not connected"
     );
   }
 }
