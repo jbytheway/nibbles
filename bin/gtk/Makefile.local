@@ -8,6 +8,7 @@ THIS_LDFLAGS := -no-install
 LIBS := \
 	`pkg-config --libs gtkglextmm-1.2` \
 	`pkg-config --libs libglademm-2.4` \
+	-lftgl \
 	-lportaudio \
 	-lsndfile \
 	-lboost_filesystem \

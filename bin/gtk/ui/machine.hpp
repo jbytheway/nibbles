@@ -61,6 +61,7 @@ class Machine : public sc::state_machine<Machine, Active> {
       ClientFactory& clientFactory,
       boost::filesystem::path playerFile,
       Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+      boost::filesystem::path const& fontPath,
       GameSounds const&
     );
 
@@ -78,6 +79,9 @@ class Machine : public sc::state_machine<Machine, Active> {
     Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml() const {
       return gladeXml_;
     }
+    boost::filesystem::path const& fontPath() const {
+      return fontPath_;
+    }
     GameSounds const& sounds() const { return sounds_; }
     boost::signal<void ()>& terminating() {
       return terminating_;
@@ -91,6 +95,7 @@ class Machine : public sc::state_machine<Machine, Active> {
     ClientFactory& clientFactory_;
     boost::filesystem::path playerFile_;
     Glib::RefPtr<Gnome::Glade::Xml> gladeXml_;
+    boost::filesystem::path fontPath_;
     GameSounds const& sounds_;
 
     // Signals to talk back to UI

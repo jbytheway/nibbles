@@ -21,6 +21,7 @@ struct Options {
   std::string address;
   uint16_t port;
   boost::filesystem::path gladePath;
+  boost::filesystem::path fontPath;
 
   void show_help(std::ostream&) const;
 };

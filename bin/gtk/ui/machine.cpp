@@ -7,12 +7,14 @@ Machine::Machine(
   ClientFactory& clientFactory,
   boost::filesystem::path playerFile,
   Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+  boost::filesystem::path const& fontPath,
   GameSounds const& sounds
 ) :
   messageHandler_(messageHandler),
   clientFactory_(clientFactory),
   playerFile_(playerFile),
   gladeXml_(gladeXml),
+  fontPath_(fontPath),
   sounds_(sounds)
 {}
 

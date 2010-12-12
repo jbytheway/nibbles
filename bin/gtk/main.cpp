@@ -71,10 +71,17 @@ int main(int argc, char** argv)
     gladeDir = exePath;
   }
 
+  // FIXME: sound = glade ??
   boost::filesystem::path soundDir = options.gladePath;
 
   if (soundDir.empty()) {
     soundDir = exePath;
+  }
+
+  auto fontPath = options.fontPath;
+
+  if (fontPath.empty()) {
+    fontPath = exePath/"Courier.ttf";
   }
 
   auto gladeFile = gladeDir/"nibbles.glade";
@@ -85,7 +92,7 @@ int main(int argc, char** argv)
   GameSounds sounds(service, soundDir);
   sounds.intro->async_play();
 
-  ui::UI ui(io, options, gladeXml, sounds);
+  ui::UI ui(io, options, gladeXml, fontPath, sounds);
 
   if (options.threaded) {
     IoThread ioThreadObj(io);

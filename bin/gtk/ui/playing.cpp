@@ -5,6 +5,7 @@
 
 #include <gtkmm.h>
 #include <gtkglmm.h>
+#include <FTGL/ftgl.h>
 
 #include <nibbles/level.hpp>
 #include <nibbles/scoretracker.hpp>
@@ -13,7 +14,11 @@ namespace nibbles { namespace gtk { namespace ui {
 
 class Playing::Impl {
   public:
-    Impl(Playing* parent, const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml);
+    Impl(
+      Playing* parent,
+      const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml,
+      boost::filesystem::path const& fontPath
+    );
     ~Impl();
 
     // Implementation of MessageSink interface
@@ -32,6 +37,7 @@ class Playing::Impl {
 
     // controls
     Gtk::Window* window_;
+    Gtk::VBox* vBox_;
     Gtk::Label* levelName_;
     Gtk::TextView* messageView_;
     Gtk::DrawingArea* levelDisplay_;
@@ -57,6 +63,8 @@ class Playing::Impl {
 
     Gtk::GL::DrawingArea glLevelDisplay_;
 
+    FTGLPolygonFont font_;
+
     // game data
     std::map<uint32_t, std::pair<PlayerId, Command>> keyBindings_;
     boost::scoped_ptr<Level> level_;
@@ -79,7 +87,8 @@ Playing::Playing(my_context context) :
   my_base(context),
   impl_(new Impl(
       this,
-      this->context<Machine>().gladeXml()
+      this->context<Machine>().gladeXml(),
+      this->context<Machine>().fontPath()
     ))
 {}
 
@@ -124,11 +133,16 @@ sc::result Playing::react(
 
 Playing::Impl::Impl(
   Playing* parent,
-  const Glib::RefPtr<Gnome::Glade::Xml>& gladeXml
+  Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+  boost::filesystem::path const& fontPath
 ) :
   parent_(parent),
-  window_(NULL)
+  window_(NULL),
+  font_(fontPath.file_string().c_str())
 {
+  if (font_.Error()) {
+    NIBBLES_FATAL("couldn't open font at "<<fontPath);
+  }
 #define GET_WIDGET(type, name)                   \
   Gtk::type* w##name = NULL;                     \
   do {                                           \
@@ -148,6 +162,7 @@ Playing::Impl::Impl(
 
   // Store pointers to those widgets we need to access later
   window_ = wPlayWindow;
+  vBox_ = wPlayVBox;
   levelName_ = wLevelNameLabel;
   playerScoreList_ = wPlayerScoreList;
   messageView_ = wPlayMessageText;
@@ -163,7 +178,7 @@ Playing::Impl::Impl(
   }
   glLevelDisplay_.set_size_request(500, 300);
   glLevelDisplay_.show();
-  wPlayVBox->pack_end(glLevelDisplay_);
+  vBox_->pack_end(glLevelDisplay_);
 
   // Attach columns
   playerScoreListStore_ = Gtk::ListStore::create(playerScoreListColumns_);
@@ -216,6 +231,7 @@ Playing::Impl::~Impl()
     uiConnections_.back().disconnect();
     uiConnections_.pop_back();
   }
+  vBox_->remove(glLevelDisplay_);
   playerScoreList_->unset_model();
   playerScoreList_->remove_all_columns();
   window_->hide();
@@ -496,7 +512,6 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
       // Rescale to game units
       double const aspect = width / height;
       double const levelAspect = double(levelWidth) / levelHeight;
-      std::fprintf(stderr, "aspect=%f, levelAspect=%f\n", aspect, levelAspect);
       double visibleWidth = levelWidth;
       double visibleHeight = levelHeight;
       if (aspect >= levelAspect) {
@@ -531,19 +546,23 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
 
         // Draw the number green background
         auto const& number = level_->get<fields::number>();
-        auto const& pos = number.get<position>();
+        auto const& numberPos = number.get<position>();
         glColor3f(0, 0.5, 0);
         glVertex2f(
-          pos.get<min>().get<fields::x>(), pos.get<min>().get<fields::y>()
+          numberPos.get<min>().get<fields::x>(),
+          numberPos.get<min>().get<fields::y>()
         );
         glVertex2f(
-          pos.get<min>().get<fields::x>(), pos.get<max>().get<fields::y>()
+          numberPos.get<min>().get<fields::x>(),
+          numberPos.get<max>().get<fields::y>()
         );
         glVertex2f(
-          pos.get<max>().get<fields::x>(), pos.get<max>().get<fields::y>()
+          numberPos.get<max>().get<fields::x>(),
+          numberPos.get<max>().get<fields::y>()
         );
         glVertex2f(
-          pos.get<max>().get<fields::x>(), pos.get<min>().get<fields::y>()
+          numberPos.get<max>().get<fields::x>(),
+          numberPos.get<min>().get<fields::y>()
         );
 
         // Draw the snakes
@@ -561,19 +580,16 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
           }
         }
       glEnd();
-#if 0
-      // Write the yellow number
-      cr->set_source_rgb(1, 1, 0);
-      cr->set_font_size(pos.height()-0.2);
-      cr->set_line_width(1/aspect); // Make lines one pixel wide
-      cr->move_to(
-        pos.get<min>().get<fields::x>()-0.1,
-        pos.get<max>().get<fields::y>()-0.2
+
+      glColor3f(1, 1, 0);
+      glScalef(1, -1, 1);
+      font_.FaceSize(numberPos.height());
+      FTPoint pos(
+        numberPos.get<min>().get<fields::x>()-0.1,
+        0.2-numberPos.get<max>().get<fields::y>()
       );
       auto val = boost::lexical_cast<std::string>(number.get<value>());
-      cr->text_path(val);
-      cr->fill();
-#endif
+      font_.Render(val.c_str(), -1 /* all chars */, pos);
     } else {
       // TODO: do we need a "nothing there" image to aid debugging?
     }

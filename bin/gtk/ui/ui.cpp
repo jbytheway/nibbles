@@ -22,6 +22,7 @@ class UI::Impl :
         boost::asio::io_service& io,
         Options const&,
         Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+        boost::filesystem::path const& fontPath,
         GameSounds const&
       );
 
@@ -52,9 +53,10 @@ UI::UI(
     boost::asio::io_service& io,
     Options const& options,
     Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+    boost::filesystem::path const& fontPath,
     GameSounds const& sounds
   ) :
-  impl_(new Impl(io, options, gladeXml, sounds))
+  impl_(new Impl(io, options, gladeXml, fontPath, sounds))
 {}
 
 UI::~UI() = default;
@@ -65,11 +67,12 @@ UI::Impl::Impl(
     boost::asio::io_service& io,
     Options const& options,
     Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+    boost::filesystem::path const& fontPath,
     GameSounds const& sounds
   ) :
   io_(io),
   options_(options),
-  machine_(*this, *this, options.playerFile, gladeXml, sounds)
+  machine_(*this, *this, options.playerFile, gladeXml, fontPath, sounds)
 {
   // Connect the message alert signals to our functions
   messageSignal_.connect(sigc::mem_fun(this, &Impl::writeMessage));

@@ -20,6 +20,7 @@ class UI : private boost::noncopyable {
         boost::asio::io_service& io,
         Options const&,
         Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
+        boost::filesystem::path const& fontPath,
         GameSounds const&
       );
     ~UI();
