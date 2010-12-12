@@ -53,11 +53,16 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     ClientId nextClientId_;
 
     struct ClientTag;
+    struct NameTag;
     typedef boost::multi_index_container<
         RemotePlayer,
         boost::multi_index::indexed_by<
           boost::multi_index::hashed_unique<
             BOOST_MULTI_INDEX_CONST_MEM_FUN(RemotePlayer, PlayerId, id)
+          >,
+          boost::multi_index::hashed_unique<
+            boost::multi_index::tag<NameTag>,
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(Player, std::string, name)
           >,
           boost::multi_index::hashed_non_unique<
             boost::multi_index::tag<ClientTag>,

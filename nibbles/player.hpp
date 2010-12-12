@@ -13,6 +13,9 @@ struct Player :
     >
 {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Player)
+
+  // Cop-out function for the benefit of multi-index
+  std::string name() const { return get<fields::name>(); }
 };
 
 }

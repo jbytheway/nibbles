@@ -182,14 +182,14 @@ void Server::internalNetMessage(
   PlayerContainer::iterator newIt;
   bool inserted;
   std::tie(newIt, inserted) = players_.insert(
-      RemotePlayer(netMessage.payload(), nextPlayerId_++, connection)
-    );
+    RemotePlayer(netMessage.payload(), nextPlayerId_++, connection)
+  );
   if (inserted) {
     const MessageBase& outMessage =
       Message<MessageType::playerAdded>(*newIt);
     sendToAll(outMessage);
   } else {
-    message(Verbosity::error, "add player failed; id in use");
+    message(Verbosity::error, "add player failed; name or id in use");
   }
 }
 
