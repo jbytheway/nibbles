@@ -34,7 +34,7 @@ HighScoreReport HighScoreManager::insert(
   HighScoreSet::iterator insertedIt = scoreSet.insert(score).first;
 
   HighScoreReport result;
-  size_t rank = 1;
+  Rank rank = 1;
   bool gotNew = false;
   for (auto s = scoreSet.rbegin(); s != scoreSet.rend(); ++s, ++rank) {
     if (rank <= 10 || &*s == &*insertedIt) {
