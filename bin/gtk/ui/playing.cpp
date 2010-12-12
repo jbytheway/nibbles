@@ -7,6 +7,8 @@
 #include <gtkglmm.h>
 #include <FTGL/ftgl.h>
 
+#include <cagoul/scoped/orthographicprojection.hpp>
+
 #include <nibbles/level.hpp>
 #include <nibbles/scoretracker.hpp>
 
@@ -441,47 +443,6 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
   return true;
 }
 
-// FIXME: move to cagoul
-namespace {
-
-class ScopedOrthographicProjection {
-  public:
-    ScopedOrthographicProjection(
-      double left, double width, double top, double height
-    );
-    ~ScopedOrthographicProjection();
-    ScopedOrthographicProjection(ScopedOrthographicProjection const&) = delete;
-};
-
-ScopedOrthographicProjection::ScopedOrthographicProjection(
-    double left, double width, double top, double height
-  )
-{
-  glMatrixMode(GL_PROJECTION);
-  // save previous matrix which contains the
-  // settings for the perspective projection
-  glPushMatrix();
-  // reset matrix
-  glLoadIdentity();
-  // set a 2D orthographic projection
-  glOrtho(left, left+width, top, top+height, -1, 1);
-  // invert the y axis, down is positive
-  glScalef(1, -1, 1);
-  // move the origin from the bottom left corner
-  // to the upper left corner
-  glTranslatef(0, -height-2*top, 0);
-  glMatrixMode(GL_MODELVIEW);
-}
-
-ScopedOrthographicProjection::~ScopedOrthographicProjection()
-{
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glMatrixMode(GL_MODELVIEW);
-}
-
-}
-
 bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
 {
   auto context = glLevelDisplay_.get_gl_context();
@@ -522,7 +483,9 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
       double const left = -(visibleWidth-levelWidth)/2;
       double const top = -(visibleHeight-levelHeight)/2;
       glViewport(0, 0, width, height);
-      ScopedOrthographicProjection p(left, visibleWidth, top, visibleHeight);
+      cagoul::scoped::OrthographicProjection p(
+        left, left+visibleWidth, top, top+visibleHeight, true
+      );
       glLoadIdentity();
       glBegin(GL_QUADS);
         glColor3f(0, 0, 1);

@@ -14,14 +14,23 @@ Next you will need some dependencies:
 - optimal, my options parsing library.  Read about it at
   http://github.com/jbytheway/optimal or clone it from
   git@github.com:jbytheway/optimal.git
+- cagoul, an OpenGL library I've worked on.  Read about it at
+  http://github.com/jbytheway/cagoul or clone it from
+  git@github.com:jbytheway/cagoul.git
+- gtkglextmm (the GTK OpenGL interface library, and its GTK dependencies)
+- FTGL (An OpenGL font library)
 
 You may need to add some things to user.mk, e.g. to get the right g++ version
 or allow it to find optimal if you don't install it (which you shouldn't need
 to.  Here for example is my user.mk:
 
   CXX = g++-4.4.5
-  BUILD_CPPFLAGS += -I$(top_srcdir)../optimal
-  BUILD_LDFLAGS += -L$(top_srcdir)../optimal/optimal
+  BUILD_CPPFLAGS += \
+    -I$(top_srcdir)../optimal \
+    -I$(top_srcdir)../cagoul
+  BUILD_LDFLAGS += \
+    -L$(top_srcdir)../optimal/optimal \
+    -L$(top_srcdir)../cagoul/cagoul
 
 See makeshift/INSTALL for details of what goes in user.mk.
 
