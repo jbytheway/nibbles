@@ -4,6 +4,7 @@
 #include <boost/format.hpp>
 
 #include <gtkmm.h>
+#include <gtkglmm.h>
 
 #include <nibbles/level.hpp>
 #include <nibbles/scoretracker.hpp>
@@ -54,6 +55,8 @@ class Playing::Impl {
     const PlayerScoreListColumns playerScoreListColumns_;
     Glib::RefPtr<Gtk::ListStore> playerScoreListStore_;
 
+    Gtk::GL::DrawingArea glLevelDisplay_;
+
     // game data
     std::map<uint32_t, std::pair<PlayerId, Command>> keyBindings_;
     boost::scoped_ptr<Level> level_;
@@ -68,6 +71,7 @@ class Playing::Impl {
     // UI bindings
     void windowClosed();
     bool levelExposed(GdkEventExpose*);
+    bool glLevelExposed(GdkEventExpose*);
     void keyPress(GdkEventKey*);
 };
 
@@ -139,6 +143,7 @@ Playing::Impl::Impl(
   GET_WIDGET(TreeView, PlayerScoreList);
   GET_WIDGET(TextView, PlayMessageText);
   GET_WIDGET(DrawingArea, LevelDisplay);
+  GET_WIDGET(VBox, PlayVBox);
 #undef GET_WIDGET
 
   // Store pointers to those widgets we need to access later
@@ -147,6 +152,18 @@ Playing::Impl::Impl(
   playerScoreList_ = wPlayerScoreList;
   messageView_ = wPlayMessageText;
   levelDisplay_ = wLevelDisplay;
+
+  // Arrange the GL display
+  {
+    auto config =
+      Gdk::GL::Config::create(Gdk::GL::MODE_RGB | Gdk::GL::MODE_DOUBLE);
+    assert(config);
+    auto result = glLevelDisplay_.set_gl_capability(config);
+    assert(result);
+  }
+  glLevelDisplay_.set_size_request(500, 300);
+  glLevelDisplay_.show();
+  wPlayVBox->pack_end(glLevelDisplay_);
 
   // Attach columns
   playerScoreListStore_ = Gtk::ListStore::create(playerScoreListColumns_);
@@ -162,6 +179,9 @@ Playing::Impl::Impl(
   ));
   uiConnections_.push_back(levelDisplay_->signal_expose_event().connect(
     sigc::mem_fun(this, &Impl::levelExposed)
+  ));
+  uiConnections_.push_back(glLevelDisplay_.signal_expose_event().connect(
+    sigc::mem_fun(this, &Impl::glLevelExposed)
   ));
   uiConnections_.push_back(window_->signal_key_press_event().connect_notify(
     sigc::mem_fun(this, &Impl::keyPress)
@@ -254,8 +274,14 @@ std::vector<ControlledPlayer> const& Playing::Impl::localPlayers()
 
 void Playing::Impl::redraw()
 {
-  Glib::RefPtr<Gdk::Window> window = levelDisplay_->get_window();
-  window->invalidate(false /*invalidate children*/);
+  if (levelDisplay_->get_visible()) {
+    auto window = levelDisplay_->get_window();
+    window->invalidate(false /*invalidate children*/);
+  }
+  if (glLevelDisplay_.get_visible()) {
+    auto window = glLevelDisplay_.get_window();
+    window->invalidate(false /*invalidate children*/);
+  }
 }
 
 void Playing::Impl::refreshScores()
@@ -395,6 +421,166 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
       cr->stroke();
     }
   }
+
+  return true;
+}
+
+// FIXME: move to cagoul
+namespace {
+
+class ScopedOrthographicProjection {
+  public:
+    ScopedOrthographicProjection(
+      double left, double width, double top, double height
+    );
+    ~ScopedOrthographicProjection();
+    ScopedOrthographicProjection(ScopedOrthographicProjection const&) = delete;
+};
+
+ScopedOrthographicProjection::ScopedOrthographicProjection(
+    double left, double width, double top, double height
+  )
+{
+  glMatrixMode(GL_PROJECTION);
+  // save previous matrix which contains the
+  // settings for the perspective projection
+  glPushMatrix();
+  // reset matrix
+  glLoadIdentity();
+  // set a 2D orthographic projection
+  glOrtho(left, left+width, top, top+height, -1, 1);
+  // invert the y axis, down is positive
+  glScalef(1, -1, 1);
+  // move the origin from the bottom left corner
+  // to the upper left corner
+  glTranslatef(0, -height-2*top, 0);
+  glMatrixMode(GL_MODELVIEW);
+}
+
+ScopedOrthographicProjection::~ScopedOrthographicProjection()
+{
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+}
+
+}
+
+bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
+{
+  auto context = glLevelDisplay_.get_gl_context();
+  auto drawable = glLevelDisplay_.get_gl_drawable();
+
+  if (!drawable->gl_begin(context)) {
+    NIBBLES_FATAL("couldn't begin drawing");
+  }
+
+  if (true) // FIXME
+  {
+    double const width = glLevelDisplay_.get_width();
+    double const height = glLevelDisplay_.get_height();
+#if 0
+    if (event) {
+      // clip to the area indicated by the expose event so that we only
+      // redraw the portion of the window that needs to be redrawn
+      cr->rectangle(event->area.x, event->area.y,
+        event->area.width, event->area.height);
+      cr->clip();
+    }
+#endif
+    if (level_) {
+      glClear(GL_COLOR_BUFFER_BIT);
+      auto const& board = level_->get<fields::board>();
+      auto const levelWidth = board.width();
+      auto const levelHeight = board.height();
+      // Rescale to game units
+      double const aspect = width / height;
+      double const levelAspect = double(levelWidth) / levelHeight;
+      std::fprintf(stderr, "aspect=%f, levelAspect=%f\n", aspect, levelAspect);
+      double visibleWidth = levelWidth;
+      double visibleHeight = levelHeight;
+      if (aspect >= levelAspect) {
+        visibleWidth *= aspect/levelAspect;
+      } else {
+        visibleHeight /= aspect/levelAspect;
+      }
+      double const left = -(visibleWidth-levelWidth)/2;
+      double const top = -(visibleHeight-levelHeight)/2;
+      glViewport(0, 0, width, height);
+      ScopedOrthographicProjection p(left, visibleWidth, top, visibleHeight);
+      glLoadIdentity();
+      glBegin(GL_QUADS);
+        glColor3f(0, 0, 1);
+        glVertex2f(0.0, 0.0);
+        glVertex2f(levelWidth, 0.0);
+        glVertex2f(levelWidth, levelHeight);
+        glVertex2f(0.0, levelHeight);
+
+        // Paint the walls red
+        glColor3f(1, 0, 0);
+        for (size_t x=0; x<levelWidth; ++x) {
+          for (size_t y=0; y<levelHeight; ++y) {
+            if (board[Point(x,y)] == BoardState::wall) {
+              glVertex2f(x  , y  );
+              glVertex2f(x+1, y  );
+              glVertex2f(x+1, y+1);
+              glVertex2f(x  , y+1);
+            }
+          }
+        }
+
+        // Draw the number green background
+        auto const& number = level_->get<fields::number>();
+        auto const& pos = number.get<position>();
+        glColor3f(0, 0.5, 0);
+        glVertex2f(
+          pos.get<min>().get<fields::x>(), pos.get<min>().get<fields::y>()
+        );
+        glVertex2f(
+          pos.get<min>().get<fields::x>(), pos.get<max>().get<fields::y>()
+        );
+        glVertex2f(
+          pos.get<max>().get<fields::x>(), pos.get<max>().get<fields::y>()
+        );
+        glVertex2f(
+          pos.get<max>().get<fields::x>(), pos.get<min>().get<fields::y>()
+        );
+
+        // Draw the snakes
+        BOOST_FOREACH(Snake const& snake, level_->get<snakes>()) {
+          PlayerId playerId = snake.get<player>();
+          auto color = remotePlayers().find(playerId)->get<fields::color>();
+          glColor3f(color.d_red(), color.d_green(), color.d_blue());
+          BOOST_FOREACH(Point const& point, snake.get<points>()) {
+            auto const x = point.get<fields::x>();
+            auto const y = point.get<fields::y>();
+            glVertex2f(x, y);
+            glVertex2f(x+1, y);
+            glVertex2f(x+1, y+1);
+            glVertex2f(x, y+1);
+          }
+        }
+      glEnd();
+#if 0
+      // Write the yellow number
+      cr->set_source_rgb(1, 1, 0);
+      cr->set_font_size(pos.height()-0.2);
+      cr->set_line_width(1/aspect); // Make lines one pixel wide
+      cr->move_to(
+        pos.get<min>().get<fields::x>()-0.1,
+        pos.get<max>().get<fields::y>()-0.2
+      );
+      auto val = boost::lexical_cast<std::string>(number.get<value>());
+      cr->text_path(val);
+      cr->fill();
+#endif
+    } else {
+      // TODO: do we need a "nothing there" image to aid debugging?
+    }
+  }
+
+  drawable->swap_buffers();
+  drawable->gl_end();
 
   return true;
 }

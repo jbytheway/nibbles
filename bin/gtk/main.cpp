@@ -6,6 +6,7 @@
 #include <boost/filesystem/operations.hpp>
 
 #include <gtkmm.h>
+#include <gtkglmm.h>
 
 #include <nibbles/client/client.hpp>
 
@@ -57,6 +58,7 @@ int main(int argc, char** argv)
 
   io_service io;
   Gtk::Main kit(argc, argv);
+  Gtk::GL::init(argc, argv);
   const Options options(argc, argv);
   if (options.help) {
     options.show_help(std::cout);

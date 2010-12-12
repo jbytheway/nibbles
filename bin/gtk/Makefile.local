@@ -1,9 +1,17 @@
 BIN := nibbles-gtk
 SOURCE_DIRS := ui
-THIS_CPPFLAGS := -I$(this_srcdir) `pkg-config --cflags libglademm-2.4`
+THIS_CPPFLAGS := \
+	-I$(this_srcdir) \
+	`pkg-config --cflags gtkglextmm-1.2` \
+	`pkg-config --cflags libglademm-2.4`
 THIS_LDFLAGS := -no-install
 LIBS := \
-	-loptimal `pkg-config --libs libglademm-2.4` -lportaudio -lsndfile \
-	-lboost_filesystem -lboost_thread
+	`pkg-config --libs gtkglextmm-1.2` \
+	`pkg-config --libs libglademm-2.4` \
+	-lportaudio \
+	-lsndfile \
+	-lboost_filesystem \
+	-lboost_thread \
+	-loptimal
 LIB_DEP_NAMES := nibbles nibbles-client
 
