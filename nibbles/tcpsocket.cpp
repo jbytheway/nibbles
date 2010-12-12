@@ -4,6 +4,8 @@
 #include <boost/bind.hpp>
 
 #include <nibbles/network.hpp>
+#include <nibbles/utility/ntoh.hpp>
+#include <nibbles/utility/hton.hpp>
 
 using namespace std;
 using namespace boost::asio;
@@ -58,7 +60,9 @@ void TcpSocket::send(const MessageBase& message)
       );
     return;
   }
-  outgoing_ += uint8_t(data.size());
+  Network::PacketLength length = data.size();
+  utility::hton(length);
+  outgoing_ += std::string(reinterpret_cast<char*>(&length), sizeof(length));
   outgoing_ += data;
   if (writing_.empty())
     startWrite();
@@ -90,12 +94,19 @@ void TcpSocket::handleRead(
     terminateSignal();
   } else {
     dataLen_ += bytes;
-    size_t packetLen;
-    while (dataLen_ >= 1+(packetLen = data_[0])) {
-      uint8_t const* const packetStart = data_.data()+1;
-      messageSignal(MessageBase::create(packetStart, packetLen));
-      memmove(data_.data(), packetStart+packetLen, dataLen_-packetLen-1);
-      dataLen_ -= (packetLen + 1);
+    while (true) {
+      Network::PacketLength packetLength;
+      if (dataLen_ < sizeof(packetLength)) break;
+      packetLength = *reinterpret_cast<Network::PacketLength*>(data_.data());
+      utility::ntoh(packetLength);
+      if (dataLen_ < sizeof(packetLength)+packetLength) break;
+      uint8_t const* const packetStart = data_.data()+sizeof(packetLength);
+      messageSignal(MessageBase::create(packetStart, packetLength));
+      memmove(
+        data_.data(), packetStart + packetLength,
+        dataLen_ - packetLength - sizeof(packetLength)
+      );
+      dataLen_ -= (packetLength + sizeof(packetLength));
     }
     continueRead();
   }
