@@ -547,7 +547,7 @@ void Configuring::Impl::createPlayer()
   newControls[Command::down] = GDK_Down;
   newControls[Command::left] = GDK_Left;
   newControls[Command::right] = GDK_Right;
-  newControls[Command::pause] = GDK_Pause;
+  newControls[Command::pause] = ' ';
 
   ControlledPlayer newPlayer(
       Player(newName, Color::yellow),
