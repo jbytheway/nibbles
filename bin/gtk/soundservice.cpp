@@ -4,12 +4,18 @@
 #include <vector>
 #include <list>
 
+#ifdef NIBBLES_ENABLE_SOUND
 #include <sndfile.h>
 #include <portaudio.h>
+#endif
 
 namespace nibbles { namespace gtk {
 
-#ifdef PORT_AUDIO
+#ifdef NIBBLES_ENABLE_SOUND
+
+// I've written to two differernt portaudio interfaces; undef this to use the
+// other one
+#define NEW_PORTAUDIO
 
 class SoundService::Impl {
   public:
@@ -44,14 +50,14 @@ class PaPlaying {
     ~PaPlaying();
   private:
     static int paCallback(
-#if 0
+#ifdef NEW_PORTAUDIO
       const void* input,
 #else
       void* input,
 #endif
       void* output,
       unsigned long frameCount,
-#if 0
+#ifdef NEW_PORTAUDIO
       const PaStreamCallbackTimeInfo* timeInfo,
       PaStreamCallbackFlags statusFlags,
 #else
@@ -145,7 +151,7 @@ PaPlaying::PaPlaying(PaSound const& sound) :
     sound.info().channels,
     paInt16,
     sound.info().samplerate,
-#if 0
+#ifdef NEW_PORTAUDIO
     paFramesPerBufferUnspecified,
 #else
     256,
@@ -165,7 +171,7 @@ PaPlaying::PaPlaying(PaSound const& sound) :
 
 PaPlaying::~PaPlaying()
 {
-#if 0
+#ifdef NEW_PORTAUDIO
   if (!Pa_IsStreamStopped(stream_)) {
 #else
   if (!Pa_StreamActive(stream_)) {
@@ -184,14 +190,14 @@ PaPlaying::~PaPlaying()
 }
 
 int PaPlaying::paCallback(
-#if 0
+#ifdef NEW_PORTAUDIO
   const void*,
 #else
   void*,
 #endif
   void* output,
   unsigned long frameCount,
-#if 0
+#ifdef NEW_PORTAUDIO
   const PaStreamCallbackTimeInfo* /*timeInfo*/,
   PaStreamCallbackFlags /*statusFlags*/,
 #else
@@ -208,7 +214,7 @@ int PaPlaying::paCallback(
   if (numSamples > dataLeft) {
     // Wants more data than there is; stop instead
     std::memcpy(out, &sound.data()[playing.pos_], sizeof(int16_t)*dataLeft);
-#if 0
+#ifdef NEW_PORTAUDIO
     return paComplete;
 #else
     return 1;
@@ -220,7 +226,7 @@ int PaPlaying::paCallback(
   }
 }
 
-#else // PORTAUDIO
+#else // NIBBLES_ENABLE_SOUND
 
 class SoundService::Impl {
   public:
@@ -244,7 +250,7 @@ SoundService::makeSound(boost::filesystem::path const&) const
   return std::unique_ptr<Sound>{new DudSound()};
 }
 
-#endif // PORTAUDDIO
+#endif // NIBBLES_ENABLE_SOUND
 
 }}
 

@@ -10,10 +10,16 @@ LIBS := \
 	`pkg-config --libs libglademm-2.4` \
 	-lftgl \
 	-lcagoul \
-	-lportaudio \
-	-lsndfile \
 	-lboost_filesystem \
 	-lboost_thread \
 	-loptimal
+
+ifeq ($(NIBBLES_ENABLE_SOUND),yes)
+THIS_CPPFLAGS += -DNIBBLES_ENABLE_SOUND
+LIBS += \
+	-lportaudio \
+	-lsndfile
+endif
+
 LIB_DEP_NAMES := nibbles nibbles-client
 
