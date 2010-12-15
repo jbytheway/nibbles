@@ -167,6 +167,7 @@ IGNORE_MESSAGE(playerAdded)
 IGNORE_MESSAGE(updateReadiness)
 IGNORE_MESSAGE(gameStart)
 IGNORE_MESSAGE(levelStart)
+IGNORE_MESSAGE(countdown)
 IGNORE_MESSAGE(newNumber)
 IGNORE_MESSAGE(tick)
 IGNORE_MESSAGE(gameOver)
@@ -276,10 +277,10 @@ void Server::checkForGameStart()
     player.reset();
   }
   game_.start(players_.get<SequenceTag>(), forwarder_);
-  tick();
+  tick(options_.countdown);
 }
 
-void Server::tick(const boost::system::error_code& e)
+void Server::tick(uint32_t countdown, const boost::system::error_code& e)
 {
   if (e) {
     message(Verbosity::info, "game interrupted");
@@ -293,27 +294,33 @@ void Server::tick(const boost::system::error_code& e)
   auto interval = game_.get<tickInterval>();
   gameTickTimer_.expires_from_now(interval);
 
-  Moves moves;
-  BOOST_FOREACH(auto const& player, players_) {
-    auto move = player.dequeue();
-    if (move) {
-      moves.push_back({player.id(), *move});
-    }
-  }
-  forwarder_.tick(moves);
-  auto result = game_.tick(scorer_, forwarder_, moves);
-  if (result == TickResult::gameOver) {
-    gameEnd();
-    return;
-  } else if (result >= TickResult::advanceLevel) {
-    // This means the level is reset, so we need to flush the state in the
-    // players
+  if (countdown) {
+    sendToAll(Message<MessageType::countdown>(countdown));
+    --countdown;
+  } else {
+    Moves moves;
     BOOST_FOREACH(auto const& player, players_) {
-      player.reset();
+      auto move = player.dequeue();
+      if (move) {
+        moves.push_back({player.id(), *move});
+      }
+    }
+    forwarder_.tick(moves);
+    auto result = game_.tick(scorer_, forwarder_, moves);
+    if (result == TickResult::gameOver) {
+      gameEnd();
+      return;
+    } else if (result >= TickResult::advanceLevel) {
+      // This means the level is reset, so we need to flush the state in the
+      // players
+      BOOST_FOREACH(auto const& player, players_) {
+        player.reset();
+      }
+      countdown = options_.countdown;
     }
   }
   gameTickTimer_.async_wait(boost::bind(
-        &Server::tick, this, boost::asio::placeholders::error
+        &Server::tick, this, countdown, boost::asio::placeholders::error
       ));
 }
 
@@ -321,7 +328,7 @@ void Server::togglePaused()
 {
   if (paused_) {
     paused_ = false;
-    tick();
+    tick(0);
   } else {
     pausing_ = true;
   }

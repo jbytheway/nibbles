@@ -57,6 +57,11 @@ struct MessagePayload<MessageType::levelStart> {
 };
 
 template<>
+struct MessagePayload<MessageType::countdown> {
+  typedef uint32_t type;
+};
+
+template<>
 struct MessagePayload<MessageType::newNumber> {
   typedef Number type;
 };

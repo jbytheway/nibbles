@@ -24,6 +24,7 @@ struct Options
   LevelId startLevel;
   uint32_t startInterval;
   double intervalFactor;
+  uint32_t countdown;
 
   static std::string usage();
   GameSettings gameSettings() const;

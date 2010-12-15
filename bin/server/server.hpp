@@ -98,7 +98,10 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     void internalNetMessage(const Message<Type>&, Connection*);
 
     void checkForGameStart();
-    void tick(const boost::system::error_code& e = boost::system::error_code());
+    void tick(
+      uint32_t countdown,
+      const boost::system::error_code& e = boost::system::error_code()
+    );
     void togglePaused();
     void gameEnd();
 };

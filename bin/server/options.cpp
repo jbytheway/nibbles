@@ -21,7 +21,8 @@ Options::Options(int argc, char const* const* const argv) :
   highScores(string(getenv("HOME"))+"/.nibbles/server-highscores"),
   startLevel(),
   startInterval(100),
-  intervalFactor(0.98)
+  intervalFactor(0.98),
+  countdown(44)
 {
   string optionsFile = string(getenv("HOME"))+"/.nibbles/server-config";
   unsigned int startLevel;
@@ -36,6 +37,7 @@ Options::Options(int argc, char const* const* const argv) :
   parser.addOption("level",       'b', &startLevel);
   parser.addOption("interval",    'i', &startInterval);
   parser.addOption("factor",      'f', &intervalFactor);
+  parser.addOption("countdown",   'c', &countdown);
 
   if (parser.parse(optionsFile, argc, argv)) {
     ostringstream message;
@@ -68,9 +70,11 @@ string Options::usage()
 "  -s, --high-scores FILE  Specify file to store high scores\n"
 "                          (default ~/.nibbles/server-highscores)\n"
 "  -i, --interval INT      Specify initial tick interval in milliseconds\n"
-"                          (defaults to 100)\n"
+"                          (default 100)\n"
 "  -f, --factor FACT       Specify factor tick interval multiplied by\n"
-"                          (defaults to 0.98)\n"
+"                          (default 0.98)\n"
+"  -c, --countdown NUM     How many ticks for which to count down to level\n"
+"                          start (default 44)\n"
 "Options also read from ~/.nibbles/server-config\n";
   return result.str();
 }
