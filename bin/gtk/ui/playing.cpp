@@ -578,7 +578,7 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
       glScalef(1, -1, 1);
 
       if (countdown_) {
-        int32_t const messageWidth = 20;
+        int32_t const messageWidth = 30;
         int32_t const messageHeight = 4;
         uint32_t const sequenceLength = (messageWidth+messageHeight)*2-4;
         int32_t count = std::min(countdown_-1, sequenceLength);
@@ -637,6 +637,25 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
             }.gl();
           }
         glEnd();
+
+        // Print the level name
+        glColor3f(1, 1, 0);
+        glScalef(1, -1, 1);
+        font_.FaceSize(2);
+        auto val = levelName_->get_text();
+        int length = val.size();
+        auto bbox = font_.BBox(val.c_str(), length);
+        FTPoint const available{messageWidth-2, messageHeight-2};
+        while (bbox.Upper().X() > available.X()) {
+          --length;
+          bbox = font_.BBox(val.c_str(), length);
+        }
+
+        auto const padding = (available - bbox.Upper()) * 0.5;
+        FTPoint pos(messageLeft+1, -messageTop-messageHeight+1);
+        pos += padding;
+        font_.Render(val.c_str(), length, pos);
+        glScalef(1, -1, 1);
       }
     } else {
       // TODO: do we need a "nothing there" image to aid debugging?
