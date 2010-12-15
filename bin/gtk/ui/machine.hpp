@@ -230,6 +230,7 @@ class Playing :
   public:
     typedef boost::mpl::list<
       sc::custom_reaction<events::Message<MessageType::levelStart>>,
+      sc::custom_reaction<events::Message<MessageType::countdown>>,
       sc::custom_reaction<events::Message<MessageType::newNumber>>,
       sc::custom_reaction<events::Message<MessageType::tick>>,
       sc::custom_reaction<events::Message<MessageType::gameOver>>
@@ -240,6 +241,7 @@ class Playing :
 
     virtual void message(std::string const&) const;
     sc::result react(events::Message<MessageType::levelStart> const&);
+    sc::result react(events::Message<MessageType::countdown> const&);
     sc::result react(events::Message<MessageType::newNumber> const&);
     sc::result react(events::Message<MessageType::tick> const&);
     sc::result react(events::Message<MessageType::gameOver> const&);

@@ -28,6 +28,7 @@ class Playing::Impl {
 
     // Network reactions
     void levelStart(const Message<MessageType::levelStart>&);
+    void countdown(const Message<MessageType::countdown>&);
     void newNumber(const Message<MessageType::newNumber>&);
     void tick(const Message<MessageType::tick>&);
   private:
@@ -71,6 +72,7 @@ class Playing::Impl {
     std::map<uint32_t, std::pair<PlayerId, Command>> keyBindings_;
     boost::scoped_ptr<Level> level_;
     ScoreTracker scorer_;
+    uint32_t countdown_;
 
     // convenience functions
     Active::RemotePlayerContainer const& remotePlayers();
@@ -110,6 +112,14 @@ sc::result Playing::react(
 }
 
 sc::result Playing::react(
+  events::Message<MessageType::countdown> const& event
+)
+{
+  impl_->countdown(event.message);
+  return discard_event();
+}
+
+sc::result Playing::react(
   events::Message<MessageType::newNumber> const& event
 )
 {
@@ -140,7 +150,8 @@ Playing::Impl::Impl(
 ) :
   parent_(parent),
   window_(NULL),
-  font_(fontPath.file_string().c_str())
+  font_(fontPath.file_string().c_str()),
+  countdown_(0)
 {
   if (font_.Error()) {
     NIBBLES_FATAL("couldn't open font at "<<fontPath);
@@ -264,6 +275,12 @@ void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
   refreshScores();
 }
 
+void Playing::Impl::countdown(const Message<MessageType::countdown>& count)
+{
+  countdown_ = count.payload();
+  redraw();
+}
+
 void Playing::Impl::newNumber(const Message<MessageType::newNumber>& m)
 {
   if (!level_) NIBBLES_FATAL("number without level");
@@ -277,6 +294,7 @@ void Playing::Impl::tick(const Message<MessageType::tick>& m)
   if (!level_) NIBBLES_FATAL("tick without level");
   auto const& settings = parent_->context<Active>().settings();
   level_->tick(settings, scorer_, m.payload());
+  countdown_ = 0;
   redraw();
 }
 
@@ -429,6 +447,10 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
           cr->fill();
         }
       }
+
+      if (countdown_) {
+        NIBBLES_FATAL("countdown rendering not implemented for Cairo");
+      }
     } else {
       // Draw a red slash for no particular reason
       cr->scale(width, height);
@@ -553,6 +575,69 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
       );
       auto val = boost::lexical_cast<std::string>(number.get<value>());
       font_.Render(val.c_str(), -1 /* all chars */, pos);
+      glScalef(1, -1, 1);
+
+      if (countdown_) {
+        int32_t const messageWidth = 20;
+        int32_t const messageHeight = 4;
+        uint32_t const sequenceLength = (messageWidth+messageHeight)*2-4;
+        int32_t count = std::min(countdown_, sequenceLength);
+        double const messageLeft = (levelWidth-messageWidth)/2.;
+        double const messageTop = (levelHeight-messageHeight)/2.;
+        struct Rect {
+          double left; double right; double top; double bottom;
+          void gl() {
+            glVertex2f(left , top);
+            glVertex2f(right, top);
+            glVertex2f(right, bottom);
+            glVertex2f(left , bottom);
+          }
+        };
+        glBegin(GL_QUADS);
+          glColor3f(1, 0, 0);
+          Rect{
+            messageLeft, messageLeft+messageWidth,
+            messageTop, messageTop+messageHeight
+          }.gl();
+          glColor3f(0, 0, 1);
+          Rect{
+            messageLeft+1, messageLeft+messageWidth-1,
+            messageTop+1, messageTop+messageHeight-1
+          }.gl();
+          glColor3f(1, 1, 0);
+          // Across the top
+          for (int32_t i=0; i<std::min(count, messageWidth); ++i) {
+            Rect{
+              messageLeft+i, messageLeft+i+1,
+              messageTop, messageTop+1
+            }.gl();
+          }
+          count -= messageWidth;
+          // Down the right
+          for (int32_t i=1; i<std::min(count, messageHeight); ++i) {
+            Rect{
+              messageLeft+messageWidth-1, messageLeft+messageWidth,
+              messageTop+i, messageTop+i+1
+            }.gl();
+          }
+          count -= messageHeight-1;
+          // Across the bottom
+          for (int32_t i=1; i<std::min(count, messageWidth); ++i) {
+            Rect{
+              messageLeft+messageWidth-i-1, messageLeft+messageWidth-i,
+              messageTop+messageHeight-1, messageTop+messageHeight
+            }.gl();
+          }
+          count -= messageWidth-1;
+          // Up the left
+          for (int32_t i=1; i<std::min(count, messageHeight-1); ++i) {
+            Rect{
+              messageLeft, messageLeft+1,
+              messageTop+messageHeight-i-1, messageTop+messageHeight-i
+            }.gl();
+          }
+        glEnd();
+      }
     } else {
       // TODO: do we need a "nothing there" image to aid debugging?
     }
