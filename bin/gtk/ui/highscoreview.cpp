@@ -133,7 +133,7 @@ HighScoreView::Impl::~Impl()
 void HighScoreView::Impl::message(const std::string& message)
 {
   Glib::RefPtr<Gtk::TextBuffer> buffer = messageView_->get_buffer();
-  buffer->insert(buffer->end(), message);
+  buffer->insert(buffer->end(), message+"\n");
   Gtk::TextIter end = buffer->end();
   messageView_->scroll_to(end);
 }
