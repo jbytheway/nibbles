@@ -478,189 +478,177 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
   {
     double const width = glLevelDisplay_.get_width();
     double const height = glLevelDisplay_.get_height();
-#if 0
-    if (event) {
-      // clip to the area indicated by the expose event so that we only
-      // redraw the portion of the window that needs to be redrawn
-      cr->rectangle(event->area.x, event->area.y,
-        event->area.width, event->area.height);
-      cr->clip();
-    }
-#endif
-    if (level_) {
-      glClear(GL_COLOR_BUFFER_BIT);
-      auto const& board = level_->get<fields::board>();
-      auto const levelWidth = board.width();
-      auto const levelHeight = board.height();
-      // Rescale to game units
-      double const aspect = width / height;
-      double const levelAspect = double(levelWidth) / levelHeight;
-      double visibleWidth = levelWidth;
-      double visibleHeight = levelHeight;
-      if (aspect >= levelAspect) {
-        visibleWidth *= aspect/levelAspect;
-      } else {
-        visibleHeight /= aspect/levelAspect;
-      }
-      double const left = -(visibleWidth-levelWidth)/2;
-      double const top = -(visibleHeight-levelHeight)/2;
-      glViewport(0, 0, width, height);
-      cagoul::scoped::OrthographicProjection p(
-        left, left+visibleWidth, top, top+visibleHeight, true
-      );
-      glLoadIdentity();
-      glBegin(GL_QUADS);
-        glColor3f(0, 0, 1);
-        glVertex2f(0.0, 0.0);
-        glVertex2f(levelWidth, 0.0);
-        glVertex2f(levelWidth, levelHeight);
-        glVertex2f(0.0, levelHeight);
 
-        // Paint the walls red
-        glColor3f(1, 0, 0);
-        for (size_t x=0; x<levelWidth; ++x) {
-          for (size_t y=0; y<levelHeight; ++y) {
-            if (board[Point(x,y)] == BoardState::wall) {
-              glVertex2f(x  , y  );
-              glVertex2f(x+1, y  );
-              glVertex2f(x+1, y+1);
-              glVertex2f(x  , y+1);
-            }
+    auto const& board = level_->get<fields::board>();
+    auto const levelWidth = board.width();
+    auto const levelHeight = board.height();
+    // Rescale to game units
+    double const aspect = width / height;
+    double const levelAspect = double(levelWidth) / levelHeight;
+    double visibleWidth = levelWidth;
+    double visibleHeight = levelHeight;
+    if (aspect >= levelAspect) {
+      visibleWidth *= aspect/levelAspect;
+    } else {
+      visibleHeight /= aspect/levelAspect;
+    }
+    double const left = -(visibleWidth-levelWidth)/2;
+    double const top = -(visibleHeight-levelHeight)/2;
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, width, height);
+    cagoul::scoped::OrthographicProjection p(
+      left, left+visibleWidth, top, top+visibleHeight, true
+    );
+    glLoadIdentity();
+    glBegin(GL_QUADS);
+      glColor3f(0, 0, 1);
+      glVertex2f(0.0, 0.0);
+      glVertex2f(levelWidth, 0.0);
+      glVertex2f(levelWidth, levelHeight);
+      glVertex2f(0.0, levelHeight);
+
+      // Paint the walls red
+      glColor3f(1, 0, 0);
+      for (size_t x=0; x<levelWidth; ++x) {
+        for (size_t y=0; y<levelHeight; ++y) {
+          if (board[Point(x,y)] == BoardState::wall) {
+            glVertex2f(x  , y  );
+            glVertex2f(x+1, y  );
+            glVertex2f(x+1, y+1);
+            glVertex2f(x  , y+1);
           }
         }
+      }
 
-        // Draw the number green background
-        auto const& number = level_->get<fields::number>();
-        auto const& numberPos = number.get<position>();
-        glColor3f(0, 0.5, 0);
-        glVertex2f(
-          numberPos.get<min>().get<fields::x>(),
-          numberPos.get<min>().get<fields::y>()
-        );
-        glVertex2f(
-          numberPos.get<min>().get<fields::x>(),
-          numberPos.get<max>().get<fields::y>()
-        );
-        glVertex2f(
-          numberPos.get<max>().get<fields::x>(),
-          numberPos.get<max>().get<fields::y>()
-        );
-        glVertex2f(
-          numberPos.get<max>().get<fields::x>(),
-          numberPos.get<min>().get<fields::y>()
-        );
+      // Draw the number green background
+      auto const& number = level_->get<fields::number>();
+      auto const& numberPos = number.get<position>();
+      glColor3f(0, 0.5, 0);
+      glVertex2f(
+        numberPos.get<min>().get<fields::x>(),
+        numberPos.get<min>().get<fields::y>()
+      );
+      glVertex2f(
+        numberPos.get<min>().get<fields::x>(),
+        numberPos.get<max>().get<fields::y>()
+      );
+      glVertex2f(
+        numberPos.get<max>().get<fields::x>(),
+        numberPos.get<max>().get<fields::y>()
+      );
+      glVertex2f(
+        numberPos.get<max>().get<fields::x>(),
+        numberPos.get<min>().get<fields::y>()
+      );
 
-        // Draw the snakes
-        BOOST_FOREACH(Snake const& snake, level_->get<snakes>()) {
-          PlayerId playerId = snake.get<player>();
-          auto color = remotePlayers().find(playerId)->get<fields::color>();
-          glColor3f(color.d_red(), color.d_green(), color.d_blue());
-          BOOST_FOREACH(Point const& point, snake.get<points>()) {
-            auto const x = point.get<fields::x>();
-            auto const y = point.get<fields::y>();
-            glVertex2f(x, y);
-            glVertex2f(x+1, y);
-            glVertex2f(x+1, y+1);
-            glVertex2f(x, y+1);
-          }
+      // Draw the snakes
+      BOOST_FOREACH(Snake const& snake, level_->get<snakes>()) {
+        PlayerId playerId = snake.get<player>();
+        auto color = remotePlayers().find(playerId)->get<fields::color>();
+        glColor3f(color.d_red(), color.d_green(), color.d_blue());
+        BOOST_FOREACH(Point const& point, snake.get<points>()) {
+          auto const x = point.get<fields::x>();
+          auto const y = point.get<fields::y>();
+          glVertex2f(x, y);
+          glVertex2f(x+1, y);
+          glVertex2f(x+1, y+1);
+          glVertex2f(x, y+1);
+        }
+      }
+    glEnd();
+
+    glColor3f(1, 1, 0);
+    glScalef(1, -1, 1);
+    font_.FaceSize(numberPos.height());
+    FTPoint pos(
+      numberPos.get<min>().get<fields::x>()-0.1,
+      0.2-numberPos.get<max>().get<fields::y>()
+    );
+    auto val = boost::lexical_cast<std::string>(number.get<value>());
+    font_.Render(val.c_str(), -1 /* all chars */, pos);
+    glScalef(1, -1, 1);
+
+    if (countdown_) {
+      int32_t const messageWidth = 30;
+      int32_t const messageHeight = 4;
+      uint32_t const sequenceLength = (messageWidth+messageHeight)*2-4;
+      int32_t count = std::min(countdown_-1, sequenceLength);
+      double const messageLeft = (levelWidth-messageWidth)/2.;
+      double const messageTop = (levelHeight-messageHeight)/2.;
+      struct Rect {
+        double left; double right; double top; double bottom;
+        void gl() {
+          glVertex2f(left , top);
+          glVertex2f(right, top);
+          glVertex2f(right, bottom);
+          glVertex2f(left , bottom);
+        }
+      };
+      glBegin(GL_QUADS);
+        glColor3f(1, 0, 0);
+        Rect{
+          messageLeft, messageLeft+messageWidth,
+            messageTop, messageTop+messageHeight
+        }.gl();
+        glColor3f(0, 0, 1);
+        Rect{
+          messageLeft+1, messageLeft+messageWidth-1,
+            messageTop+1, messageTop+messageHeight-1
+        }.gl();
+        glColor3f(1, 1, 0);
+        // Across the top
+        Rect{
+          messageLeft, messageLeft+std::min(count, messageWidth),
+            messageTop, messageTop+1
+        }.gl();
+        count -= messageWidth;
+        if (count > 0) {
+          // Down the right
+          Rect{
+            messageLeft+messageWidth-1, messageLeft+messageWidth,
+              messageTop+1, messageTop+std::min(count, messageHeight)
+          }.gl();
+          count -= messageHeight-1;
+        }
+        if (count > 0) {
+          // Across the bottom
+          Rect{
+            messageLeft+messageWidth-std::min(count, messageWidth),
+              messageLeft+messageWidth,
+              messageTop+messageHeight-1, messageTop+messageHeight
+          }.gl();
+          count -= messageWidth-1;
+        }
+        if (count > 0) {
+          assert(count < messageHeight-1);
+          // Up the left
+          Rect{
+            messageLeft, messageLeft+1,
+              messageTop+messageHeight-count, messageTop+messageHeight-1
+          }.gl();
         }
       glEnd();
 
+      // Print the level name
       glColor3f(1, 1, 0);
       glScalef(1, -1, 1);
-      font_.FaceSize(numberPos.height());
-      FTPoint pos(
-        numberPos.get<min>().get<fields::x>()-0.1,
-        0.2-numberPos.get<max>().get<fields::y>()
-      );
-      auto val = boost::lexical_cast<std::string>(number.get<value>());
-      font_.Render(val.c_str(), -1 /* all chars */, pos);
-      glScalef(1, -1, 1);
-
-      if (countdown_) {
-        int32_t const messageWidth = 30;
-        int32_t const messageHeight = 4;
-        uint32_t const sequenceLength = (messageWidth+messageHeight)*2-4;
-        int32_t count = std::min(countdown_-1, sequenceLength);
-        double const messageLeft = (levelWidth-messageWidth)/2.;
-        double const messageTop = (levelHeight-messageHeight)/2.;
-        struct Rect {
-          double left; double right; double top; double bottom;
-          void gl() {
-            glVertex2f(left , top);
-            glVertex2f(right, top);
-            glVertex2f(right, bottom);
-            glVertex2f(left , bottom);
-          }
-        };
-        glBegin(GL_QUADS);
-          glColor3f(1, 0, 0);
-          Rect{
-            messageLeft, messageLeft+messageWidth,
-            messageTop, messageTop+messageHeight
-          }.gl();
-          glColor3f(0, 0, 1);
-          Rect{
-            messageLeft+1, messageLeft+messageWidth-1,
-            messageTop+1, messageTop+messageHeight-1
-          }.gl();
-          glColor3f(1, 1, 0);
-          // Across the top
-          Rect{
-            messageLeft, messageLeft+std::min(count, messageWidth),
-            messageTop, messageTop+1
-          }.gl();
-          count -= messageWidth;
-          if (count > 0) {
-            // Down the right
-            Rect{
-              messageLeft+messageWidth-1, messageLeft+messageWidth,
-              messageTop+1, messageTop+std::min(count, messageHeight)
-            }.gl();
-            count -= messageHeight-1;
-          }
-          if (count > 0) {
-            // Across the bottom
-            Rect{
-              messageLeft+messageWidth-std::min(count, messageWidth),
-              messageLeft+messageWidth,
-              messageTop+messageHeight-1, messageTop+messageHeight
-            }.gl();
-            count -= messageWidth-1;
-          }
-          if (count > 0) {
-            assert(count < messageHeight-1);
-            // Up the left
-            Rect{
-              messageLeft, messageLeft+1,
-              messageTop+messageHeight-count, messageTop+messageHeight-1
-            }.gl();
-          }
-        glEnd();
-
-        // Print the level name
-        glColor3f(1, 1, 0);
-        glScalef(1, -1, 1);
-        if (!font_.FaceSize(2)) {
-          NIBBLES_FATAL("setting face size failed");
-        }
-        auto val = levelName_->get_text();
-        int length = val.size();
-        auto bbox = font_.BBox(val.c_str(), length);
-        FTPoint const available{messageWidth-2, messageHeight-2};
-        while (bbox.Upper().X() > available.X()) {
-          --length;
-          bbox = font_.BBox(val.c_str(), length);
-        }
-
-        auto const padding = (available - bbox.Upper()) * 0.5;
-        FTPoint pos(messageLeft+1, -messageTop-messageHeight+1);
-        pos += padding;
-        font_.Render(val.c_str(), length, pos);
-        glScalef(1, -1, 1);
+      if (!font_.FaceSize(2)) {
+        NIBBLES_FATAL("setting face size failed");
       }
-    } else {
-      // TODO: do we need a "nothing there" image to aid debugging?
+      auto val = levelName_->get_text();
+      int length = val.size();
+      auto bbox = font_.BBox(val.c_str(), length);
+      FTPoint const available{messageWidth-2, messageHeight-2};
+      while (bbox.Upper().X() > available.X() && length > 0) {
+        --length;
+        bbox = font_.BBox(val.c_str(), length);
+      }
+
+      auto const padding = (available - bbox.Upper()) * 0.5;
+      FTPoint pos(messageLeft+1, -messageTop-messageHeight+1);
+      pos += padding;
+      font_.Render(val.c_str(), length, pos);
+      glScalef(1, -1, 1);
     }
   }
 
