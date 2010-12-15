@@ -4,7 +4,6 @@ THIS_CPPFLAGS := \
 	-I$(this_srcdir) \
 	`pkg-config --cflags gtkglextmm-1.2` \
 	`pkg-config --cflags libglademm-2.4`
-THIS_LDFLAGS := -no-install
 LIBS := \
 	`pkg-config --libs gtkglextmm-1.2` \
 	`pkg-config --libs libglademm-2.4` \

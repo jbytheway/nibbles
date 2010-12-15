@@ -1,5 +1,4 @@
 BIN := nibbles-server
 LIBS := -loptimal -lboost_signals -lboost_system -lpthread
 LIB_DEP_NAMES := nibbles
-THIS_LDFLAGS := -no-install
 

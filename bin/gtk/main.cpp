@@ -56,6 +56,11 @@ int main(int argc, char** argv)
   }
   exePath = exePath.parent_path();
 
+  // Cut out libtool .libs dir
+  if (exePath.filename() == ".libs") {
+    exePath = exePath.parent_path();
+  }
+
   io_service io;
   Gtk::Main kit(argc, argv);
   Gtk::GL::init(argc, argv);
