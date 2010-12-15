@@ -296,6 +296,10 @@ void Server::tick(uint32_t countdown, const boost::system::error_code& e)
 
   if (countdown) {
     sendToAll(Message<MessageType::countdown>(countdown));
+    // Reset so that keypresses during countdown don't affect play
+    BOOST_FOREACH(auto const& player, players_) {
+      player.reset();
+    }
     --countdown;
   } else {
     Moves moves;
@@ -328,6 +332,10 @@ void Server::togglePaused()
 {
   if (paused_) {
     paused_ = false;
+    // Reset so that keypresses during pause don't affect play
+    BOOST_FOREACH(auto const& player, players_) {
+      player.reset();
+    }
     tick(0);
   } else {
     pausing_ = true;
