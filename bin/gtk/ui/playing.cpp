@@ -641,7 +641,9 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
         // Print the level name
         glColor3f(1, 1, 0);
         glScalef(1, -1, 1);
-        font_.FaceSize(2);
+        if (!font_.FaceSize(2)) {
+          NIBBLES_FATAL("setting face size failed");
+        }
         auto val = levelName_->get_text();
         int length = val.size();
         auto bbox = font_.BBox(val.c_str(), length);
