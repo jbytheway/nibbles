@@ -581,7 +581,7 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
         int32_t const messageWidth = 20;
         int32_t const messageHeight = 4;
         uint32_t const sequenceLength = (messageWidth+messageHeight)*2-4;
-        int32_t count = std::min(countdown_, sequenceLength);
+        int32_t count = std::min(countdown_-1, sequenceLength);
         double const messageLeft = (levelWidth-messageWidth)/2.;
         double const messageTop = (levelHeight-messageHeight)/2.;
         struct Rect {
@@ -606,34 +606,34 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
           }.gl();
           glColor3f(1, 1, 0);
           // Across the top
-          for (int32_t i=0; i<std::min(count, messageWidth); ++i) {
-            Rect{
-              messageLeft+i, messageLeft+i+1,
-              messageTop, messageTop+1
-            }.gl();
-          }
+          Rect{
+            messageLeft, messageLeft+std::min(count, messageWidth),
+            messageTop, messageTop+1
+          }.gl();
           count -= messageWidth;
-          // Down the right
-          for (int32_t i=1; i<std::min(count, messageHeight); ++i) {
+          if (count > 0) {
+            // Down the right
             Rect{
               messageLeft+messageWidth-1, messageLeft+messageWidth,
-              messageTop+i, messageTop+i+1
+              messageTop+1, messageTop+std::min(count, messageHeight)
             }.gl();
+            count -= messageHeight-1;
           }
-          count -= messageHeight-1;
-          // Across the bottom
-          for (int32_t i=1; i<std::min(count, messageWidth); ++i) {
+          if (count > 0) {
+            // Across the bottom
             Rect{
-              messageLeft+messageWidth-i-1, messageLeft+messageWidth-i,
+              messageLeft+messageWidth-std::min(count, messageWidth),
+              messageLeft+messageWidth,
               messageTop+messageHeight-1, messageTop+messageHeight
             }.gl();
+            count -= messageWidth-1;
           }
-          count -= messageWidth-1;
-          // Up the left
-          for (int32_t i=1; i<std::min(count, messageHeight-1); ++i) {
+          if (count > 0) {
+            assert(count < messageHeight-1);
+            // Up the left
             Rect{
               messageLeft, messageLeft+1,
-              messageTop+messageHeight-i-1, messageTop+messageHeight-i
+              messageTop+messageHeight-count, messageTop+messageHeight-1
             }.gl();
           }
         glEnd();
