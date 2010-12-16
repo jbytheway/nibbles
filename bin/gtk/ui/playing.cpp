@@ -272,7 +272,8 @@ void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
   }
   auto const& settings = parent_->context<Active>().settings();
   level_.reset(new Level(settings, def, playerIds));
-  sounds().start->asyncPlay();
+  // FIXME: Sounds aren't working well
+  //sounds().start->asyncPlay();
   redraw();
   refreshScores();
 }
