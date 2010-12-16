@@ -33,6 +33,7 @@ Options::Options(int const argc, char** const argv) :
   parser.addOption("threaded",    't', &threaded);
   parser.addOption("verbosity",   'v', &verbosity);
   parser.addOption("player-file", 'y', &playerFile);
+  parser.addOption("sounds",      's', &soundPath);
 
   if (parser.parse(optionsFile, argc, argv)) {
     ostringstream message;
@@ -53,13 +54,16 @@ void Options::show_help(std::ostream& o) const
 "  -a,  --address ADD  Connect to server at ADD (default: 127.0.0.1).\n"
 "  -f,  --font FILE    Use given ttf font for numbers\n"
 "                      (default: use Courier.ttf in directory of binary)\n"
-"  -g,  --glade PATH   Find UI .glade files at PATH (default: .).\n"
+"  -g,  --glade PATH   Find UI .glade files at PATH\n"
+"                      (default: directory of exe).\n"
 "  -h,  --help         Display this message.\n"
 "  -p,  --port PORT    Connect to server at port PORT (default: "+port+").\n"
 "  -P,  --protocol PR  Connect using protocol PR (default: TCP).\n"
 "  -t-, --no-threaded  Do not run multiple threads.  This harms performance\n"
 "                      but aids debugging.\n"
 "  -v, --verbosity VERB  Set message verbosity to VERB (default: info).\n"
+"  -s, --sounds PATH   Directory in which sounds can be found\n"
+"                      (default: directory of exe).\n"
 "Options also read from ~/.nibbles/gtk-congif\n";
 }
 

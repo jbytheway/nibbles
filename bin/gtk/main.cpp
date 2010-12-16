@@ -76,8 +76,7 @@ int main(int argc, char** argv)
     gladeDir = exePath;
   }
 
-  // FIXME: sound = glade ??
-  boost::filesystem::path soundDir = options.gladePath;
+  boost::filesystem::path soundDir = options.soundPath;
 
   if (soundDir.empty()) {
     soundDir = exePath;
