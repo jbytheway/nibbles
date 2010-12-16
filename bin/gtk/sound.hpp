@@ -9,7 +9,7 @@ class Sound {
     Sound& operator=(Sound const&) = delete;
     virtual ~Sound() = 0;
 
-    virtual void async_play(bool supressExceptions = true) = 0;
+    virtual void asyncPlay(bool supressExceptions = true) = 0;
   protected:
     Sound() = default;
 };

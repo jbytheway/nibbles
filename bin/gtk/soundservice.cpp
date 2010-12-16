@@ -32,7 +32,7 @@ class PaSound : public Sound {
     );
     ~PaSound();
 
-    void async_play(bool supressExceptions);
+    void asyncPlay(bool supressExceptions);
     SF_INFO const& info() const { return info_; }
     std::vector<int16_t> const& data() const { return data_; }
   private:
@@ -132,7 +132,7 @@ PaSound::~PaSound()
   playings_.clear();
 }
 
-void PaSound::async_play(bool supressExceptions)
+void PaSound::asyncPlay(bool supressExceptions)
 {
   try {
     playings_.push_back(std::unique_ptr<PaPlaying>{new PaPlaying(*this)});
@@ -234,7 +234,7 @@ class SoundService::Impl {
 
 class DudSound : public Sound {
   public:
-    virtual void async_play(bool) {
+    virtual void asyncPlay(bool) {
       // Do nothing
     }
 };

@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 
   SoundService service;
   GameSounds sounds(service, soundDir);
-  sounds.intro->async_play();
+  sounds.intro->asyncPlay();
 
   ui::UI ui(io, options, gladeXml, fontPath, sounds);
 
