@@ -75,8 +75,9 @@ class Playing::Impl {
     uint32_t countdown_;
 
     // convenience functions
-    Active::RemotePlayerContainer const& remotePlayers();
-    std::vector<ControlledPlayer> const& localPlayers();
+    Active::RemotePlayerContainer const& remotePlayers() const;
+    std::vector<ControlledPlayer> const& localPlayers() const;
+    GameSounds const& sounds() const;
     void redraw();
     void refreshScores();
 
@@ -271,6 +272,7 @@ void Playing::Impl::levelStart(const Message<MessageType::levelStart>& m)
   }
   auto const& settings = parent_->context<Active>().settings();
   level_.reset(new Level(settings, def, playerIds));
+  sounds().start->asyncPlay();
   redraw();
   refreshScores();
 }
@@ -298,14 +300,19 @@ void Playing::Impl::tick(const Message<MessageType::tick>& m)
   redraw();
 }
 
-Active::RemotePlayerContainer const& Playing::Impl::remotePlayers()
+Active::RemotePlayerContainer const& Playing::Impl::remotePlayers() const
 {
   return parent_->context<Active>().remotePlayers();
 }
 
-std::vector<ControlledPlayer> const& Playing::Impl::localPlayers()
+std::vector<ControlledPlayer> const& Playing::Impl::localPlayers() const
 {
   return parent_->context<Active>().localPlayers();
+}
+
+GameSounds const& Playing::Impl::sounds() const
+{
+  return parent_->context<Machine>().sounds();
 }
 
 void Playing::Impl::redraw()
