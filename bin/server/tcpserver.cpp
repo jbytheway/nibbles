@@ -7,11 +7,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-using namespace std;
-using namespace boost::asio;
-using namespace boost::system;
-using namespace nibbles::utility;
-
 namespace nibbles { namespace server {
 
 TcpServer::TcpServer(Server& server) :
@@ -20,40 +15,42 @@ TcpServer::TcpServer(Server& server) :
   bindTimer_(server.io())
 {}
 
-void TcpServer::serve(const ip::tcp::endpoint& ep)
+void TcpServer::serve(const boost::asio::ip::tcp::endpoint& ep)
 {
-  acceptor_.open(ip::tcp::v4());
+  acceptor_.open(boost::asio::ip::tcp::v4());
   startBind(ep, boost::system::error_code());
 }
 
 void TcpServer::stop()
 {
-  server_.message(Verbosity::info, "TCP server: stopping");
+  server_.message(utility::Verbosity::info, "TCP server: stopping");
   acceptor_.close();
   bindTimer_.cancel();
 }
 
 void TcpServer::startBind(
-    const ip::tcp::endpoint& ep,
+    const boost::asio::ip::tcp::endpoint& ep,
     const boost::system::error_code& ec
   )
 {
   if (ec) {
     server_.message(
-        Verbosity::error, "TCP server: when starting bind: "+ec.message()
+        utility::Verbosity::error,
+        "TCP server: when starting bind: "+ec.message()
       );
     return;
   }
   server_.message(
-      Verbosity::info,
+      utility::Verbosity::info,
       "TCP server: binding to "+ep.address().to_string()+":"+
-      boost::lexical_cast<string>(ep.port())
+      boost::lexical_cast<std::string>(ep.port())
     );
   boost::system::error_code error;
   acceptor_.bind(ep, error);
-  if (error == posix_error::address_in_use) {
+  if (error == boost::system::posix_error::address_in_use) {
     server_.message(
-        Verbosity::error, "TCP server: address in use, will retry later"
+        utility::Verbosity::error,
+        "TCP server: address in use, will retry later"
       );
     bindTimer_.expires_from_now(boost::posix_time::seconds(5));
     bindTimer_.async_wait(boost::bind(
@@ -61,7 +58,7 @@ void TcpServer::startBind(
         ));
   } else if (error) {
     server_.message(
-        Verbosity::error, "TCP server: bind failed: "+error.message()
+        utility::Verbosity::error, "TCP server: bind failed: "+error.message()
       );
   } else {
     acceptor_.listen();
@@ -87,10 +84,12 @@ void TcpServer::handleAccept(
 {
   if (error) {
     server_.message(
-        Verbosity::error, "TCP server: accept: "+error.message()
+        utility::Verbosity::error, "TCP server: accept: "+error.message()
       );
   } else {
-    server_.message(Verbosity::info, "TCP server: accepted connection");
+    server_.message(
+      utility::Verbosity::info, "TCP server: accepted connection"
+    );
     server_.addConnection(newConnection);
     startAccept();
   }

@@ -6,24 +6,19 @@
 
 #include "optionserror.hpp"
 
-using namespace std;
-using namespace optimal;
-using namespace nibbles::utility;
-using namespace nibbles::client;
-
 namespace nibbles { namespace gtk {
 
 Options::Options(int const argc, char** const argv) :
   help(false),
-  verbosity(Verbosity::info),
+  verbosity(utility::Verbosity::info),
   threaded(true),
-  playerFile(string(getenv("HOME"))+"/.nibbles/players"),
-  protocol(Protocol::tcp),
+  playerFile(std::string(getenv("HOME"))+"/.nibbles/players"),
+  protocol(client::Protocol::tcp),
   address("127.0.0.1"),
   port(Network::defaultPort)
 {
-  string optionsFile = string(getenv("HOME"))+"/.nibbles/gtk-config";
-  OptionsParser parser;
+  std::string optionsFile = std::string(getenv("HOME"))+"/.nibbles/gtk-config";
+  optimal::OptionsParser parser;
   parser.addOption("address",     'a', &address);
   parser.addOption("font",        'f', &fontPath);
   parser.addOption("glade",       'g', &gladePath);
@@ -36,11 +31,11 @@ Options::Options(int const argc, char** const argv) :
   parser.addOption("sounds",      's', &soundPath);
 
   if (parser.parse(optionsFile, argc, argv)) {
-    ostringstream message;
+    std::ostringstream message;
     message << "error(s) processing options:\n";
     copy(
         parser.getErrors().begin(), parser.getErrors().end(),
-        ostream_iterator<string>(message, "\n")
+        std::ostream_iterator<std::string>(message, "\n")
       );
     throw OptionsError(message.str());
   }

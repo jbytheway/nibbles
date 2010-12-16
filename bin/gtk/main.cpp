@@ -14,26 +14,23 @@
 #include "soundservice.hpp"
 #include "ui/ui.hpp"
 
-using namespace std;
-using namespace boost::asio;
-using namespace nibbles::gtk;
 struct IoThread {
-  IoThread(io_service& io) :
+  IoThread(boost::asio::io_service& io) :
     io_(io),
     timer_(io, boost::posix_time::seconds(1))
   {}
-  io_service& io_;
-  deadline_timer timer_;
+  boost::asio::io_service& io_;
+  boost::asio::deadline_timer timer_;
   void operator()() {
     timer_.async_wait(boost::bind(
           &IoThread::timerExpired, this, boost::asio::placeholders::error
         ));
     io_.run();
-    cout << "IO thread completed" << endl;
+    std::cout << "IO thread completed" << std::endl;
   }
   void timerExpired(const boost::system::error_code& e) {
     if (e) {
-      cout << "IO thread interrupted" << endl;
+      std::cout << "IO thread interrupted" << std::endl;
     } else {
       timer_.expires_from_now(boost::posix_time::seconds(1));
       timer_.async_wait(boost::bind(
@@ -61,10 +58,10 @@ int main(int argc, char** argv)
     exePath = exePath.parent_path();
   }
 
-  io_service io;
+  boost::asio::io_service io;
   Gtk::Main kit(argc, argv);
   Gtk::GL::init(argc, argv);
-  const Options options(argc, argv);
+  const nibbles::gtk::Options options(argc, argv);
   if (options.help) {
     options.show_help(std::cout);
     return 0;
@@ -92,11 +89,11 @@ int main(int argc, char** argv)
   Glib::RefPtr<Gnome::Glade::Xml> gladeXml =
     Gnome::Glade::Xml::create(gladeFile.file_string());
 
-  SoundService service;
-  GameSounds sounds(service, soundDir);
+  nibbles::gtk::SoundService service;
+  nibbles::gtk::GameSounds sounds(service, soundDir);
   sounds.intro->asyncPlay();
 
-  ui::UI ui(io, options, gladeXml, fontPath, sounds);
+  nibbles::gtk::ui::UI ui(io, options, gladeXml, fontPath, sounds);
 
   if (options.threaded) {
     IoThread ioThreadObj(io);

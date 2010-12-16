@@ -6,8 +6,6 @@
 #include <nibbles/messagetype.hpp>
 #include <nibbles/deserializationexception.hpp>
 
-using namespace std;
-
 namespace nibbles {
 
 MessageBase::Ptr MessageBase::create(uint8_t const* data, size_t dataLen)

@@ -2,28 +2,26 @@
 
 #include <random>
 
-using namespace std;
-
 namespace nibbles { namespace levels {
 
 namespace {
 
 LevelDefinition correction(
     LevelId id,
-    string name,
-    vector<Block>& walls,
-    vector<Position>& starts
+    std::string name,
+    std::vector<Block>& walls,
+    std::vector<Position>& starts
   )
 {
   // Adjust for QBASIC's 1-based indexing and score line at
   // the top
   Point offset(1,3);
-  for (size_t i=0; i<starts.size(); i++)
+  for (std::size_t i=0; i<starts.size(); i++)
   {
     starts[i] -= offset;
   }
 
-  for (size_t i=0; i<walls.size(); i++)
+  for (std::size_t i=0; i<walls.size(); i++)
   {
     walls[i] -= offset;
   }
@@ -38,9 +36,9 @@ LevelDefinition classicLevel(
   LevelId levelNumber
 )
 {
-  string name;
-  vector<Position> starts(2);
-  vector<Block> walls;
+  std::string name;
+  std::vector<Position> starts(2);
+  std::vector<Block> walls;
 
   switch (whichLevel)
   {
@@ -147,9 +145,9 @@ LevelDefinition classicLevel(
 
 LevelDefinition ultraLevel(LevelId levelNumber)
 {
-  string name;
-  vector<Position> starts(2);
-  vector<Block> walls;
+  std::string name;
+  std::vector<Position> starts(2);
+  std::vector<Block> walls;
   // Standard start locations
   starts[0] = Position(Point(70, 25), Direction(Direction::up));
   starts[1] = Position(Point(10, 25), Direction(Direction::down));
@@ -557,9 +555,9 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       int gap = 40 - levelNumber;
       if (gap < 1)
         gap = 1;
-      random_device device;
-      mt19937 random(device);
-      bernoulli_distribution dist(0.15);
+      std::random_device device;
+      std::mt19937 random(device);
+      std::bernoulli_distribution dist(0.15);
 
       for (int i=4+gap; i<=49-gap; i++)
       {
@@ -581,18 +579,18 @@ LevelDefinition ultraLevel(LevelId levelNumber)
 
 LevelPack classicLevels()
 {
-  vector<LevelDefinition> levels;
+  std::vector<LevelDefinition> levels;
   for (LevelId i; i<10; i++)
     levels.push_back(classicLevel(i, i));
-  return LevelPack(string("classic"), std::move(levels));
+  return LevelPack(std::string("classic"), std::move(levels));
 }
 
 LevelPack ultraLevels()
 {
-  vector<LevelDefinition> levels;
+  std::vector<LevelDefinition> levels;
   for (LevelId i; i<40; i++)
     levels.push_back(ultraLevel(i));
-  return LevelPack(string("ultra"), std::move(levels));
+  return LevelPack(std::string("ultra"), std::move(levels));
 }
 
 }}

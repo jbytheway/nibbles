@@ -4,8 +4,6 @@
 
 #include <boost/foreach.hpp>
 
-using namespace std;
-
 namespace nibbles {
 
 Board& Board::operator=(const Board& copy)
@@ -91,17 +89,17 @@ void Board::dumpBoard()
     for (uint32_t y = 0; y<h; ++y) {
       switch(array[x][y]) {
         case BoardState::empty:
-          cout << '.';
+          std::cout << '.';
           break;
         case BoardState::wall:
-          cout << '#';
+          std::cout << '#';
           break;
         default:
-          cout << '!';
+          std::cout << '!';
           break;
       }
     }
-    cout << endl;
+    std::cout << std::endl;
   }
 }
 

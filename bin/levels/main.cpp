@@ -6,10 +6,6 @@
 
 #include "levels.hpp"
 
-using namespace std;
-using namespace nibbles;
-using namespace nibbles::levels;
-
 int main(int argc, char const* const* const argv)
 {
   bool classic;
@@ -18,15 +14,15 @@ int main(int argc, char const* const* const argv)
   parser.addOption("classic", 'c', &classic);
   parser.parse(argc, argv);
 
-  LevelPack levels;
+  nibbles::LevelPack levels;
 
   if (classic) {
-    levels = classicLevels();
+    levels = nibbles::levels::classicLevels();
   } else {
-    levels = ultraLevels();
+    levels = nibbles::levels::ultraLevels();
   }
 
-  boost::archive::xml_oarchive oa(cout);
+  boost::archive::xml_oarchive oa(std::cout);
   oa << boost::serialization::make_nvp("levelPack_", levels);
 
   return 0;

@@ -2,8 +2,6 @@
 
 #include <nibbles/client/tcpclient.hpp>
 
-using namespace std;
-
 namespace nibbles { namespace client {
 
 Client::Ptr Client::create(

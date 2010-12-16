@@ -9,13 +9,13 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 
-using namespace std;
-using namespace boost::asio;
-using namespace nibbles::utility;
-
 namespace nibbles { namespace server {
 
-Server::Server(io_service& io, ostream& out, const Options& o) :
+Server::Server(
+  boost::asio::io_service& io,
+  std::ostream& out,
+  const Options& o
+) :
   io_(io),
   out_(out),
   options_(o),
@@ -31,11 +31,13 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
 
   boost::filesystem::path levelsFile(o.levelPack);
   if (levelsFile.empty()) {
-    throw runtime_error("no levelpack specified");
+    throw std::runtime_error("no levelpack specified");
   }
   boost::filesystem::ifstream ifs(levelsFile);
   if (!ifs.is_open()) {
-    throw runtime_error("failed to open levelpack "+levelsFile.file_string());
+    throw std::runtime_error(
+      "failed to open levelpack "+levelsFile.file_string()
+    );
   }
   boost::archive::xml_iarchive ia(ifs);
   ia >> BOOST_SERIALIZATION_NVP(levelPack_);
@@ -45,18 +47,18 @@ Server::Server(io_service& io, ostream& out, const Options& o) :
 void Server::serve()
 {
   if (options_.useTcp) {
-    ip::address addr(ip::address::from_string(options_.tcpAddress));
-    tcp_.serve(ip::tcp::endpoint(addr, options_.tcpPort));
+    auto addr = boost::asio::ip::address::from_string(options_.tcpAddress);
+    tcp_.serve(boost::asio::ip::tcp::endpoint(addr, options_.tcpPort));
   }
 
   io_.run(); // Blocks until all stuff is done
-  message(Verbosity::info, "server done");
+  message(utility::Verbosity::info, "server done");
 }
 
 void Server::addConnection(const Connection::Ptr& connection)
 {
   if (game_.started()) {
-    message(Verbosity::error, "connection failed; game started");
+    message(utility::Verbosity::error, "connection failed; game started");
     connection->close();
     return;
   }
@@ -72,18 +74,18 @@ void Server::addConnection(const Connection::Ptr& connection)
   bool inserted = connectionPool_.insert(connection).second;
   if (inserted) {
     message(
-        Verbosity::info,
+        utility::Verbosity::info,
         "added connection; "+
-        boost::lexical_cast<string>(connectionPool_.size())+" now exist"
+        boost::lexical_cast<std::string>(connectionPool_.size())+" now exist"
       );
     sendStateToConnection(connection);
   } else {
-    message(Verbosity::error, "connection failed; id in use");
+    message(utility::Verbosity::error, "connection failed; id in use");
     connection->close();
   }
 }
 
-void Server::message(Verbosity v, const string& message)
+void Server::message(utility::Verbosity v, const std::string& message)
 {
   if (options_.verbosity <= v)
     out_ << message << std::endl;
@@ -97,7 +99,7 @@ void Server::setReadiness(Connection* connection, bool ready)
   ClientId id = connection->id();
   connection->setReady(ready);
   const MessageBase& outMessage =
-    Message<MessageType::updateReadiness>(make_pair(id, ready));
+    Message<MessageType::updateReadiness>(std::make_pair(id, ready));
   sendToAll(outMessage);
 }
 
@@ -108,7 +110,7 @@ void Server::signalled()
 
 void Server::shutdown()
 {
-  message(Verbosity::info, "caught interrupt, shutting down...");
+  message(utility::Verbosity::info, "caught interrupt, shutting down...");
   tcp_.stop();
   gameTickTimer_.cancel();
   BOOST_FOREACH(const Connection::Ptr& c, connectionPool_) {
@@ -124,9 +126,9 @@ void Server::deleteConnection(Connection* connection)
   players_.get<ClientTag>().erase(id);
   connectionPool_.erase(id);
   message(
-      Verbosity::info,
+      utility::Verbosity::info,
       "removed connection; "+
-      boost::lexical_cast<string>(connectionPool_.size())+" remain"
+      boost::lexical_cast<std::string>(connectionPool_.size())+" remain"
     );
 }
 
@@ -160,7 +162,7 @@ void Server::internalNetMessage(                           \
     Connection*                                            \
   )                                                        \
 {                                                          \
-  message(Verbosity::warning, "ignoring "#type" message"); \
+  message(utility::Verbosity::warning, "ignoring "#type" message"); \
 }
 
 IGNORE_MESSAGE(playerAdded)
@@ -190,7 +192,7 @@ void Server::internalNetMessage(
       Message<MessageType::playerAdded>(*newIt);
     sendToAll(outMessage);
   } else {
-    message(Verbosity::error, "add player failed; name or id in use");
+    message(utility::Verbosity::error, "add player failed; name or id in use");
   }
 }
 
@@ -215,12 +217,12 @@ void Server::internalNetMessage(
 
   auto it = players_.find(playerId);
   if (it == players_.end()) {
-    message(Verbosity::warning, "turn for non-existant player");
+    message(utility::Verbosity::warning, "turn for non-existant player");
     return;
   }
   ClientId purportedClientId = it->clientId();
   if (clientId != purportedClientId) {
-    message(Verbosity::warning, "attempted spoofed command");
+    message(utility::Verbosity::warning, "attempted spoofed command");
     return;
   }
   Command command = netMessage.payload().second;
@@ -283,7 +285,7 @@ void Server::checkForGameStart()
 void Server::tick(uint32_t countdown, const boost::system::error_code& e)
 {
   if (e) {
-    message(Verbosity::info, "game interrupted");
+    message(utility::Verbosity::info, "game interrupted");
     return;
   }
   if (pausing_) {

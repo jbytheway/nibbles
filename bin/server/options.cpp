@@ -5,28 +5,25 @@
 
 #include "optionserror.hpp"
 
-using namespace std;
-using namespace optimal;
-using namespace nibbles::utility;
-
 namespace nibbles { namespace server {
 
 Options::Options(int argc, char const* const* const argv) :
   help(false),
-  verbosity(Verbosity::debug),
+  verbosity(utility::Verbosity::debug),
   useTcp(true),
   tcpAddress("127.0.0.1"),
   tcpPort(Network::defaultPort),
   levelPack(),
-  highScores(string(getenv("HOME"))+"/.nibbles/server-highscores"),
+  highScores(std::string(getenv("HOME"))+"/.nibbles/server-highscores"),
   startLevel(),
   startInterval(100),
   intervalFactor(0.98),
   countdown(44)
 {
-  string optionsFile = string(getenv("HOME"))+"/.nibbles/server-config";
+  std::string optionsFile =
+    std::string(getenv("HOME"))+"/.nibbles/server-config";
   unsigned int startLevel;
-  OptionsParser parser;
+  optimal::OptionsParser parser;
   parser.addOption("help",        'h', &help);
   parser.addOption("verbosity",   'v', &verbosity);
   parser.addOption("tcp",         't', &useTcp);
@@ -40,11 +37,11 @@ Options::Options(int argc, char const* const* const argv) :
   parser.addOption("countdown",   'c', &countdown);
 
   if (parser.parse(optionsFile, argc, argv)) {
-    ostringstream message;
+    std::ostringstream message;
     message << "error(s) processing options:\n";
     copy(
         parser.getErrors().begin(), parser.getErrors().end(),
-        ostream_iterator<string>(message, "\n")
+        std::ostream_iterator<std::string>(message, "\n")
       );
     throw OptionsError(message.str());
   }
@@ -54,9 +51,9 @@ Options::Options(int argc, char const* const* const argv) :
   }
 }
 
-string Options::usage()
+std::string Options::usage()
 {
-  ostringstream result;
+  std::ostringstream result;
   result <<
 "Usage: nibbles-server [OPTIONS...]\n"
 "  -h, --help              Display this message\n"

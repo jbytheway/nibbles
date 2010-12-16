@@ -4,26 +4,22 @@
 #include "optionserror.hpp"
 #include "signalcatcher.hpp"
 
-using namespace std;
-using namespace boost::asio;
-using namespace nibbles::server;
-
 static void signalHandler(int signal)
 {
-  signalCatcher(signal);
+  nibbles::server::signalCatcher(signal);
 }
 
 int main(int argc, char const* const* const argv)
 {
   try {
-    io_service io;
-    Options options(argc, argv);
-    Server server(io, cout, options);
+    boost::asio::io_service io;
+    nibbles::server::Options options(argc, argv);
+    nibbles::server::Server server(io, std::cout, options);
     signal(SIGTERM, signalHandler);
     signal(SIGINT, signalHandler);
     server.serve();
-  } catch (OptionsError& e) {
-    cerr << e.what() << endl;
+  } catch (nibbles::server::OptionsError& e) {
+    std::cerr << e.what() << std::endl;
   }
   return 0;
 }

@@ -7,10 +7,6 @@
 #include <nibbles/utility/ntoh.hpp>
 #include <nibbles/utility/hton.hpp>
 
-using namespace std;
-using namespace boost::asio;
-using namespace nibbles::utility;
-
 namespace nibbles {
 
 TcpSocket::TcpSocket(
@@ -33,17 +29,17 @@ TcpSocket::TcpSocket(
   socket_(io),
   dataLen_(0)
 {
-  ip::address addr = ip::address::from_string(address);
-  endpoint_ = ip::tcp::endpoint(addr, port);
+  auto const addr = boost::asio::ip::address::from_string(address);
+  endpoint_ = boost::asio::ip::tcp::endpoint(addr, port);
   out_.message(
-      Verbosity::info, "tcp: connecting to "+addr.to_string()+":"+
-      boost::lexical_cast<string>(port)
+      utility::Verbosity::info, "tcp: connecting to "+addr.to_string()+":"+
+      boost::lexical_cast<std::string>(port)
     );
 }
 
 void TcpSocket::connect()
 {
-  socket_.open(ip::tcp::v4());
+  socket_.open(boost::asio::ip::tcp::v4());
   socket_.connect(endpoint_);
 
   continueRead();
@@ -51,12 +47,12 @@ void TcpSocket::connect()
 
 void TcpSocket::send(const MessageBase& message)
 {
-  const string& data = message.data();
+  const auto& data = message.data();
   if (data.size() > Network::maxPacketLen) {
     out_.message(
-        Verbosity::error,
+        utility::Verbosity::error,
         "TCP socket: packet too long ("+
-        boost::lexical_cast<string>(data.size())+" bytes)"
+        boost::lexical_cast<std::string>(data.size())+" bytes)"
       );
     return;
   }
@@ -71,7 +67,7 @@ void TcpSocket::send(const MessageBase& message)
 void TcpSocket::continueRead()
 {
   socket_.async_read_some(
-      buffer(data_.data()+dataLen_, data_.size()-dataLen_),
+      boost::asio::buffer(data_.data()+dataLen_, data_.size()-dataLen_),
       boost::bind(
         &TcpSocket::handleRead, this,
         boost::asio::placeholders::error,
@@ -90,7 +86,9 @@ void TcpSocket::handleRead(
   )
 {
   if (error) {
-    out_.message(Verbosity::error, "TcpSocket: read: "+error.message());
+    out_.message(
+      utility::Verbosity::error, "TcpSocket: read: "+error.message()
+    );
     terminateSignal();
   } else {
     dataLen_ += bytes;
@@ -118,7 +116,7 @@ void TcpSocket::startWrite()
   outgoing_.clear();
   if (writing_.empty())
     return;
-  async_write(socket_, buffer(writing_), boost::bind(
+  boost::asio::async_write(socket_, boost::asio::buffer(writing_), boost::bind(
         &TcpSocket::handleWrite, this,
         boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred
@@ -133,7 +131,7 @@ void TcpSocket::handleWrite(
   // TODO: use bytes_transferred
   writing_.clear();
   if (ec) {
-    out_.message(Verbosity::error, "TCP socket: "+ec.message());
+    out_.message(utility::Verbosity::error, "TCP socket: "+ec.message());
     socket_.close();
   } else if (!outgoing_.empty()) {
     startWrite();
