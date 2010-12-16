@@ -20,8 +20,9 @@ class HighScoreManager {
   private:
     boost::filesystem::path file_;
 
+    typedef std::pair<uint32_t, GameSettings> GameType;
     typedef std::set<HighScore> HighScoreSet;
-    std::map<GameSettings, HighScoreSet> scores_;
+    std::map<GameType, HighScoreSet> scores_;
 };
 
 }}

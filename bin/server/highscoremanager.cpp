@@ -30,7 +30,8 @@ HighScoreReport HighScoreManager::insert(
   HighScore score
 )
 {
-  HighScoreSet& scoreSet = scores_[settings];
+  GameType type{score.get<playerScores>().size(), settings};
+  HighScoreSet& scoreSet = scores_[type];
   HighScoreSet::iterator insertedIt = scoreSet.insert(score).first;
 
   HighScoreReport result;
