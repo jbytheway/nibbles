@@ -28,11 +28,10 @@ struct Game :
       LevelPack(), GameSettings(), RandomEngine(), std::vector<PlayerId>(),
       LevelId::invalid(), Level(), boost::posix_time::time_duration()
     ) {}
-  Game(GameSettings&& settings) : base(
+  Game(GameSettings const& settings) : base(
       LevelPack(), settings, RandomEngine(), std::vector<PlayerId>(),
       LevelId::invalid(), Level(), settings.get<tickInterval>()
     ) {}
-  NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(Game)
 
   bool started() const { return get<levelId>().valid(); }
 

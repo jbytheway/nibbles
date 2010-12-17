@@ -20,7 +20,6 @@ Server::Server(
   out_(out),
   options_(o),
   tcp_(*this),
-  game_(o.gameSettings()),
   gameTickTimer_(io),
   pausing_(false),
   paused_(false),
@@ -41,7 +40,6 @@ Server::Server(
   }
   boost::archive::xml_iarchive ia(ifs);
   ia >> BOOST_SERIALIZATION_NVP(levelPack_);
-  game_.get<levels>() = levelPack_;
 }
 
 void Server::serve()
@@ -57,7 +55,7 @@ void Server::serve()
 
 void Server::addConnection(const Connection::Ptr& connection)
 {
-  if (game_.started()) {
+  if (game_) {
     message(utility::Verbosity::error, "connection failed; game started");
     connection->close();
     return;
@@ -272,13 +270,15 @@ void Server::checkForGameStart()
   if (unready != conns.end()) {
     return;
   }
-  auto const& settings = game_.get<fields::settings>();
+  auto const& settings = options_.gameSettings();
   sendToAll(Message<MessageType::gameStart>(settings));
   BOOST_FOREACH(auto const& player, players_.get<SequenceTag>()) {
     scorer_.add(player.id(), settings.get<startLives>());
     player.reset();
   }
-  game_.start(players_.get<SequenceTag>(), forwarder_);
+  game_.reset(new Game(settings)),
+  game_->get<levels>() = levelPack_;
+  game_->start(players_.get<SequenceTag>(), forwarder_);
   tick(options_.countdown);
 }
 
@@ -293,7 +293,7 @@ void Server::tick(uint32_t countdown, const boost::system::error_code& e)
     paused_ = true;
     return;
   }
-  auto interval = game_.get<tickInterval>();
+  auto interval = game_->get<tickInterval>();
   gameTickTimer_.expires_from_now(interval);
 
   if (countdown) {
@@ -312,7 +312,7 @@ void Server::tick(uint32_t countdown, const boost::system::error_code& e)
       }
     }
     forwarder_.tick(moves);
-    auto result = game_.tick(scorer_, forwarder_, moves);
+    auto result = game_->tick(scorer_, forwarder_, moves);
     if (result == TickResult::gameOver) {
       gameEnd();
       return;
@@ -347,13 +347,14 @@ void Server::togglePaused()
 void Server::gameEnd()
 {
   HighScore highScore(players_.get<SequenceTag>(), scorer_);
-  auto scoreReport = highScores_.insert(game_.get<settings>(), highScore);
+  auto scoreReport = highScores_.insert(game_->get<settings>(), highScore);
   highScores_.save();
   sendToAll(Message<MessageType::gameOver>(scoreReport));
   BOOST_FOREACH(auto& connection, connectionPool_.get<SequenceTag>()) {
     setReadiness(&*connection, false);
   }
   scorer_.clear();
+  game_.reset();
 }
 
 }}

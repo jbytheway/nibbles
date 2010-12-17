@@ -78,7 +78,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
     PlayerContainer players_;
     PlayerId nextPlayerId_;
 
-    Game game_;
+    std::unique_ptr<Game> game_;
     boost::asio::deadline_timer gameTickTimer_;
     bool pausing_; // Will pause at next tick
     bool paused_; // Am paused
