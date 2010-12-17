@@ -8,33 +8,33 @@
 namespace nibbles { namespace server {
 
 Options::Options(int argc, char const* const* const argv) :
-  help(false),
-  verbosity(utility::Verbosity::debug),
-  useTcp(true),
   tcpAddress("127.0.0.1"),
-  tcpPort(Network::defaultPort),
-  levelPack(),
-  highScores(std::string(getenv("HOME"))+"/.nibbles/server-highscores"),
   startLevel(),
-  startInterval(100),
+  countdown(44),
   intervalFactor(0.98),
-  countdown(44)
+  help(false),
+  startInterval(100),
+  levelPack(),
+  tcpPort(Network::defaultPort),
+  highScores(std::string(getenv("HOME"))+"/.nibbles/server-highscores"),
+  useTcp(true),
+  verbosity(utility::Verbosity::debug)
 {
   std::string optionsFile =
     std::string(getenv("HOME"))+"/.nibbles/server-config";
   unsigned int startLevel;
   optimal::OptionsParser parser;
-  parser.addOption("help",        'h', &help);
-  parser.addOption("verbosity",   'v', &verbosity);
-  parser.addOption("tcp",         't', &useTcp);
   parser.addOption("tcp-addr",    'a', &tcpAddress);
-  parser.addOption("tcp-port",    'p', &tcpPort);
-  parser.addOption("levels",      'l', &levelPack);
-  parser.addOption("high-scores", 's', &highScores);
   parser.addOption("level",       'b', &startLevel);
-  parser.addOption("interval",    'i', &startInterval);
-  parser.addOption("factor",      'f', &intervalFactor);
   parser.addOption("countdown",   'c', &countdown);
+  parser.addOption("factor",      'f', &intervalFactor);
+  parser.addOption("help",        'h', &help);
+  parser.addOption("interval",    'i', &startInterval);
+  parser.addOption("levels",      'l', &levelPack);
+  parser.addOption("tcp-port",    'p', &tcpPort);
+  parser.addOption("high-scores", 's', &highScores);
+  parser.addOption("tcp",         't', &useTcp);
+  parser.addOption("verbosity",   'v', &verbosity);
 
   if (parser.parse(optionsFile, argc, argv)) {
     std::ostringstream message;
@@ -56,22 +56,22 @@ std::string Options::usage()
   std::ostringstream result;
   result <<
 "Usage: nibbles-server [OPTIONS...]\n"
-"  -h, --help              Display this message\n"
-"  -v, --verbosity VERB    Set verbosity to error, warning, info or debug\n"
-"  -t, --tcp               Serve on TCP (default on)\n"
 "  -a, --tcp-addr ADDR     Address for TCP server (default 127.0.0.1)\n"
-"  -p, --tcp-port PORT     Port for TCP server (default " <<
-  Network::defaultPort << ")\n"
-"  -l, --levels FILE       Specify level pack (no default)\n"
 "  -b, --level LEVEL       Specify start level (default 0)\n"
-"  -s, --high-scores FILE  Specify file to store high scores\n"
-"                          (default ~/.nibbles/server-highscores)\n"
-"  -i, --interval INT      Specify initial tick interval in milliseconds\n"
-"                          (default 100)\n"
-"  -f, --factor FACT       Specify factor tick interval multiplied by\n"
-"                          (default 0.98)\n"
 "  -c, --countdown NUM     How many ticks for which to count down to level\n"
 "                          start (default 44)\n"
+"  -f, --factor FACT       Specify factor tick interval multiplied by\n"
+"                          (default 0.98)\n"
+"  -h, --help              Display this message\n"
+"  -i, --interval INT      Specify initial tick interval in milliseconds\n"
+"                          (default 100)\n"
+"  -l, --levels FILE       Specify level pack (no default)\n"
+"  -p, --tcp-port PORT     Port for TCP server (default " <<
+  Network::defaultPort << ")\n"
+"  -s, --high-scores FILE  Specify file to store high scores\n"
+"                          (default ~/.nibbles/server-highscores)\n"
+"  -t, --tcp               Serve on TCP (default on)\n"
+"  -v, --verbosity VERB    Set verbosity to error, warning, info or debug\n"
 "Options also read from ~/.nibbles/server-config\n";
   return result.str();
 }
