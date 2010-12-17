@@ -17,14 +17,18 @@ struct Options
   std::string tcpAddress;
   LevelId startLevel;
   uint32_t countdown;
+  Score deathScore;
   double intervalFactor;
+  SnakeLength growthRate;
   bool help;
   uint32_t startInterval;
   std::string levelPack;
+  SnakeLength startLength;
   uint16_t tcpPort;
   boost::filesystem::path highScores;
   bool useTcp;
   utility::Verbosity verbosity;
+  LifeCount startLives;
 
   static std::string usage();
   GameSettings gameSettings() const;
