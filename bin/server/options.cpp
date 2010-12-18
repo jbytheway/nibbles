@@ -26,10 +26,10 @@ Options::Options(int argc, char const* const* const argv) :
 {
   std::string optionsFile =
     std::string(getenv("HOME"))+"/.nibbles/server-config";
-  unsigned int startLevel;
+  LevelId::internal_type localStartLevel;
   optimal::OptionsParser parser;
   parser.addOption("tcp-addr",    'a', &tcpAddress);
-  parser.addOption("level",       'b', &startLevel);
+  parser.addOption("level",       'b', &localStartLevel);
   parser.addOption("countdown",   'c', &countdown);
   parser.addOption("death",       'd', &deathScore);
   parser.addOption("factor",      'f', &intervalFactor);
@@ -53,6 +53,8 @@ Options::Options(int argc, char const* const* const argv) :
       );
     throw OptionsError(message.str());
   }
+
+  startLevel = LevelId::fromInteger(localStartLevel);
 
   if (help) {
     throw OptionsError(usage());
