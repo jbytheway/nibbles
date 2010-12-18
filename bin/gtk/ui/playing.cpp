@@ -648,6 +648,7 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
       auto bbox = font_.BBox(val.c_str(), length);
       FTPoint const available{messageWidth-2, messageHeight-2};
       while (bbox.Upper().X() > available.X() && length > 0) {
+        // FIXME: should decreemnt a character, not a byte!
         --length;
         bbox = font_.BBox(val.c_str(), length);
       }
