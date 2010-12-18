@@ -516,10 +516,15 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
       glVertex2f(0.0, levelHeight);
 
       // Paint the walls red
-      glColor3f(1, 0, 0);
       for (size_t x=0; x<levelWidth; ++x) {
         for (size_t y=0; y<levelHeight; ++y) {
           if (board[Point(x,y)] == BoardState::wall) {
+            if ((y > 0 && board[Point(x, y-1)] == BoardState::snake) ||
+              (y<levelHeight-1 && board[Point(x, y+1)] == BoardState::snake)) {
+              glColor3f(0.5, 0, 0);
+            } else {
+              glColor3f(1, 0, 0);
+            }
             glVertex2f(x  , y  );
             glVertex2f(x+1, y  );
             glVertex2f(x+1, y+1);
