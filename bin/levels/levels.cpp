@@ -37,25 +37,31 @@ LevelDefinition classicLevel(
 )
 {
   std::string name;
-  std::vector<Position> starts(2);
+  std::vector<Position> starts(4);
   std::vector<Block> walls;
 
   // Standard start locations
   starts[0] = Position(Point(65,  7), Direction(Direction::down));
   starts[1] = Position(Point(16, 46), Direction(Direction::up));
+  starts[2] = Position(Point(16,  7), Direction(Direction::down));
+  starts[3] = Position(Point(65, 46), Direction(Direction::up));
 
   switch (whichLevel)
   {
     case 0:
       name = "Field";
-      starts[0] = Position(Point(50, 25), Direction(Direction::right));
-      starts[1] = Position(Point(31, 25), Direction(Direction::left));
+      starts[0] = Position(Point(70, 14), Direction(Direction::left));
+      starts[1] = Position(Point(11, 39), Direction(Direction::right));
+      starts[2] = Position(Point(70, 39), Direction(Direction::left));
+      starts[3] = Position(Point(11, 14), Direction(Direction::right));
       break;
     case 1:
       name = "Bar";
       walls.push_back(Block(20, 25, 41, 1));
-      starts[0] = Position(Point(60, 7), Direction(Direction::left));
+      starts[0] = Position(Point(60,  7), Direction(Direction::left));
       starts[1] = Position(Point(21, 46), Direction(Direction::right));
+      starts[2] = Position(Point(60, 46), Direction(Direction::left));
+      starts[3] = Position(Point(21,  7), Direction(Direction::right));
       break;
     case 2:
       name = "Legs";
@@ -63,6 +69,8 @@ LevelDefinition classicLevel(
       walls.push_back(Block(60, 10, 1, 31));
       starts[0] = Position(Point(50, 39), Direction(Direction::up));
       starts[1] = Position(Point(31, 14), Direction(Direction::down));
+      starts[2] = Position(Point(31, 39), Direction(Direction::up));
+      starts[3] = Position(Point(50, 14), Direction(Direction::down));
       break;
     case 3:
       name = "Propellor";
@@ -76,8 +84,10 @@ LevelDefinition classicLevel(
       walls.push_back(Block(60, 23, 1, 27));
       walls.push_back(Block(2, 38, 39, 1));
       walls.push_back(Block(41, 15, 39, 1));
-      starts[0] = Position(Point(60, 7), Direction(Direction::left));
+      starts[0] = Position(Point(60,  7), Direction(Direction::left));
       starts[1] = Position(Point(20, 46), Direction(Direction::right));
+      starts[2] = Position(Point(70, 43), Direction(Direction::up));
+      starts[3] = Position(Point(10, 10), Direction(Direction::down));
       break;
     case 4:
       name = "Box";
@@ -87,6 +97,8 @@ LevelDefinition classicLevel(
       walls.push_back(Block(23, 41, 35, 1));
       starts[0] = Position(Point(50, 39), Direction(Direction::up));
       starts[1] = Position(Point(31, 14), Direction(Direction::down));
+      starts[2] = Position(Point(31, 39), Direction(Direction::up));
+      starts[3] = Position(Point(50, 14), Direction(Direction::down));
       break;
     case 5:
       name = "Car park";
@@ -118,7 +130,9 @@ LevelDefinition classicLevel(
         walls.push_back(Block(i+28, i, 1, 1));
       }
       starts[0] = Position(Point(75, 39), Direction(Direction::up));
-      starts[1] = Position(Point(6, 14), Direction(Direction::down));
+      starts[1] = Position(Point( 6, 14), Direction(Direction::down));
+      starts[2] = Position(Point( 6, 39), Direction(Direction::up));
+      starts[3] = Position(Point(75, 14), Direction(Direction::down));
       break;
     default:
       name = "Diffraction";
@@ -142,12 +156,14 @@ LevelDefinition classicLevel(
 LevelDefinition ultraLevel(LevelId levelNumber)
 {
   std::string name;
-  std::vector<Position> starts(2);
+  std::vector<Position> starts(4);
   std::vector<Block> walls;
 
   // Standard start locations
   starts[0] = Position(Point(70, 39), Direction(Direction::up));
   starts[1] = Position(Point(11, 14), Direction(Direction::down));
+  starts[2] = Position(Point(11, 39), Direction(Direction::up));
+  starts[3] = Position(Point(70, 14), Direction(Direction::down));
 
   switch(levelNumber)
   {
@@ -219,8 +235,10 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       walls.push_back(Block(20, 15, 41, 1));
       walls.push_back(Block(20, 25, 41, 1));
       walls.push_back(Block(20, 35, 41, 1));
-      starts[0] = Position(Point(60, 7), Direction(Direction::left));
+      starts[0] = Position(Point(60,  7), Direction(Direction::left));
       starts[1] = Position(Point(21, 46), Direction(Direction::right));
+      starts[2] = Position(Point(60, 46), Direction(Direction::left));
+      starts[3] = Position(Point(21,  7), Direction(Direction::right));
       break;
     case 8:
       name = "Fence";
@@ -471,8 +489,10 @@ LevelDefinition ultraLevel(LevelId levelNumber)
           walls.push_back(Block(j, i, 1, 1));
         }
       }
-      starts[0] = Position(Point(65, 7), Direction(Direction::down));
+      starts[0] = Position(Point(65,  7), Direction(Direction::down));
       starts[1] = Position(Point(16, 46), Direction(Direction::up));
+      starts[2] = Position(Point(16,  7), Direction(Direction::down));
+      starts[3] = Position(Point(65, 46), Direction(Direction::up));
       break;
     case 24:
       name = "X";
@@ -483,7 +503,9 @@ LevelDefinition ultraLevel(LevelId levelNumber)
         walls.push_back(Block(i+14, 53-i, 1, 1));
       }
       starts[0] = Position(Point(75, 39), Direction(Direction::up));
-      starts[1] = Position(Point(6, 14), Direction(Direction::down));
+      starts[1] = Position(Point( 6, 14), Direction(Direction::down));
+      starts[2] = Position(Point( 6, 39), Direction(Direction::up));
+      starts[3] = Position(Point(75, 14), Direction(Direction::down));
       break;
     case 25:
       name = "Crease";
@@ -505,7 +527,9 @@ LevelDefinition ultraLevel(LevelId levelNumber)
         walls.push_back(Block(51-i, 47-i, 1, 1));
       }
       starts[0] = Position(Point(75, 39), Direction(Direction::up));
-      starts[1] = Position(Point(6, 14), Direction(Direction::down));
+      starts[1] = Position(Point( 6, 14), Direction(Direction::down));
+      starts[2] = Position(Point( 6, 39), Direction(Direction::up));
+      starts[3] = Position(Point(75, 14), Direction(Direction::down));
       break;
     case 26:
       // Many non-aligned dotted lines
@@ -522,6 +546,8 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       }
       starts[0] = Position(Point(66, 10), Direction(Direction::down));
       starts[1] = Position(Point(14, 43), Direction(Direction::up));
+      starts[2] = Position(Point(14, 10), Direction(Direction::down));
+      starts[3] = Position(Point(66, 43), Direction(Direction::up));
       break;
     case 28:
       name = "Origami";
@@ -546,6 +572,8 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       }
       starts[0] = Position(Point(63, 39), Direction(Direction::up));
       starts[1] = Position(Point(18, 14), Direction(Direction::down));
+      starts[2] = Position(Point(18, 39), Direction(Direction::up));
+      starts[3] = Position(Point(63, 14), Direction(Direction::down));
       break;
     default:
       name = "Chaos "+levelNumber;
@@ -565,7 +593,9 @@ LevelDefinition ultraLevel(LevelId levelNumber)
         }
       }
       starts[0] = Position(Point(79, 4), Direction(Direction::down));
-      starts[1] = Position(Point(2, 49), Direction(Direction::up));
+      starts[1] = Position(Point( 2, 49), Direction(Direction::up));
+      starts[2] = Position(Point( 2, 4), Direction(Direction::down));
+      starts[3] = Position(Point(79, 49), Direction(Direction::up));
       break;
   }
 
