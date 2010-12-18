@@ -404,6 +404,19 @@ void Configuring::Impl::connected()
     auto const& client = parent_->state_cast<Connectedness const&>().client();
     client->setReadiness(true);
   }
+  // If players to be added automatically, then add them
+  auto const& players = parent_->context<Machine>().players();
+  auto const& localPlayersByName = localPlayers().get<Active::NameTag>();
+  BOOST_FOREACH(auto const& playerName, players) {
+    auto const it = localPlayersByName.find(playerName);
+    if (it == localPlayersByName.end()) {
+      parent_->context<Machine>().messageHandler().message(
+        utility::Verbosity::error, "no such player '"+playerName+"'"
+      );
+    } else {
+      addPlayerToGame(*it);
+    }
+  }
 }
 
 void Configuring::Impl::disconnected()

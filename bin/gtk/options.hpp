@@ -2,6 +2,7 @@
 #define NIBBLES_GTK__OPTIONS_HPP
 
 #include <string>
+#include <list>
 
 #include <boost/filesystem/path.hpp>
 
@@ -23,6 +24,7 @@ struct Options {
   boost::filesystem::path soundPath;
   bool threaded;
   utility::Verbosity verbosity;
+  std::list<std::string> players;
   std::string playerFile;
 
   void show_help(std::ostream&) const;

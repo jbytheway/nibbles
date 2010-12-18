@@ -72,7 +72,15 @@ UI::Impl::Impl(
   ) :
   io_(io),
   options_(options),
-  machine_(*this, *this, options.playerFile, gladeXml, fontPath, sounds)
+  machine_(
+    *this,
+    *this,
+    options.playerFile,
+    options.players,
+    gladeXml,
+    fontPath,
+    sounds
+  )
 {
   // Connect the message alert signals to our functions
   messageSignal_.connect(sigc::mem_fun(this, &Impl::writeMessage));

@@ -30,7 +30,8 @@ Options::Options(int const argc, char** const argv) :
   parser.addOption("sounds",      's', &soundPath);
   parser.addOption("threaded",    't', &threaded);
   parser.addOption("verbosity",   'v', &verbosity);
-  parser.addOption("player-file", 'y', &playerFile);
+  parser.addOption("players",     'y', &players, ",");
+  parser.addOption("player-file", 'Y', &playerFile);
 
   if (parser.parse(optionsFile, argc, argv)) {
     std::ostringstream message;
@@ -61,8 +62,14 @@ void Options::show_help(std::ostream& o) const
 "                      (default: directory of exe).\n"
 "  -t-, --no-threaded  Do not run multiple threads.  This harms performance\n"
 "                      but aids debugging.\n"
-"  -v, --verbosity VERB  Set message verbosity to VERB (default: info).\n"
-"Options also read from ~/.nibbles/gtk-congif\n";
+"  -v, --verbosity VERB\n"
+"                      Set message verbosity to VERB (default: info).\n"
+"  -y, --players P1,P2,...\n"
+"                      Automatically add given players to game on connect.\n"
+"  -Y, --player-file FILE\n"
+"                      Load / save player definitions from / to FILE\n"
+"                      (default: ~/.nibbles/players).\n"
+"Options also read from ~/.nibbles/gtk-config\n";
 }
 
 }}
