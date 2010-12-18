@@ -406,11 +406,6 @@ void Configuring::Impl::modifyLocalPlayer(
 
 void Configuring::Impl::connected()
 {
-  // If readiness is checked, need to tell server
-  if (readyCheck_->get_active()) {
-    auto const& client = parent_->state_cast<Connectedness const&>().client();
-    client->setReadiness(true);
-  }
   // If players to be added automatically, then add them
   auto const& players = parent_->context<Machine>().players();
   auto const& localPlayersByName = localPlayers().get<Active::NameTag>();
@@ -423,6 +418,11 @@ void Configuring::Impl::connected()
     } else {
       addPlayerToGame(*it);
     }
+  }
+  // If readiness is checked, need to tell server
+  if (readyCheck_->get_active()) {
+    auto const& client = parent_->state_cast<Connectedness const&>().client();
+    client->setReadiness(true);
   }
 }
 
