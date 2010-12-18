@@ -40,6 +40,10 @@ LevelDefinition classicLevel(
   std::vector<Position> starts(2);
   std::vector<Block> walls;
 
+  // Standard start locations
+  starts[0] = Position(Point(65,  7), Direction(Direction::down));
+  starts[1] = Position(Point(16, 46), Direction(Direction::up));
+
   switch (whichLevel)
   {
     case 0:
@@ -91,8 +95,6 @@ LevelDefinition classicLevel(
         walls.push_back(Block(i, 4, 1, 19));
         walls.push_back(Block(i, 31, 1, 19));
       }
-      starts[0] = Position(Point(65, 7), Direction(Direction::down));
-      starts[1] = Position(Point(16, 46), Direction(Direction::up));
       break;
     case 6:
       name = "Semi-permeable membrane";
@@ -100,8 +102,6 @@ LevelDefinition classicLevel(
       {
         walls.push_back(Block(40, i, 1, 1));
       }
-      starts[0] = Position(Point(65, 7), Direction(Direction::down));
-      starts[1] = Position(Point(16, 46), Direction(Direction::up));
       break;
     case 7:
       name = "Snake";
@@ -109,8 +109,6 @@ LevelDefinition classicLevel(
         walls.push_back(Block(i, 4, 1, 37));
       for (int i=20; i<=60; i+=20)
         walls.push_back(Block(i, 13, 1, 37));
-      starts[0] = Position(Point(65, 7), Direction(Direction::down));
-      starts[1] = Position(Point(16, 46), Direction(Direction::up));
       break;
     case 8:
       name = "Slant";
@@ -135,8 +133,6 @@ LevelDefinition classicLevel(
           walls.push_back(Block(j, i+1, 1, 1));
         }
       }
-      starts[0] = Position(Point(65, 7), Direction(Direction::down));
-      starts[1] = Position(Point(16, 46), Direction(Direction::up));
       break;
   }
 
@@ -148,6 +144,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
   std::string name;
   std::vector<Position> starts(2);
   std::vector<Block> walls;
+
   // Standard start locations
   starts[0] = Position(Point(70, 39), Direction(Direction::up));
   starts[1] = Position(Point(11, 14), Direction(Direction::down));
