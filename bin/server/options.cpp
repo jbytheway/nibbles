@@ -26,7 +26,7 @@ Options::Options(int argc, char const* const* const argv) :
 {
   std::string optionsFile =
     std::string(getenv("HOME"))+"/.nibbles/server-config";
-  LevelId::internal_type localStartLevel;
+  LevelId::internal_type localStartLevel = 0;
   optimal::OptionsParser parser;
   parser.addOption("tcp-addr",    'a', &tcpAddress);
   parser.addOption("level",       'b', &localStartLevel);
