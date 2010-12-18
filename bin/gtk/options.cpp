@@ -10,6 +10,7 @@ namespace nibbles { namespace gtk {
 
 Options::Options(int const argc, char** const argv) :
   address("127.0.0.1"),
+  connect(false),
   help(false),
   port(Network::defaultPort),
   protocol(client::Protocol::tcp),
@@ -20,6 +21,7 @@ Options::Options(int const argc, char** const argv) :
   std::string optionsFile = std::string(getenv("HOME"))+"/.nibbles/gtk-config";
   optimal::OptionsParser parser;
   parser.addOption("address",     'a', &address);
+  parser.addOption("connect",     'c', &connect);
   parser.addOption("font",        'f', &fontPath);
   parser.addOption("glade",       'g', &gladePath);
   parser.addOption("help",        'h', &help);
@@ -47,6 +49,7 @@ void Options::show_help(std::ostream& o) const
   o <<
 "Usage: nibbles-gtk [OPTIONS...]\n"
 "  -a,  --address ADD  Connect to server at ADD (default: 127.0.0.1).\n"
+"  -c,  --connect      Automatically try to connect on startup.\n"
 "  -f,  --font FILE    Use given ttf font for numbers\n"
 "                      (default: use Courier.ttf in directory of binary)\n"
 "  -g,  --glade PATH   Find UI .glade files at PATH\n"

@@ -14,6 +14,7 @@ struct Options {
   Options(int const argc, char** const argv);
 
   std::string address;
+  bool connect;
   boost::filesystem::path fontPath;
   boost::filesystem::path gladePath;
   bool help;

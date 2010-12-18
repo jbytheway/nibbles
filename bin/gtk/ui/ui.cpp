@@ -98,6 +98,9 @@ UI::Impl::Impl(
   levelDisplay_ = wLevelDisplay;
 
   machine_.initiate();
+  if (options.connect) {
+    machine_.process_event(events::Connect());
+  }
 }
 
 void UI::Impl::message(utility::Verbosity v, const std::string& message)
