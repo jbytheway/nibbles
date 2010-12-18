@@ -3,3 +3,20 @@
    Memcheck:Cond
    fun:_dl_relocate_object
 }
+{
+   Sound stuff
+   Memcheck:Cond
+   obj:/usr/lib64/libasound.so.2.0.0
+   fun:snd_pcm_dmix_open
+}
+{
+   GL stuff
+   Memcheck:Cond
+   obj:/usr/lib64/opengl/nvidia/lib/libGLcore.so.195.36.31
+}
+{
+   GL stuff
+   Memcheck:Value8
+   obj:/usr/lib64/opengl/nvidia/lib/libGLcore.so.195.36.31
+}
+
