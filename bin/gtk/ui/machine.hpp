@@ -148,30 +148,44 @@ class Active :
     class NameTag;
     class SequenceTag;
     typedef boost::multi_index_container<
-        RemotePlayer,
-        boost::multi_index::indexed_by<
-          boost::multi_index::ordered_unique<
-            BOOST_MULTI_INDEX_CONST_MEM_FUN(
-                IdedPlayer::base, const PlayerId&, get<id>
-              )
-          >,
-          boost::multi_index::ordered_unique<
-            boost::multi_index::tag<NameTag>,
-            BOOST_MULTI_INDEX_CONST_MEM_FUN(
-                IdedPlayer::base, const std::string&, get<name>
-              )
-          >,
-          boost::multi_index::sequenced<
-            boost::multi_index::tag<SequenceTag>
-          >
+      RemotePlayer,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<
+          BOOST_MULTI_INDEX_CONST_MEM_FUN(
+              IdedPlayer::base, const PlayerId&, get<id>
+            )
+        >,
+        boost::multi_index::ordered_unique<
+          boost::multi_index::tag<NameTag>,
+          BOOST_MULTI_INDEX_CONST_MEM_FUN(
+            IdedPlayer::base, const std::string&, get<name>
+          )
+        >,
+        boost::multi_index::sequenced<
+          boost::multi_index::tag<SequenceTag>
         >
-      > RemotePlayerContainer;
+      >
+    > RemotePlayerContainer;
     RemotePlayerContainer& remotePlayers() { return remotePlayers_; }
     RemotePlayerContainer const& remotePlayers() const {
       return remotePlayers_;
     }
-    std::vector<ControlledPlayer>& localPlayers() { return localPlayers_; }
-    std::vector<ControlledPlayer> const& localPlayers() const {
+    typedef boost::multi_index_container<
+      ControlledPlayer,
+      boost::multi_index::indexed_by<
+        boost::multi_index::sequenced<
+          boost::multi_index::tag<SequenceTag>
+        >,
+        boost::multi_index::ordered_unique<
+          boost::multi_index::tag<NameTag>,
+          BOOST_MULTI_INDEX_CONST_MEM_FUN(
+            Player, const std::string&, name
+          )
+        >
+      >
+    > LocalPlayerContainer;
+    LocalPlayerContainer& localPlayers() { return localPlayers_; }
+    LocalPlayerContainer const& localPlayers() const {
       return localPlayers_;
     }
     GameSettings const& settings() const { return *settings_; }
@@ -186,7 +200,7 @@ class Active :
     }
   private:
     RemotePlayerContainer remotePlayers_;
-    std::vector<ControlledPlayer> localPlayers_;
+    LocalPlayerContainer localPlayers_;
     boost::scoped_ptr<GameSettings> settings_;
     boost::scoped_ptr<HighScoreReport> highScoreReport_;
 };

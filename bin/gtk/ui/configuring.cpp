@@ -97,8 +97,12 @@ class Configuring::Impl {
 
     // Convinience functions
     Active::RemotePlayerContainer& remotePlayers();
-    std::vector<ControlledPlayer>& localPlayers();
-    ControlledPlayer* getCurrentPlayer();
+    Active::LocalPlayerContainer& localPlayers();
+    ControlledPlayer const* getCurrentPlayer();
+    void addPlayerToGame(Player const&);
+
+    template<typename F>
+    void modifyLocalPlayer(ControlledPlayer const&, F const&);
 
     // File access stuff
     void loadLocalPlayers();
@@ -115,8 +119,8 @@ class Configuring::Impl {
     bool isNameInUse(const std::string& name);
     void createPlayer();
     void deletePlayer();
-    void addPlayerToGame();
-    void removePlayerFromGame();
+    void addPlayerClicked();
+    void removePlayerClicked();
     void playerNameChanged();
     void colorChanged();
     void cancelNewKey();
@@ -263,8 +267,8 @@ Configuring::Impl::Impl(
   CONNECT_BUTTON(Connect, connect);
   CONNECT_BUTTON(Create, createPlayer);
   CONNECT_BUTTON(Delete, deletePlayer);
-  CONNECT_BUTTON(Add, addPlayerToGame);
-  CONNECT_BUTTON(Remove, removePlayerFromGame);
+  CONNECT_BUTTON(Add, addPlayerClicked);
+  CONNECT_BUTTON(Remove, removePlayerClicked);
   CONNECT_BUTTON(Up, setBinding<Command::up>);
   CONNECT_BUTTON(Down, setBinding<Command::down>);
   CONNECT_BUTTON(Left, setBinding<Command::left>);
@@ -352,21 +356,45 @@ Active::RemotePlayerContainer& Configuring::Impl::remotePlayers()
   return parent_->context<Active>().remotePlayers();
 }
 
-std::vector<ControlledPlayer>& Configuring::Impl::localPlayers()
+Active::LocalPlayerContainer& Configuring::Impl::localPlayers()
 {
   return parent_->context<Active>().localPlayers();
 }
 
-ControlledPlayer* Configuring::Impl::getCurrentPlayer()
+ControlledPlayer const* Configuring::Impl::getCurrentPlayer()
 {
   Gtk::TreeModel::iterator iter = playerCombo_->get_active();
   if (!iter)
     return NULL;
-  // TODO: Do we need a faster-than-linear implementation?
-  size_t index =
-    std::distance(playerComboListStore_->children().begin(), iter);
-  assert(index < localPlayers().size());
-  return &localPlayers()[index];
+  auto& localPlayersByName = localPlayers().get<Active::NameTag>();
+  std::string name = Glib::ustring((*iter)[playerComboColumns_.name_]);
+  auto it = localPlayersByName.find(name);
+  if (it == localPlayersByName.end()) {
+    NIBBLES_FATAL("mismatch in local players");
+  }
+  return &*it;
+}
+
+void Configuring::Impl::addPlayerToGame(Player const& player)
+{
+  if (auto const& client =
+      parent_->state_cast<Connectedness const&>().client()) {
+    client->addPlayer(player);
+  } else {
+    parent_->context<Machine>().messageHandler().message(
+      utility::Verbosity::error, "not connected"
+    );
+  }
+}
+
+template<typename F>
+void Configuring::Impl::modifyLocalPlayer(
+  ControlledPlayer const& player,
+  F const& f
+)
+{
+  auto it = localPlayers().iterator_to(player);
+  localPlayers().modify(it, f);
 }
 
 void Configuring::Impl::connected()
@@ -462,7 +490,7 @@ void Configuring::Impl::refreshLocalPlayers()
 {
   // Save the current player so we can put things back properly afterwards
   std::string currentName;
-  if (ControlledPlayer* currentPlayer = getCurrentPlayer())
+  if (ControlledPlayer const* currentPlayer = getCurrentPlayer())
     currentName = currentPlayer->get<name>();
 
   // Clear out the combo box
@@ -567,28 +595,36 @@ void Configuring::Impl::deletePlayer()
   NIBBLES_FATAL("not implemented");
 }
 
-void Configuring::Impl::addPlayerToGame()
+void Configuring::Impl::addPlayerClicked()
 {
-  Player* currentPlayer = getCurrentPlayer();
+  Player const* currentPlayer = getCurrentPlayer();
   if (!currentPlayer) {
     parent_->context<Machine>().messageHandler().message(
       utility::Verbosity::error, "no player selected"
     );
     return;
   }
-  if (auto const& client =
-      parent_->state_cast<Connectedness const&>().client()) {
-    client->addPlayer(*currentPlayer);
-  } else {
-    parent_->context<Machine>().messageHandler().message(
-      utility::Verbosity::error, "not connected"
-    );
-  }
+  addPlayerToGame(*currentPlayer);
 }
 
-void Configuring::Impl::removePlayerFromGame()
+void Configuring::Impl::removePlayerClicked()
 {
   NIBBLES_FATAL("not implemented");
+}
+
+namespace {
+  template<typename Field, typename Value>
+  struct SetFieldImpl {
+    public:
+      SetFieldImpl(Value const& v) : value_(v) {}
+      template<typename T>
+      void operator()(T& t) const { t.template get<Field>() = value_; }
+    private:
+      Value const& value_;
+  };
+
+  template<typename Field, typename Value>
+  SetFieldImpl<Field, Value> setField(Value const& v) { return {v}; }
 }
 
 void Configuring::Impl::playerNameChanged()
@@ -598,17 +634,17 @@ void Configuring::Impl::playerNameChanged()
     return;
   }
 
-  if (Player* currentPlayer = getCurrentPlayer()) {
-    currentPlayer->get<name>() = newName;
+  if (ControlledPlayer const* currentPlayer = getCurrentPlayer()) {
+    modifyLocalPlayer(*currentPlayer, setField<name>(newName));
     (*playerCombo_->get_active())[playerComboColumns_.name_] = newName;
   }
 }
 
 void Configuring::Impl::colorChanged()
 {
-  if (Player* currentPlayer = getCurrentPlayer()) {
-    currentPlayer->get<color>() =
-      ColorConverter::toColor(playerColor_->get_color());
+  if (ControlledPlayer const* currentPlayer = getCurrentPlayer()) {
+    auto newColor = ColorConverter::toColor(playerColor_->get_color());
+    modifyLocalPlayer(*currentPlayer, setField<color>(newColor));
   }
 }
 
@@ -655,9 +691,13 @@ template<int Direction>
 bool Configuring::Impl::newKey(GdkEventKey* event)
 {
   uint32_t keyval = event->keyval;
-  ControlledPlayer* player = getCurrentPlayer();
-  if (player)
-    player->get<controls>()[Direction] = keyval;
+  ControlledPlayer const* player = getCurrentPlayer();
+  if (player) {
+    // could avoid copying whole array in theory, but more code
+    auto controls = player->get<fields::controls>();
+    controls[Direction] = keyval;
+    modifyLocalPlayer(*player, setField<fields::controls>(controls));
+  }
   newKeyDialog_->hide();
   return false;
 }

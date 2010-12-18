@@ -76,7 +76,7 @@ class Playing::Impl {
 
     // convenience functions
     Active::RemotePlayerContainer const& remotePlayers() const;
-    std::vector<ControlledPlayer> const& localPlayers() const;
+    Active::LocalPlayerContainer const& localPlayers() const;
     GameSounds const& sounds() const;
     void redraw();
     void refreshScores();
@@ -306,7 +306,7 @@ Active::RemotePlayerContainer const& Playing::Impl::remotePlayers() const
   return parent_->context<Active>().remotePlayers();
 }
 
-std::vector<ControlledPlayer> const& Playing::Impl::localPlayers() const
+Active::LocalPlayerContainer const& Playing::Impl::localPlayers() const
 {
   return parent_->context<Active>().localPlayers();
 }
