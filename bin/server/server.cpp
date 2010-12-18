@@ -1,13 +1,13 @@
 #include "server.hpp"
 
-#include "signalcatcher.hpp"
-
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/archive/xml_iarchive.hpp>
+
+#include "signalcatcher.hpp"
 
 namespace nibbles { namespace server {
 
