@@ -62,7 +62,7 @@ class Server : public utility::MessageHandler, private boost::noncopyable
           >,
           boost::multi_index::hashed_unique<
             boost::multi_index::tag<NameTag>,
-            BOOST_MULTI_INDEX_CONST_MEM_FUN(Player, std::string, name)
+            BOOST_MULTI_INDEX_CONST_MEM_FUN(Player, std::string const&, name)
           >,
           boost::multi_index::hashed_non_unique<
             boost::multi_index::tag<ClientTag>,
