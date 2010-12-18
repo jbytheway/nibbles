@@ -262,7 +262,7 @@ void Server::netMessage(
 
 void Server::checkForGameStart()
 {
-  if (connectionPool_.empty() || players_.empty())
+  if (game_ || connectionPool_.empty() || players_.empty())
     return;
   typedef ConnectionPool::index<SequenceTag>::type Index;
   Index& conns = connectionPool_.get<SequenceTag>();
