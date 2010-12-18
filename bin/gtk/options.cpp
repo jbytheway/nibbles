@@ -9,13 +9,13 @@
 namespace nibbles { namespace gtk {
 
 Options::Options(int const argc, char** const argv) :
-  help(false),
-  verbosity(utility::Verbosity::info),
-  threaded(true),
-  playerFile(std::string(getenv("HOME"))+"/.nibbles/players"),
-  protocol(client::Protocol::tcp),
   address("127.0.0.1"),
-  port(Network::defaultPort)
+  help(false),
+  port(Network::defaultPort),
+  protocol(client::Protocol::tcp),
+  threaded(true),
+  verbosity(utility::Verbosity::info),
+  playerFile(std::string(getenv("HOME"))+"/.nibbles/players")
 {
   std::string optionsFile = std::string(getenv("HOME"))+"/.nibbles/gtk-config";
   optimal::OptionsParser parser;
@@ -25,10 +25,10 @@ Options::Options(int const argc, char** const argv) :
   parser.addOption("help",        'h', &help);
   parser.addOption("port",        'p', &port);
   parser.addOption("protocol",    'P', &protocol);
+  parser.addOption("sounds",      's', &soundPath);
   parser.addOption("threaded",    't', &threaded);
   parser.addOption("verbosity",   'v', &verbosity);
   parser.addOption("player-file", 'y', &playerFile);
-  parser.addOption("sounds",      's', &soundPath);
 
   if (parser.parse(optionsFile, argc, argv)) {
     std::ostringstream message;
@@ -54,11 +54,11 @@ void Options::show_help(std::ostream& o) const
 "  -h,  --help         Display this message.\n"
 "  -p,  --port PORT    Connect to server at port PORT (default: "+port+").\n"
 "  -P,  --protocol PR  Connect using protocol PR (default: TCP).\n"
+"  -s,  --sounds PATH   Directory in which sounds can be found\n"
+"                      (default: directory of exe).\n"
 "  -t-, --no-threaded  Do not run multiple threads.  This harms performance\n"
 "                      but aids debugging.\n"
 "  -v, --verbosity VERB  Set message verbosity to VERB (default: info).\n"
-"  -s, --sounds PATH   Directory in which sounds can be found\n"
-"                      (default: directory of exe).\n"
 "Options also read from ~/.nibbles/gtk-congif\n";
 }
 
