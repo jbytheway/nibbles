@@ -44,9 +44,6 @@ class UI::Impl :
 
     CrossThreadSignal<> disconnectSignal_;
     void disconnect();
-
-    Gtk::Window* playWindow_;
-    Gtk::DrawingArea* levelDisplay_;
 };
 
 UI::UI(
@@ -89,22 +86,6 @@ UI::Impl::Impl(
   disconnectSignal_.connect(sigc::mem_fun(this, &Impl::disconnect));
   // Detect termination so we can shut down the event loop
   machine_.terminating().connect(sigc::mem_fun(this, &Impl::shutdown));
-
-#define GET_WIDGET(type, name)                   \
-  Gtk::type* w##name = NULL;                     \
-  do {                                           \
-    gladeXml->get_widget(#name, w##name);        \
-    if (!w##name) {                              \
-      throw std::runtime_error("missing "#name); \
-    }                                            \
-  } while (false)
-
-  GET_WIDGET(Window, PlayWindow);
-  GET_WIDGET(DrawingArea, LevelDisplay);
-#undef GET_WIDGET
-
-  playWindow_ = wPlayWindow;
-  levelDisplay_ = wLevelDisplay;
 
   machine_.initiate();
   if (options.connect) {
