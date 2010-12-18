@@ -351,7 +351,7 @@ bool Playing::Impl::levelExposed(GdkEventExpose* event)
 {
   Glib::RefPtr<Gdk::Window> window = levelDisplay_->get_window();
 
-  if(window)
+  if (window)
   {
     double const width = levelDisplay_->get_width();
     double const height = levelDisplay_->get_height();
