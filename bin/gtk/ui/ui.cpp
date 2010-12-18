@@ -77,6 +77,7 @@ UI::Impl::Impl(
     *this,
     options.playerFile,
     options.players,
+    options.autoReady,
     gladeXml,
     fontPath,
     sounds

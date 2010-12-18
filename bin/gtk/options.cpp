@@ -14,6 +14,7 @@ Options::Options(int const argc, char** const argv) :
   help(false),
   port(Network::defaultPort),
   protocol(client::Protocol::tcp),
+  autoReady(false),
   threaded(true),
   verbosity(utility::Verbosity::info),
   playerFile(std::string(getenv("HOME"))+"/.nibbles/players")
@@ -27,6 +28,7 @@ Options::Options(int const argc, char** const argv) :
   parser.addOption("help",        'h', &help);
   parser.addOption("port",        'p', &port);
   parser.addOption("protocol",    'P', &protocol);
+  parser.addOption("ready",       'r', &autoReady);
   parser.addOption("sounds",      's', &soundPath);
   parser.addOption("threaded",    't', &threaded);
   parser.addOption("verbosity",   'v', &verbosity);
@@ -58,7 +60,8 @@ void Options::show_help(std::ostream& o) const
 "  -h,  --help         Display this message.\n"
 "  -p,  --port PORT    Connect to server at port PORT (default: "+port+").\n"
 "  -P,  --protocol PR  Connect using protocol PR (default: TCP).\n"
-"  -s,  --sounds PATH   Directory in which sounds can be found\n"
+"  -r,  --ready        Set ready automatically on start.\n"
+"  -s,  --sounds PATH  Directory in which sounds can be found\n"
 "                      (default: directory of exe).\n"
 "  -t-, --no-threaded  Do not run multiple threads.  This harms performance\n"
 "                      but aids debugging.\n"

@@ -61,6 +61,7 @@ class Machine : public sc::state_machine<Machine, Active> {
       ClientFactory& clientFactory,
       boost::filesystem::path playerFile,
       std::list<std::string> players,
+      bool autoReady,
       Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
       boost::filesystem::path const& fontPath,
       GameSounds const&
@@ -79,6 +80,9 @@ class Machine : public sc::state_machine<Machine, Active> {
     }
     std::list<std::string> const& players() const {
       return players_;
+    }
+    bool autoReady() const {
+      return autoReady_;
     }
     Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml() const {
       return gladeXml_;
@@ -99,6 +103,7 @@ class Machine : public sc::state_machine<Machine, Active> {
     ClientFactory& clientFactory_;
     boost::filesystem::path playerFile_;
     std::list<std::string> players_;
+    bool autoReady_;
     Glib::RefPtr<Gnome::Glade::Xml> gladeXml_;
     boost::filesystem::path fontPath_;
     GameSounds const& sounds_;

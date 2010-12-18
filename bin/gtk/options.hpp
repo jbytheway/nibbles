@@ -21,6 +21,7 @@ struct Options {
   bool help;
   uint16_t port;
   client::Protocol protocol;
+  bool autoReady;
   boost::filesystem::path soundPath;
   bool threaded;
   utility::Verbosity verbosity;

@@ -7,6 +7,7 @@ Machine::Machine(
   ClientFactory& clientFactory,
   boost::filesystem::path playerFile,
   std::list<std::string> players,
+  bool autoReady,
   Glib::RefPtr<Gnome::Glade::Xml> const& gladeXml,
   boost::filesystem::path const& fontPath,
   GameSounds const& sounds
@@ -15,6 +16,7 @@ Machine::Machine(
   clientFactory_(clientFactory),
   playerFile_(playerFile),
   players_(players),
+  autoReady_(autoReady),
   gladeXml_(gladeXml),
   fontPath_(fontPath),
   sounds_(sounds)

@@ -292,6 +292,13 @@ Configuring::Impl::Impl(
     sigc::mem_fun(this, &Impl::playerNameChanged)
   ));
 
+  // Set readiness check appriopriately
+  if (parent_->context<Machine>().autoReady()) {
+    readyCheck_->set_active(true);
+  } else {
+    readyCheck_->set_active(false);
+  }
+
   loadLocalPlayers();
 
   // Finally, show the GUI
@@ -669,9 +676,10 @@ void Configuring::Impl::cancelNewKey()
 void Configuring::Impl::readinessChange()
 {
   bool readiness = readyCheck_->get_active();
-  if (auto const& client =
-      parent_->state_cast<Connectedness const&>().client()) {
-    client->setReadiness(readiness);
+  if (auto* connectedness = parent_->state_cast<Connectedness const*>()) {
+    if (auto const client = connectedness->client()) {
+      client->setReadiness(readiness);
+    }
   }
 }
 
