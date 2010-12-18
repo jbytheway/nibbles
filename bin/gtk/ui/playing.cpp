@@ -482,11 +482,13 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
     NIBBLES_FATAL("couldn't begin drawing");
   }
 
-  if (true) // FIXME
-  {
-    double const width = glLevelDisplay_.get_width();
-    double const height = glLevelDisplay_.get_height();
+  double const width = glLevelDisplay_.get_width();
+  double const height = glLevelDisplay_.get_height();
+  glClear(GL_COLOR_BUFFER_BIT);
+  glViewport(0, 0, width, height);
 
+  if (level_)
+  {
     auto const& board = level_->get<fields::board>();
     auto const levelWidth = board.width();
     auto const levelHeight = board.height();
@@ -502,8 +504,6 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
     }
     double const left = -(visibleWidth-levelWidth)/2;
     double const top = -(visibleHeight-levelHeight)/2;
-    glClear(GL_COLOR_BUFFER_BIT);
-    glViewport(0, 0, width, height);
     cagoul::scoped::OrthographicProjection p(
       left, left+visibleWidth, top, top+visibleHeight, true
     );
@@ -658,6 +658,16 @@ bool Playing::Impl::glLevelExposed(GdkEventExpose* /*event*/)
       font_.Render(val.c_str(), length, pos);
       glScalef(1, -1, 1);
     }
+  } else {
+    // Level is not set; we make do with an all-black thing until it is
+    cagoul::scoped::OrthographicProjection p(0, 1, 0, 1);
+    glColor3f(0, 0, 0);
+    glBegin(GL_QUADS);
+      glVertex2f(0, 0);
+      glVertex2f(1, 0);
+      glVertex2f(1, 1);
+      glVertex2f(0, 1);
+    glEnd();
   }
 
   drawable->swap_buffers();
