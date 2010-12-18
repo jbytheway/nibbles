@@ -289,9 +289,16 @@ void Server::tick(uint32_t countdown, const boost::system::error_code& e)
     return;
   }
   if (pausing_) {
-    pausing_ = false;
-    paused_ = true;
-    return;
+    if (countdown) {
+      // During countdown to level start, pausing doesn't really pause, it
+      // cancels the countdown
+      countdown = 0;
+      pausing_ = false;
+    } else {
+      pausing_ = false;
+      paused_ = true;
+      return;
+    }
   }
   auto interval = game_->get<tickInterval>();
   gameTickTimer_.expires_from_now(interval);
