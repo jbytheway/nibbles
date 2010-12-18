@@ -257,6 +257,11 @@ Configuring::Impl::Impl(
   playerCombo_->set_model(playerComboListStore_);
   playerCombo_->pack_start(playerComboColumns_.name_);
 
+  // Clear the ready check (which might be set if we've just finished a game)
+  // Note that this should be done *before* the signal is connected to
+  // readyCheck below.
+  readyCheck_->set_active(false);
+
   // Connect signals from widgets to the UI
 #define CONNECT_BUTTON(buttonName, memFunName)       \
   uiConnections_.push_back(                          \
