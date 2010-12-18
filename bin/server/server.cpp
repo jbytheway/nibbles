@@ -128,6 +128,12 @@ void Server::deleteConnection(Connection* connection)
       "removed connection; "+
       boost::lexical_cast<std::string>(connectionPool_.size())+" remain"
     );
+  if (connectionPool_.empty() && game_) {
+    // No players left, so we should abort the game
+    scorer_.clear();
+    game_.reset();
+    gameTickTimer_.cancel();
+  }
 }
 
 void Server::sendToAll(const MessageBase& message)
