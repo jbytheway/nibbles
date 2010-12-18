@@ -50,7 +50,7 @@ void Game::start(const Players& p, GameEventHandler& handler) {
   BOOST_FOREACH(const IdedPlayer& player, p) {
     playerIds.push_back(player.get<id>());
   }
-  startLevel(get<settings>().get<level>(), handler);
+  startLevel(get<settings>().get<fields::startLevel>(), handler);
 }
 
 }

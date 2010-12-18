@@ -16,7 +16,7 @@ namespace nibbles {
 struct GameSettings :
   utility::DataClass<
     GameSettings,
-    LevelId, level,
+    LevelId, startLevel,
     boost::posix_time::time_duration, tickInterval,
     double, tickIntervalFactor,
     LifeCount, startLives,

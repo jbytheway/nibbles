@@ -13,7 +13,7 @@ namespace nibbles {
   (levelId)(levels)(max)(min)(name)(number)(pendingGrowth)\
   (player)(players)(playerScores)(point)(points)(position)(random)\
   (ready)(red)(score)(scores)(settings)\
-  (snakes)(startLength)(startLives)(starts)\
+  (snakes)(startLength)(startLevel)(startLives)(starts)\
   (states)(tickInterval)(tickIntervalFactor)(time)(totalScore)(value)(w)(x)(y)
 
 namespace fields {
