@@ -192,6 +192,7 @@ void Server::internalNetMessage(
   } else {
     message(utility::Verbosity::error, "add player failed; name or id in use");
   }
+  checkForGameStart();
 }
 
 template<>
