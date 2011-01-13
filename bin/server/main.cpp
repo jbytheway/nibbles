@@ -1,3 +1,5 @@
+#include <signal.h>
+
 #include <boost/asio.hpp>
 
 #include "server.hpp"
