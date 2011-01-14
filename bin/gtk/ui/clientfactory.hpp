@@ -4,7 +4,7 @@
 namespace nibbles { namespace gtk { namespace ui {
 
 struct ClientFactory {
-  virtual client::Client::Ptr makeClient() = 0;
+  virtual client::Client::Ptr makeClient(std::string const&) = 0;
 };
 
 }}}

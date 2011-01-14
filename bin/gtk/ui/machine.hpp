@@ -39,8 +39,12 @@ struct Message : public sc::event<Message<Type>> {
   nibbles::Message<Type> message;
 };
 
+struct Connect : public sc::event<Connect> {
+  Connect(std::string const& a) : address(a) {}
+  std::string address;
+};
+
 struct Terminate : public sc::event<Terminate> {};
-struct Connect : public sc::event<Connect> {};
 struct Connected : public sc::event<Connected> {};
 struct Disconnect : public sc::event<Disconnect> {};
 struct HighScoreOk : public sc::event<HighScoreOk> {};

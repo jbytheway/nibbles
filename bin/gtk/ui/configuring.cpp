@@ -44,6 +44,7 @@ class Configuring::Impl {
     // controls
     Gtk::Window* window_;
     Gtk::TextView* messageView_;
+    Gtk::Entry* serverAddressEntry_;
     Gtk::CheckButton* readyCheck_;
 
     // event handler connections
@@ -227,6 +228,7 @@ Configuring::Impl::Impl(
   // Store pointers to those widgets we need to access later
   window_ = wMainWindow;
   messageView_ = wMessageText;
+  serverAddressEntry_ = wServerAddressEntry;
   readyCheck_ = wReadyCheck;
   remotePlayerList_ = wRemotePlayerList;
   playerCombo_ = wPlayerCombo;
@@ -563,7 +565,9 @@ void Configuring::Impl::refreshLocalPlayer()
 void Configuring::Impl::connect()
 {
   // Crazy dangerous risking reentrancy madness
-  parent_->context<Machine>().process_event(events::Connect());
+  auto const buffer = serverAddressEntry_->get_buffer();
+  std::string const address(buffer->get_text());
+  parent_->context<Machine>().process_event(events::Connect(address));
 }
 
 void Configuring::Impl::windowClosed()

@@ -28,7 +28,7 @@ class UI::Impl :
 
     bool ended() { return machine_.ended(); }
     virtual void message(utility::Verbosity, const std::string& message);
-    virtual client::Client::Ptr makeClient();
+    virtual client::Client::Ptr makeClient(std::string const&);
   private:
     void shutdown();
 
@@ -89,7 +89,7 @@ UI::Impl::Impl(
 
   machine_.initiate();
   if (options.connect) {
-    machine_.process_event(events::Connect());
+    machine_.process_event(events::Connect(""));
   }
 }
 
@@ -100,12 +100,24 @@ void UI::Impl::message(utility::Verbosity v, const std::string& message)
   }
 }
 
-client::Client::Ptr UI::Impl::makeClient()
+client::Client::Ptr UI::Impl::makeClient(std::string const& address)
 {
+  auto ipAddress = options_.address;
+  auto port = options_.port;
+  if (!address.empty()) {
+    auto const colon = std::find(address.begin(), address.end(), ':');
+    if (colon == address.end()) {
+      ipAddress = address;
+    } else {
+      ipAddress.assign(address.begin(), colon);
+      std::string const portString(boost::next(colon), address.end());
+      port = boost::lexical_cast<uint16_t>(port);
+    }
+  }
   try {
     auto client =
       nibbles::client::Client::create(
-          io_, *this, options_.protocol, options_.address, options_.port
+          io_, *this, options_.protocol, ipAddress, port
         );
     client->messageSignal().connect(boost::ref(netMessageSignal_));
     client->terminateSignal().connect(boost::ref(disconnectSignal_));
