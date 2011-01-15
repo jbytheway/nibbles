@@ -8,7 +8,7 @@
 
 int main(int argc, char const* const* const argv)
 {
-  bool classic;
+  bool classic = false;
 
   optimal::OptionsParser parser;
   parser.addOption("classic", 'c', &classic);
