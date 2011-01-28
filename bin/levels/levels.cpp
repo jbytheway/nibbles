@@ -576,7 +576,9 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       starts[3] = Position(Point(63, 14), Direction(Direction::down));
       break;
     default:
-      name = "Chaos "+levelNumber;
+      std::ostringstream os;
+      os << "Chaos " << levelNumber;
+      name = os.str();
       int gap = 40 - levelNumber;
       if (gap < 1)
         gap = 1;
