@@ -8,7 +8,7 @@ void Game::startLevel(LevelId levelId, GameEventHandler& handler)
   assert(!levelDefs.empty());
   LevelId realLevelId =
     LevelId::fromInteger(std::min<size_t>(levelId, levelDefs.size()-1));
-  const LevelDefinition& levelDef = levelDefs[realLevelId];
+  const LevelDefinition& levelDef = levelDefs[realLevelId].realise();
   handler.startLevel(levelDef);
   get<level>() =
     Level(get<settings>(), levelDef, get<players>(), get<random>(), handler);

@@ -15,9 +15,12 @@ struct LevelDefinition :
     uint32_t, w,
     uint32_t, h,
     std::vector<Block>, blocks,
+    std::vector<std::pair<Block, double>>, randomBlocks,
     std::vector<Position>, starts
   > {
   NIBBLES_UTILITY_DATACLASS_CONSTRUCTOR(LevelDefinition)
+
+  LevelDefinition realise() const;
 };
 
 }

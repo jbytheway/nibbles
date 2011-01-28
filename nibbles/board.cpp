@@ -37,6 +37,7 @@ void Board::init(const LevelDefinition& definition)
   BOOST_FOREACH(const Block& wall, definition.get<blocks>()) {
     assign(wall, BoardState::wall);
   }
+  assert(definition.get<randomBlocks>().empty());
 }
 
 void Board::assign(const Block& block, const BoardState state)

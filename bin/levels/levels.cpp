@@ -1,6 +1,6 @@
 #include "levels.hpp"
 
-#include <random>
+#include <boost/optional.hpp>
 
 namespace nibbles { namespace levels {
 
@@ -10,6 +10,7 @@ LevelDefinition correction(
     LevelId id,
     std::string name,
     std::vector<Block>& walls,
+    boost::optional<Block>& randomBlock,
     std::vector<Position>& starts
   )
 {
@@ -26,7 +27,14 @@ LevelDefinition correction(
     walls[i] -= offset;
   }
 
-  return LevelDefinition(id, name, 80, 48, walls, starts);
+  std::vector<std::pair<Block, double>> randomBlocks;
+
+  if (randomBlock) {
+    *randomBlock -= offset;
+    randomBlocks.push_back({*randomBlock, 0.15});
+  }
+
+  return LevelDefinition(id, name, 80, 48, walls, randomBlocks, starts);
 }
 
 // TODO: when DataClass supports it, remove the wrapping of values by
@@ -39,6 +47,7 @@ LevelDefinition classicLevel(
   std::string name;
   std::vector<Position> starts(4);
   std::vector<Block> walls;
+  boost::optional<Block> randomBlock;
 
   // Standard start locations
   starts[0] = Position(Point(65,  7), Direction(Direction::down));
@@ -150,7 +159,7 @@ LevelDefinition classicLevel(
       break;
   }
 
-  return correction(levelNumber, name, walls, starts);
+  return correction(levelNumber, name, walls, randomBlock, starts);
 }
 
 LevelDefinition ultraLevel(LevelId levelNumber)
@@ -158,6 +167,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
   std::string name;
   std::vector<Position> starts(4);
   std::vector<Block> walls;
+  boost::optional<Block> randomBlock;
 
   // Standard start locations
   starts[0] = Position(Point(70, 39), Direction(Direction::up));
@@ -582,18 +592,9 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       int gap = 40 - levelNumber;
       if (gap < 1)
         gap = 1;
-      std::random_device device;
-      std::mt19937 random(device);
-      std::bernoulli_distribution dist(0.15);
 
-      for (int i=4+gap; i<=49-gap; i++)
-      {
-        for (int j=2+gap; j<=79-gap; j++)
-        {
-          if (dist(random))
-            walls.push_back(Block(j, i, 1, 1));
-        }
-      }
+      randomBlock = Block(2+gap, 4+gap, 77-2*gap, 45-2*gap);
+
       starts[0] = Position(Point(79, 4), Direction(Direction::down));
       starts[1] = Position(Point( 2, 49), Direction(Direction::up));
       starts[2] = Position(Point( 2, 4), Direction(Direction::down));
@@ -601,7 +602,7 @@ LevelDefinition ultraLevel(LevelId levelNumber)
       break;
   }
 
-  return correction(levelNumber, name, walls, starts);
+  return correction(levelNumber, name, walls, randomBlock, starts);
 }
 
 } // Anonymous namespace
