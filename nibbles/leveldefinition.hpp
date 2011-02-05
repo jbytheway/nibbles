@@ -1,6 +1,8 @@
 #ifndef NIBBLES__LEVELDEFINITION_HPP
 #define NIBBLES__LEVELDEFINITION_HPP
 
+#include <vector>
+
 #include <nibbles/block.hpp>
 #include <nibbles/levelid.hpp>
 #include <nibbles/position.hpp>
