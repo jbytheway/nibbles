@@ -36,7 +36,7 @@ struct Block :
       boost::random_access_traversal_tag
     > {
     friend class boost::iterator_core_access;
-    friend class Block;
+    friend struct Block;
     private:
       explicit iterator(const Block& b) :
         block(&b), point(b.get<min>()) {}
