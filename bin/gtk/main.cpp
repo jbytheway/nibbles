@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 
   auto gladeFile = gladeDir/"nibbles.glade";
   Glib::RefPtr<Gnome::Glade::Xml> gladeXml =
-    Gnome::Glade::Xml::create(gladeFile.file_string());
+    Gnome::Glade::Xml::create(gladeFile.string());
 
   nibbles::gtk::SoundService service;
   nibbles::gtk::GameSounds sounds(service, soundDir);

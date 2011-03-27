@@ -17,7 +17,7 @@ HighScoreManager::HighScoreManager(boost::filesystem::path const& path) :
     boost::filesystem::ifstream ifs(file_);
     if (!ifs.is_open()) {
       throw std::runtime_error(
-        "failed to open high scores "+file_.file_string()
+        "failed to open high scores "+file_.string()
       );
     }
     boost::archive::xml_iarchive ia(ifs);
@@ -59,7 +59,7 @@ void HighScoreManager::save() const
     boost::filesystem::ofstream ofs(tempFile);
     if (!ofs.is_open()) {
       throw std::runtime_error(
-        "failed to open temp high scores for saving at "+tempFile.file_string()
+        "failed to open temp high scores for saving at "+tempFile.string()
       );
     }
     boost::archive::xml_oarchive oa(ofs);
@@ -70,7 +70,7 @@ void HighScoreManager::save() const
   // (FIXME: fix with v3)
   //boost::filesystem::rename(tempFile, file_);
   if (0 != ::rename(
-      tempFile.file_string().c_str(), file_.file_string().c_str()
+      tempFile.c_str(), file_.c_str()
     )) {
     NIBBLES_FATAL("error renaming, errno=" << errno);
   }

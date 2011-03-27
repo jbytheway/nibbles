@@ -457,7 +457,8 @@ void Configuring::Impl::saveLocalPlayers()
   using namespace boost::filesystem;
   path playerFilePath(parent_->context<Machine>().playerFile());
   path playerFileDir = playerFilePath.branch_path();
-  path tempPlayerFilePath = playerFileDir/(playerFilePath.filename()+".new");
+  path tempPlayerFilePath =
+    playerFileDir/(playerFilePath.filename().string()+".new");
   if (!exists(playerFileDir)) {
     parent_->context<Machine>().messageHandler().message(
       utility::Verbosity::info,

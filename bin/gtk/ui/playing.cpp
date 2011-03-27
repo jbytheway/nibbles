@@ -151,7 +151,7 @@ Playing::Impl::Impl(
 ) :
   parent_(parent),
   window_(NULL),
-  font_(fontPath.file_string().c_str()),
+  font_(fontPath.c_str()),
   countdown_(0)
 {
   if (font_.Error()) {

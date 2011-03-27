@@ -35,7 +35,7 @@ Server::Server(
   boost::filesystem::ifstream ifs(levelsFile);
   if (!ifs.is_open()) {
     throw std::runtime_error(
-      "failed to open levelpack "+levelsFile.file_string()
+      "failed to open levelpack "+levelsFile.string()
     );
   }
   boost::archive::xml_iarchive ia(ifs);

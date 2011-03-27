@@ -111,9 +111,9 @@ PaSound::PaSound(
   handle_(std::move(handle))
 {
   info_.format = 0;
-  SNDFILE* sndfile = sf_open(path.file_string().c_str(), SFM_READ, &info_);
+  SNDFILE* sndfile = sf_open(path.c_str(), SFM_READ, &info_);
   if (!sndfile) {
-    throw std::runtime_error("open of '"+path.file_string()+"' failed");
+    throw std::runtime_error("open of '"+path.string()+"' failed");
   }
   size_t const numSamplesToRead = info_.channels*256;
   size_t numRead;
